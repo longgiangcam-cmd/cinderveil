@@ -134,6 +134,24 @@ textarea{width:100%;background:#0d0b09;color:var(--bone);border:1px solid var(--
 @keyframes fadein{from{opacity:0;letter-spacing:20px}}
 .shopi{display:flex;flex-direction:column;align-items:center;gap:4px}
 .price{font-size:13px;color:var(--gold)}
+
+.chip{display:inline-block;font-size:11px;padding:2px 7px;border-radius:99px;border:1px solid;white-space:nowrap;line-height:1.4}
+.chip.ok{color:#8fe08a;border-color:#2f6b2c;background:#13230f}.chip.part{color:#ffc76b;border-color:#7a5a1e;background:#2a1f0c}.chip.none{color:#a0938a;border-color:#3d342d;background:#16120f}
+.chip.nsfw{color:#ff8fbd;border-color:#8a2f57;background:#2a0f1c}.chip.safe{color:#8fc7ff;border-color:#2c4d6b;background:#0f1a26}.chip.opt{color:#888;border-color:#333;background:#141414}
+.legend{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.prog{background:#100d0b;border:1px solid var(--line);border-radius:10px;padding:10px;margin:8px 0}
+.pbar2{height:8px;border-radius:4px;background:#2a231c;overflow:hidden;margin:6px 0 4px}.pbar2 i{display:block;height:100%;background:linear-gradient(90deg,#b8621f,#ffb267)}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.fbtn{border:1px solid var(--line);border-radius:10px;padding:10px;background:#16120e;text-align:left;display:flex;flex-direction:column}.fbtn span{font-size:12px;color:var(--dim)}
+.gcard{display:block;width:100%;text-align:left;border:1px solid var(--line);border-radius:10px;padding:10px;margin:7px 0;background:#16120e}.gcard.done{border-color:#2f6b2c}.okc{color:#8fe08a}
+.slotrow{border-left:4px solid #3d342d}.slotrow.st-ok{border-left-color:#4caf50}.slotrow.st-part{border-left-color:#e0a030}.slotrow.st-none{border-left-color:#6b5f55}.slotrow.st-opt{border-left-color:#333}
+.slotrow.is-nsfw{background:linear-gradient(90deg,#1d0e15,#120f0c 60%)}
+.sname{font-weight:700;font-size:14.5px}
+.sbtn{flex:1;padding:9px 6px;border-radius:8px;border:1px solid var(--line);background:#1b1611;font-size:13.5px}.sbtn.add{border-color:var(--ember);color:var(--ember2)}
+.tw{position:relative;flex:none}.tw span{position:absolute;left:3px;top:3px;background:rgba(0,0,0,.75);font-size:10px;padding:0 5px;border-radius:5px}
+.tabs{display:flex;gap:5px;overflow-x:auto;margin:10px 0 4px;padding-bottom:2px}.tab{flex:none;padding:7px 11px;border-radius:99px;border:1px solid var(--line);font-size:13px;background:#16120e}.tab.on{border-color:var(--ember);color:var(--ember2);background:#2a1a0e}
+.nbox{border:1px solid #8a2f57;background:#2a0f1c;color:#ffd0e2;border-radius:10px;padding:10px;font-size:13px;margin:8px 0}.sbox{border:1px solid #2c4d6b;background:#0f1a26;color:#cfe6ff;border-radius:10px;padding:10px;font-size:13px;margin:8px 0}
+.plabel{margin:10px 0 4px;font-weight:700;font-size:13px}
 </style></head><body>
 <div id="app">
  <section class="scr" id="title"><img class="bgimg" alt=""><div class="shade"></div>
@@ -518,6 +536,23 @@ function addSlot(id,g,n,pos,note){SLOTS.push({id,g,n,pos,neg:NEG,note:note||""})
   window.SLOT_SIZE=sz;
 })();
 const SLOT_BY_ID = Object.fromEntries(SLOTS.map(s=>[s.id,s]));
+// ---- Phân loại ô: số ảnh đề xuất, cần tag 18+, tùy chọn, ưu tiên ----
+(function annotate(){
+  const PRI=new Set(["bg_title","bg_hub","bg_act1","sera_portrait","sera_ev0","en_hollow","en_ghoul","en_ratgirl","en_crow","en_arachne","en_gwyndra","mira_portrait","mira_ev0"]);
+  for(const s of SLOTS){const id=s.id;s.rec=1;s.nsfw=false;s.opt=false;s.pri=PRI.has(id);
+    if(/_s1_(love|dark)$/.test(id)){s.rec=4;s.nsfw=true;}
+    else if(/_s2$/.test(id)){s.rec=2;s.nsfw=true;}
+    else if(/^(mon_|boss_)/.test(id)){s.rec=3;s.nsfw=true;}
+    else if(["ev_spring","ev_feast","ev_chained"].includes(id)){s.rec=3;s.nsfw=true;}
+    else if(id==="ev_ghost"){s.rec=2;}
+    else if(id==="end_harem"||id==="end_nyx"){s.rec=2;}
+    else if(id.startsWith("card_")){s.opt=true;}
+    s.note=s.nsfw?"Phần prompt đã có bố cục sẵn. Bạn dán thêm tag 18+ của mình vào CUỐI ô Dương (Positive).":"Ảnh an toàn — dùng nguyên prompt, không cần thêm tag 18+.";
+    if(id.endsWith("_portrait"))s.note+=" Dùng ở sảnh, hội thoại và danh sách nữ nhân; nhiều ảnh thì chọn ngẫu nhiên.";
+    if(id==="ev_spring")s.note+=" Ô này dùng chung cho mọi nàng: nên thêm tag ngoại hình của nàng bạn muốn.";
+    if(s.opt)s.note="Tùy chọn — ảnh minh họa nhỏ trên lá bài. Không có cũng không sao.";
+    if(s.rec>1)s.note+=` Nên có ${s.rec} ảnh theo thứ tự diễn biến — ảnh tự chuyển theo lời thoại.`;}
+})();
 
 // ===================== CINDERVEIL — ENGINE =====================
 const $=s=>document.querySelector(s);
@@ -859,31 +894,71 @@ function showSettings(){const b=modal("Cài đặt",`<button class="btn" id="tw"
   $("#tw").onclick=()=>{M.set.tw=M.set.tw?0:1;save();showSettings();};$("#rst").onclick=()=>{if(confirm("Xóa toàn bộ tiến trình? (ảnh vẫn giữ)")){M=newMeta();R=null;save();closeModal();showHub();}};}
 
 // ---------------- STUDIO ----------------
-let studioGroup=null;
-async function showStudio(){const groups=[...new Set(SLOTS.map(s=>s.g))];const tot=[...DB.idx.values()].reduce((a,b)=>a+b.length,0);
-  let est="";try{const e=await navigator.storage.estimate();est=` · dùng ${(e.usage/1048576).toFixed(0)} MB`;}catch(e){}
-  const b=modal("Xưởng Ảnh",`<div class="muted">${tot} ảnh${est}. Ảnh được nén & lưu trong máy. Mỗi ô có thể có nhiều ảnh: cảnh nhiều ảnh sẽ tự chuyển theo lời thoại, ảnh chân dung/kẻ thù sẽ chọn ngẫu nhiên.</div>
-   <div class="row" style="flex-wrap:wrap;gap:6px;margin:8px 0"><button class="pill" id="exp">⇩ Xuất gói ảnh</button><button class="pill" id="imp">⇧ Nhập gói ảnh</button><button class="pill" id="ptx">⇩ Danh sách prompt .txt</button></div>
-   <div class="muted">Prompt dùng cho WAI-Illustrious v17 · kích thước gợi ý ${SLOT_SIZE} · Euler a, 28 bước, CFG 5–6.</div>
-   ${groups.map(g=>{const ss=SLOTS.filter(s=>s.g===g);const n=ss.reduce((a,s)=>a+DB.ids(s.id).length,0);return `<button class="btn" data-g="${esc(g)}"><b>${esc(g)}</b><small>${ss.length} ô · ${n} ảnh · ${ss.filter(s=>!DB.ids(s.id).length).length} ô trống</small></button>`;}).join("")}`);
-  b.querySelectorAll("[data-g]").forEach(el=>el.onclick=()=>studioG(el.dataset.g));
+let studioView={g:null,f:"all"};
+function slotState(s){const n=DB.ids(s.id).length;return n>=s.rec?"ok":n>0?"part":"none";}
+function stChip(s){const n=DB.ids(s.id).length,st=slotState(s);
+  if(s.opt&&!n)return `<span class="chip opt">Tùy chọn</span>`;
+  return st==="ok"?`<span class="chip ok">✓ Đủ ${n}/${s.rec}</span>`:st==="part"?`<span class="chip part">◐ Thiếu ${n}/${s.rec}</span>`:`<span class="chip none">○ Trống 0/${s.rec}</span>`;}
+function progOf(list){const req=list.filter(s=>!s.opt);const ok=req.filter(s=>slotState(s)==="ok").length;return {ok,tot:req.length,pct:req.length?Math.round(100*ok/req.length):100};}
+const FILTERS={all:["Tất cả",()=>true],todo:["Chưa đủ",s=>!s.opt&&slotState(s)!=="ok"],pri:["⭐ Làm trước",s=>s.pri],nsfw:["🔞 Cần tag 18+",s=>s.nsfw],safe:["Ảnh thường",s=>!s.nsfw&&!s.opt]};
+async function showStudio(){studioView.g=null;const groups=[...new Set(SLOTS.map(s=>s.g))];const tot=[...DB.idx.values()].reduce((a,b)=>a+b.length,0);const P=progOf(SLOTS);
+  let est="";try{const e=await navigator.storage.estimate();est=` · ${(e.usage/1048576).toFixed(0)} MB`;}catch(e){}
+  const b=modal("Xưởng Ảnh",`<div class="prog"><div class="row" style="justify-content:space-between"><b>Tiến độ chung</b><span>${P.ok}/${P.tot} ô đủ ảnh</span></div><div class="pbar2"><i style="width:${P.pct}%"></i></div><div class="muted" style="font-size:12px">${tot} ảnh đã nạp${est} · Ô “Thẻ bài” là tùy chọn, không tính vào tiến độ.</div></div>
+   <div class="legend"><span class="chip ok">✓ Đủ</span><span class="chip part">◐ Thiếu</span><span class="chip none">○ Trống</span><span class="chip nsfw">🔞 Cần tag 18+</span><span class="chip safe">Ảnh thường</span></div>
+   <div class="muted" style="margin:10px 0 4px">Xem nhanh</div>
+   <div class="fgrid">${Object.entries(FILTERS).filter(([k])=>k!=="all").map(([k,[n,fn]])=>`<button class="fbtn" data-f="${k}"><b>${n}</b><span>${SLOTS.filter(fn).length} ô</span></button>`).join("")}</div>
+   <div class="muted" style="margin:12px 0 4px">Theo nhóm</div>
+   ${groups.map(g=>{const ss=SLOTS.filter(s=>s.g===g);const p=progOf(ss);const nn=ss.filter(s=>s.nsfw).length;const done=p.ok===p.tot&&p.tot>0;
+     return `<button class="gcard ${done?"done":""}" data-g="${esc(g)}"><div class="row" style="justify-content:space-between"><b>${esc(g)}</b><span class="${done?"okc":""}">${ss[0].opt?"Tùy chọn":`${p.ok}/${p.tot}`}${done?" ✓":""}</span></div>
+       <div class="pbar2"><i style="width:${ss[0].opt?Math.round(100*ss.filter(s=>DB.ids(s.id).length).length/ss.length):p.pct}%"></i></div>
+       <div class="muted" style="font-size:12px">${ss.length} ô${nn?` · <span style="color:#ff8fbd">🔞 ${nn} ô cần tag 18+</span>`:" · toàn ảnh thường"}</div></button>`;}).join("")}
+   <div class="muted" style="margin:14px 0 4px">Sao lưu & prompt</div>
+   <div class="row" style="flex-wrap:wrap;gap:6px"><button class="pill" id="exp">⇩ Xuất gói ảnh</button><button class="pill" id="imp">⇧ Nhập gói ảnh</button><button class="pill" id="ptx">⇩ Tất cả prompt .txt</button></div>
+   <div class="muted" style="margin-top:8px;font-size:12px">WAI-Illustrious v17 · ${SLOT_SIZE} · Euler a, 28 bước, CFG 5–6.</div>`);
+  b.querySelectorAll("[data-g]").forEach(el=>el.onclick=()=>{studioView={g:el.dataset.g,f:"all"};studioG();});
+  b.querySelectorAll("[data-f]").forEach(el=>el.onclick=()=>{studioView={g:null,f:el.dataset.f};studioG();});
   $("#exp").onclick=async()=>{toast("Đang đóng gói…");download(await exportPack(),"cinderveil_anh.cvpk");};
   $("#imp").onclick=()=>pickFiles(false,async fs=>{try{const n=await importPack(fs[0],(a,t)=>toast(`Nhập ${a}/${t}`));toast("Đã nhập "+n+" ảnh");showStudio();}catch(e){toast(""+e);}},".cvpk,application/octet-stream,*/*");
-  $("#ptx").onclick=()=>{const t=SLOTS.map(s=>`### [${s.id}] ${s.g} — ${s.n}${s.note?"\n# "+s.note:""}\nPOSITIVE: ${s.pos}\nNEGATIVE: ${s.neg}\n`).join("\n");download(new Blob([t],{type:"text/plain"}),"cinderveil_prompts.txt");};}
+  $("#ptx").onclick=()=>{const t=SLOTS.map(s=>`### [${s.id}] ${s.g} — ${s.n}\n# ${s.nsfw?"[CẦN THÊM TAG 18+ VÀO CUỐI POSITIVE]":"[ẢNH THƯỜNG]"} · Nên có ${s.rec} ảnh${s.opt?" (tùy chọn)":""}\nPOSITIVE: ${s.pos}\nNEGATIVE: ${s.neg}\n`).join("\n");download(new Blob([t],{type:"text/plain"}),"cinderveil_prompts.txt");};}
 function pickFiles(multi,cb,accept="image/*"){const i=document.createElement("input");i.type="file";i.accept=accept;i.multiple=multi;i.onchange=()=>{if(i.files.length)cb([...i.files]);};i.click();}
-function studioG(g){studioGroup=g;const ss=SLOTS.filter(s=>s.g===g);
-  const b=modal(g,`<button class="pill" id="back">← Nhóm khác</button>`+ss.map(s=>{const ids=DB.ids(s.id);return `<div class="slotrow" data-s="${s.id}"><div class="row"><div style="flex:1"><b>${esc(s.n)}</b><div class="muted" style="font-size:11px">${s.id} · ${ids.length} ảnh</div></div><button class="pill" data-p="${s.id}">Prompt</button><button class="pill" style="color:var(--ember2);border-color:var(--ember)" data-a="${s.id}">+ Ảnh</button></div>
-    <div class="thumbs">${ids.map(id=>`<img data-id="${id}" data-v="${id}">`).join("")}</div></div>`;}).join(""));
+function slotCard(s){const ids=DB.ids(s.id),st=s.opt&&!ids.length?"opt":slotState(s);
+  return `<div class="slotrow st-${st} ${s.nsfw?"is-nsfw":""}"><div class="row" style="align-items:flex-start"><div style="flex:1;min-width:0"><div class="sname">${s.pri?"⭐ ":""}${esc(s.n)}</div>
+    <div class="row" style="flex-wrap:wrap;gap:4px;margin-top:4px">${stChip(s)}${s.nsfw?`<span class="chip nsfw">🔞 Cần tag 18+</span>`:s.opt?"":`<span class="chip safe">Ảnh thường</span>`}</div>
+    <div class="muted" style="font-size:11px;margin-top:3px">${s.id}${!studioView.g?" · "+esc(s.g):""}</div></div></div>
+   <div class="row" style="gap:6px;margin-top:8px"><button class="sbtn" data-p="${s.id}">📋 Prompt</button><button class="sbtn add" data-a="${s.id}">＋ Thêm ảnh</button></div>
+   ${ids.length?`<div class="thumbs">${ids.map((id,i)=>`<div class="tw"><img data-id="${id}" data-v="${id}"><span>${i+1}</span></div>`).join("")}</div>`:""}</div>`;}
+function studioG(){const v=studioView;let ss=SLOTS.filter(s=>(!v.g||s.g===v.g)&&FILTERS[v.f][1](s));
+  const title=v.g||FILTERS[v.f][0];const P=progOf(v.g?SLOTS.filter(s=>s.g===v.g):ss);
+  const tabs=v.g?`<div class="tabs">${["all","todo","nsfw","safe"].map(k=>`<button class="tab ${v.f===k?"on":""}" data-t="${k}">${FILTERS[k][0]}</button>`).join("")}</div>`:"";
+  const b=modal(title,`<button class="pill" id="back">← Xưởng Ảnh</button>
+   ${v.g&&!ss[0]?.opt?`<div class="prog"><div class="row" style="justify-content:space-between"><span>Tiến độ nhóm</span><b>${P.ok}/${P.tot}</b></div><div class="pbar2"><i style="width:${P.pct}%"></i></div></div>`:""}
+   ${tabs}${ss.length?ss.map(slotCard).join(""):`<p class="muted" style="text-align:center;padding:30px 0">Không còn ô nào ở mục này 🎉</p>`}`);
   lazyThumbs(b);$("#back").onclick=showStudio;
-  b.querySelectorAll("[data-a]").forEach(el=>el.onclick=()=>pickFiles(true,async fs=>{await importFiles(el.dataset.a,fs,(a,t)=>toast(`Đang xử lý ${a}/${t}…`,4000));toast("Đã thêm "+fs.length+" ảnh");studioG(g);}));
+  b.querySelectorAll("[data-t]").forEach(el=>el.onclick=()=>{studioView.f=el.dataset.t;studioG();});
+  b.querySelectorAll("[data-a]").forEach(el=>el.onclick=()=>pickFiles(true,async fs=>{await importFiles(el.dataset.a,fs,(a,t)=>toast(`Đang xử lý ${a}/${t}…`,4000));toast("Đã thêm "+fs.length+" ảnh");const sc=$("#mbody").scrollTop;studioG();$("#mbody").scrollTop=sc;}));
   b.querySelectorAll("[data-p]").forEach(el=>el.onclick=()=>promptView(el.dataset.p));
   b.querySelectorAll("[data-v]").forEach(el=>el.onclick=()=>imgView(el.dataset.v));}
-function promptView(id){const s=SLOT_BY_ID[id];const b=modal("Prompt · "+s.n,`${s.note?`<div class="pill" style="margin-bottom:8px;color:#ff9cc3">${esc(s.note)}</div>`:""}<div class="muted">Dương (Positive)</div><textarea rows="8" id="pp">${esc(s.pos)}</textarea><button class="btn" id="cp">Sao chép Positive</button>
-  <div class="muted">Âm (Negative)</div><textarea rows="5" id="pn">${esc(s.neg)}</textarea><button class="btn" id="cn">Sao chép Negative</button><div class="muted">Kích thước: ${SLOT_SIZE}</div><button class="btn main" id="bk">← Quay lại</button>`);
-  const cp=t=>{(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast("Đã sao chép"),()=>{toast("Giữ và chọn văn bản để sao chép");});};
-  $("#cp").onclick=()=>cp(s.pos);$("#cn").onclick=()=>cp(s.neg);$("#bk").onclick=()=>studioG(studioGroup||s.g);}
-async function imgView(id){const b=modal("Ảnh",`<img id="iv" style="width:100%;border-radius:8px"><button class="btn" id="dl">Xóa ảnh này</button><button class="btn main" id="bk">← Quay lại</button>`);await IMG.set($("#iv"),await IMG.url(id));
-  $("#dl").onclick=async()=>{if(!confirm("Xóa ảnh?"))return;await DB.del(id);studioG(studioGroup);};$("#bk").onclick=()=>studioG(studioGroup);}
+function promptView(id){const s=SLOT_BY_ID[id];const n=DB.ids(id).length;
+  const b=modal("Prompt",`<div class="sname" style="font-size:16px">${esc(s.n)}</div><div class="row" style="flex-wrap:wrap;gap:4px;margin:6px 0">${stChip(s)}${s.nsfw?`<span class="chip nsfw">🔞 Cần tag 18+</span>`:`<span class="chip safe">Ảnh thường</span>`}</div>
+   <div class="${s.nsfw?"nbox":"sbox"}">${s.nsfw?"<b>🔞 Ô này cần bạn tự thêm tag người lớn.</b><br>":"<b>✓ Không cần thêm tag 18+.</b><br>"}${esc(s.note)}</div>
+   <div class="plabel">① Dương (Positive)${s.nsfw?' — <span style="color:#ff8fbd">dán tag 18+ của bạn vào cuối</span>':""}</div><textarea rows="7" readonly>${esc(s.pos)}${s.nsfw?", ":""}</textarea><button class="btn" id="cp">Sao chép Positive</button>
+   <div class="plabel">② Âm (Negative) — dùng nguyên, không sửa</div><textarea rows="4" readonly>${esc(s.neg)}</textarea><button class="btn" id="cn">Sao chép Negative</button>
+   <div class="muted">Kích thước: ${SLOT_SIZE} · Nên có ${s.rec} ảnh${s.rec>1?" (theo thứ tự)":""} · Hiện có ${n}</div>
+   <button class="btn main" id="ad">＋ Thêm ảnh vào ô này</button><button class="btn" id="bk">← Quay lại</button>`);
+  const cp=t=>{(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast("Đã sao chép"),()=>toast("Giữ và chọn văn bản để sao chép"));};
+  $("#cp").onclick=()=>cp(s.pos+(s.nsfw?", ":""));$("#cn").onclick=()=>cp(s.neg);
+  $("#ad").onclick=()=>pickFiles(true,async fs=>{await importFiles(id,fs,(a,t)=>toast(`Đang xử lý ${a}/${t}…`,4000));toast("Đã thêm "+fs.length+" ảnh");promptView(id);});
+  $("#bk").onclick=()=>studioView.g||studioView.f!=="all"?studioG():showStudio();}
+async function imgView(id){const slot=id.split("#")[0];const ids=DB.ids(slot);const k=ids.indexOf(id);
+  const b=modal(`Ảnh ${k+1}/${ids.length}`,`<img id="iv" style="width:100%;border-radius:8px"><div class="row" style="gap:6px"><button class="btn ${k>0?"":"dis"}" id="mvl" style="text-align:center">◀ Lên trước</button><button class="btn ${k<ids.length-1?"":"dis"}" id="mvr" style="text-align:center">Ra sau ▶</button></div><button class="btn" id="dl">🗑 Xóa ảnh này</button><button class="btn main" id="bk">← Quay lại</button>`);
+  await IMG.set($("#iv"),await IMG.url(id));
+  const swap=async j=>{await reorder(slot,k,j);imgView(ids[j]);};
+  $("#mvl").onclick=()=>swap(k-1);$("#mvr").onclick=()=>swap(k+1);
+  $("#dl").onclick=async()=>{if(!confirm("Xóa ảnh?"))return;await DB.del(id);studioG();};$("#bk").onclick=()=>studioG();}
+// đổi thứ tự: thứ tự = sắp theo id, nên đổi id bằng cách ghi lại 2 bản ghi
+async function reorder(slot,a,b){const ids=DB.ids(slot);const ia=ids[a],ib=ids[b];if(!ia||!ib)return;
+  const ra=await DB.getRec(ia),rb=await DB.getRec(ib),ta=await DB.get(ia,true),tb=await DB.get(ib,true);
+  await DB.put({id:ia,slot,blob:rb.blob},tb);await DB.put({id:ib,slot,blob:ra.blob},ta);IMG.drop(ia);IMG.drop(ib);}
 
 // ---------------- BOOT ----------------
 async function boot(){load();try{await DB.open();await DB.loadIndex();}catch(e){toast("Không mở được bộ nhớ ảnh");}
