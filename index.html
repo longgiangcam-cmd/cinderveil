@@ -539,7 +539,8 @@ const SLOT_BY_ID = Object.fromEntries(SLOTS.map(s=>[s.id,s]));
 // ---- Phân loại ô: số ảnh đề xuất, cần tag 18+, tùy chọn, ưu tiên ----
 (function annotate(){
   const PRI=new Set(["bg_title","bg_hub","bg_act1","sera_portrait","sera_ev0","en_hollow","en_ghoul","en_ratgirl","en_crow","en_arachne","en_gwyndra","mira_portrait","mira_ev0"]);
-  for(const s of SLOTS){const id=s.id;s.rec=1;s.nsfw=false;s.opt=false;s.pri=PRI.has(id);
+  for(const s of SLOTS){const id=s.id;s.big=s.g==='Bối cảnh'||s.g==='Kết thúc';s.rec=1;s.nsfw=false;s.opt=false;s.pri=PRI.has(id);
+    if(/_end$/.test(id))s.big=true;
     if(/_s1_(love|dark)$/.test(id)){s.rec=4;s.nsfw=true;}
     else if(/_s2$/.test(id)){s.rec=2;s.nsfw=true;}
     else if(/^(mon_|boss_)/.test(id)){s.rec=3;s.nsfw=true;}
@@ -547,6 +548,7 @@ const SLOT_BY_ID = Object.fromEntries(SLOTS.map(s=>[s.id,s]));
     else if(id==="ev_ghost"){s.rec=2;}
     else if(id==="end_harem"||id==="end_nyx"){s.rec=2;}
     else if(id.startsWith("card_")){s.opt=true;}
+    if(s.nsfw)s.big=true;
     s.note=s.nsfw?"Phần prompt đã có bố cục sẵn. Bạn dán thêm tag 18+ của mình vào CUỐI ô Dương (Positive).":"Ảnh an toàn — dùng nguyên prompt, không cần thêm tag 18+.";
     if(id.endsWith("_portrait"))s.note+=" Dùng ở sảnh, hội thoại và danh sách nữ nhân; nhiều ảnh thì chọn ngẫu nhiên.";
     if(id==="ev_spring")s.note+=" Ô này dùng chung cho mọi nàng: nên thêm tag ngoại hình của nàng bạn muốn.";
@@ -575,6 +577,7 @@ const DB={db:null,idx:new Map(),
   put(rec,th){return new Promise((res,rej)=>{const t=DB.db.transaction(["img","thumb"],"readwrite");t.objectStore("img").put(rec);t.objectStore("thumb").put({id:rec.id,blob:th});t.oncomplete=()=>{if(!DB.idx.has(rec.slot))DB.idx.set(rec.slot,[]);const a=DB.idx.get(rec.slot);if(!a.includes(rec.id))a.push(rec.id);a.sort();res();};t.onerror=()=>rej(t.error);});},
   get(id,thumb){return new Promise(res=>{const r=DB.tx(thumb?"thumb":"img").get(id);r.onsuccess=()=>res(r.result&&r.result.blob);r.onerror=()=>res(null);});},
   getRec(id){return new Promise(res=>{const r=DB.tx("img").get(id);r.onsuccess=()=>res(r.result);r.onerror=()=>res(null);});},
+  clearAll(){return new Promise(res=>{const t=DB.db.transaction(["img","thumb"],"readwrite");t.objectStore("img").clear();t.objectStore("thumb").clear();t.oncomplete=()=>{DB.idx.clear();for(const u of IMG.cache.values())URL.revokeObjectURL(u);IMG.cache.clear();res();};t.onerror=()=>res();});},
   del(id){return new Promise(res=>{const t=DB.db.transaction(["img","thumb"],"readwrite");t.objectStore("img").delete(id);t.objectStore("thumb").delete(id);t.oncomplete=()=>{for(const a of DB.idx.values()){const i=a.indexOf(id);if(i>=0)a.splice(i,1);}IMG.drop(id);res();};});},
 };
 const IMG={cache:new Map(),max:48,
@@ -592,19 +595,23 @@ const IMG={cache:new Map(),max:48,
 };
 async function processFile(file){
   let bmp;try{bmp=await createImageBitmap(file);}catch(e){const u=URL.createObjectURL(file);const im=new Image();im.src=u;await im.decode();bmp=im;}
-  const mk=(max,q)=>{const s=Math.min(1,max/Math.max(bmp.width,bmp.height));const w=Math.round(bmp.width*s),h=Math.round(bmp.height*s);
-    const c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(bmp,0,0,w,h);
-    return new Promise(r=>c.toBlob(b=>{c.width=c.height=0;r(b);},"image/jpeg",q));};
-  const full=await mk(1600,.88),th=await mk(480,.8);if(bmp.close)bmp.close();return {full,th};
+  const W=bmp.width||bmp.naturalWidth,H=bmp.height||bmp.naturalHeight;
+  const mk=(max,type,q)=>{const s=Math.min(1,max/Math.max(W,H));const w=Math.round(W*s),h=Math.round(H*s);
+    const c=document.createElement("canvas");c.width=w;c.height=h;const g=c.getContext("2d");g.imageSmoothingEnabled=true;g.imageSmoothingQuality="high";g.drawImage(bmp,0,0,w,h);
+    return new Promise(r=>c.toBlob(b=>{c.width=c.height=0;r(b);},type,q));};
+  // Giữ NGUYÊN file gốc nếu không quá lớn — không nén lại
+  const okType=/^image\/(jpeg|png|webp)$/.test(file.type);
+  const full=(okType&&Math.max(W,H)<=2600&&file.size<=8e6)?file:await mk(2600,"image/jpeg",.95);
+  const th=await mk(640,"image/jpeg",.86);if(bmp.close)bmp.close();return {full,th,w:W,h:H};
 }
-async function importFiles(slot,files,onp){let n=0;for(const f of files){const {full,th}=await processFile(f);
-  const id=slot+"#"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);await DB.put({id,slot,blob:full},th);n++;onp&&onp(n,files.length);}}
-async function exportPack(){const items=[],blobs=[];for(const [slot,ids] of DB.idx){for(const id of ids){const r=await DB.getRec(id);const t=await DB.get(id,true);if(!r)continue;items.push({id,slot,a:r.blob.size,b:t?t.size:0});blobs.push(r.blob);if(t)blobs.push(t);}}
+async function importFiles(slot,files,onp){let n=0;for(const f of files){const {full,th,w,h}=await processFile(f);
+  const id=slot+"#"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);await DB.put({id,slot,blob:full,w,h,v:2},th);n++;onp&&onp(n,files.length);}}
+async function exportPack(){const items=[],blobs=[];for(const [slot,ids] of DB.idx){for(const id of ids){const r=await DB.getRec(id);const t=await DB.get(id,true);if(!r)continue;items.push({id,slot,a:r.blob.size,b:t?t.size:0,t:r.blob.type,w:r.w,h:r.h,v:r.v});blobs.push(r.blob);if(t)blobs.push(t);}}
   const head=new TextEncoder().encode(JSON.stringify({v:1,items}));const len=new Uint32Array([head.length]);
   return new Blob([new TextEncoder().encode("CVPK"),len,head,...blobs],{type:"application/octet-stream"});}
 async function importPack(file,onp){const buf=await file.arrayBuffer();const mg=new TextDecoder().decode(buf.slice(0,4));if(mg!=="CVPK")throw "Sai định dạng gói";
   const len=new Uint32Array(buf.slice(4,8))[0];const head=JSON.parse(new TextDecoder().decode(buf.slice(8,8+len)));let off=8+len,n=0;
-  for(const it of head.items){const a=new Blob([buf.slice(off,off+it.a)],{type:"image/jpeg"});off+=it.a;const b=new Blob([buf.slice(off,off+it.b)],{type:"image/jpeg"});off+=it.b;await DB.put({id:it.id,slot:it.slot,blob:a},b);n++;onp&&onp(n,head.items.length);}return n;}
+  for(const it of head.items){const a=new Blob([buf.slice(off,off+it.a)],{type:it.t||"image/jpeg"});off+=it.a;const b=new Blob([buf.slice(off,off+it.b)],{type:"image/jpeg"});off+=it.b;await DB.put({id:it.id,slot:it.slot,blob:a,w:it.w,h:it.h,v:it.v},b);n++;onp&&onp(n,head.items.length);}return n;}
 function download(blob,name){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},4000);}
 
 // ---------------- SAVE ----------------
@@ -778,7 +785,7 @@ function stsHTML(st,blk){const L=[];if(blk)L.push(`<span class="st b">🛡${blk}
   for(const k in st)if(st[k])L.push(`<span class="st ${["s","v","w","bl"].includes(k)?k:"o"}">${nm[k]||k} ${st[k]}</span>`);return `<div class="sts">${L.join("")}</div>`;}
 async function renderCombat(full){const s=$("#combat");
   if(full){s.querySelector(".enemies").innerHTML=C.en.map(e=>`<div class="en" data-u="${e.u}"><div class="ef"><img alt=""><div class="intent"></div></div><div class="en-n">${esc(e.d.n)}</div><div class="bar"><i></i><span></span></div><div class="esx"></div></div>`).join("");
-    s.querySelectorAll(".en").forEach(el=>{const e=C.en.find(x=>x.u==el.dataset.u);IMG.slotRand("en_"+e.id,true).then(u=>{const im=el.querySelector("img");if(u)IMG.set(im,u);else{im.remove();el.querySelector(".ef").classList.add("empty");el.querySelector(".ef").insertAdjacentHTML("beforeend",`<span style="padding:6px">${esc(e.d.n)}<br>[en_${e.id}]</span>`);}});
+    s.querySelectorAll(".en").forEach(el=>{const e=C.en.find(x=>x.u==el.dataset.u);IMG.slotRand("en_"+e.id,false).then(u=>{const im=el.querySelector("img");if(u)IMG.set(im,u);else{im.remove();el.querySelector(".ef").classList.add("empty");el.querySelector(".ef").insertAdjacentHTML("beforeend",`<span style="padding:6px">${esc(e.d.n)}<br>[en_${e.id}]</span>`);}});
       el.onclick=()=>onEnemyTap(e);});}
   C.en.forEach(e=>{const el=s.querySelector(`.en[data-u="${e.u}"]`);if(!el)return;el.classList.toggle("dead",e.hp<=0);el.classList.toggle("tg",!!C.sel&&needT(C.sel)&&e.hp>0);
     const it=el.querySelector(".intent");it.outerHTML=intentHTML(e)||'<div class="intent"></div>';el.querySelector(".bar i").style.width=(100*Math.max(0,e.hp)/e.max)+"%";el.querySelector(".bar span").textContent=`${Math.max(0,e.hp)}/${e.max}${e.blk?" 🛡"+e.blk:""}`;el.querySelector(".bar").classList.toggle("blk",e.blk>0);el.querySelector(".esx").innerHTML=stsHTML(e.st);});
@@ -913,13 +920,14 @@ async function showStudio(){studioView.g=null;const groups=[...new Set(SLOTS.map
        <div class="pbar2"><i style="width:${ss[0].opt?Math.round(100*ss.filter(s=>DB.ids(s.id).length).length/ss.length):p.pct}%"></i></div>
        <div class="muted" style="font-size:12px">${ss.length} ô${nn?` · <span style="color:#ff8fbd">🔞 ${nn} ô cần tag 18+</span>`:" · toàn ảnh thường"}</div></button>`;}).join("")}
    <div class="muted" style="margin:14px 0 4px">Sao lưu & prompt</div>
-   <div class="row" style="flex-wrap:wrap;gap:6px"><button class="pill" id="exp">⇩ Xuất gói ảnh</button><button class="pill" id="imp">⇧ Nhập gói ảnh</button><button class="pill" id="ptx">⇩ Tất cả prompt .txt</button></div>
-   <div class="muted" style="margin-top:8px;font-size:12px">WAI-Illustrious v17 · ${SLOT_SIZE} · Euler a, 28 bước, CFG 5–6.</div>`);
+   <div class="row" style="flex-wrap:wrap;gap:6px"><button class="pill" id="exp">⇩ Xuất gói ảnh</button><button class="pill" id="imp">⇧ Nhập gói ảnh</button><button class="pill" id="ptx">⇩ Tất cả prompt .txt</button><button class="pill" id="wipe" style="color:#ff8a7a;border-color:#7d2626">🗑 Xóa toàn bộ ảnh</button></div>
+   <div class="muted" style="margin-top:8px;font-size:12px">WAI-Illustrious v17 · vẽ ${SLOT_SIZE} · Euler a, 28 bước, CFG 5–6 · upscale RealESRGAN anime: 2× cho cảnh full màn hình (🔞, nền, kết thúc), 1.5× cho ô còn lại. Game giữ nguyên ảnh gốc, không nén lại.</div>`);
   b.querySelectorAll("[data-g]").forEach(el=>el.onclick=()=>{studioView={g:el.dataset.g,f:"all"};studioG();});
   b.querySelectorAll("[data-f]").forEach(el=>el.onclick=()=>{studioView={g:null,f:el.dataset.f};studioG();});
   $("#exp").onclick=async()=>{toast("Đang đóng gói…");download(await exportPack(),"cinderveil_anh.cvpk");};
   $("#imp").onclick=()=>pickFiles(false,async fs=>{try{const n=await importPack(fs[0],(a,t)=>toast(`Nhập ${a}/${t}`));toast("Đã nhập "+n+" ảnh");showStudio();}catch(e){toast(""+e);}},".cvpk,application/octet-stream,*/*");
-  $("#ptx").onclick=()=>{const t=SLOTS.map(s=>`### [${s.id}] ${s.g} — ${s.n}\n# ${s.nsfw?"[CẦN THÊM TAG 18+ VÀO CUỐI POSITIVE]":"[ẢNH THƯỜNG]"} · Nên có ${s.rec} ảnh${s.opt?" (tùy chọn)":""}\nPOSITIVE: ${s.pos}\nNEGATIVE: ${s.neg}\n`).join("\n");download(new Blob([t],{type:"text/plain"}),"cinderveil_prompts.txt");};}
+  $("#wipe").onclick=async()=>{if(!confirm("Xóa TOÀN BỘ ảnh trong game? Không thể hoàn tác (trừ khi bạn đã xuất gói ảnh)."))return;await DB.clearAll();toast("Đã xóa toàn bộ ảnh");showStudio();};
+  $("#ptx").onclick=()=>{const t=SLOTS.map(s=>`### [${s.id}] ${s.g} — ${s.n}\n# ${s.nsfw?"[CẦN THÊM TAG 18+ VÀO CUỐI POSITIVE]":"[ẢNH THƯỜNG]"} · Nên có ${s.rec} ảnh · upscale ${s.big?"2×":"1.5×"}${s.opt?" (tùy chọn)":""}\nPOSITIVE: ${s.pos}\nNEGATIVE: ${s.neg}\n`).join("\n");download(new Blob([t],{type:"text/plain"}),"cinderveil_prompts.txt");};}
 function pickFiles(multi,cb,accept="image/*"){const i=document.createElement("input");i.type="file";i.accept=accept;i.multiple=multi;i.onchange=()=>{if(i.files.length)cb([...i.files]);};i.click();}
 function slotCard(s){const ids=DB.ids(s.id),st=s.opt&&!ids.length?"opt":slotState(s);
   return `<div class="slotrow st-${st} ${s.nsfw?"is-nsfw":""}"><div class="row" style="align-items:flex-start"><div style="flex:1;min-width:0"><div class="sname">${s.pri?"⭐ ":""}${esc(s.n)}</div>
@@ -943,7 +951,7 @@ function promptView(id){const s=SLOT_BY_ID[id];const n=DB.ids(id).length;
    <div class="${s.nsfw?"nbox":"sbox"}">${s.nsfw?"<b>🔞 Ô này cần bạn tự thêm tag người lớn.</b><br>":"<b>✓ Không cần thêm tag 18+.</b><br>"}${esc(s.note)}</div>
    <div class="plabel">① Dương (Positive)${s.nsfw?' — <span style="color:#ff8fbd">dán tag 18+ của bạn vào cuối</span>':""}</div><textarea rows="7" readonly>${esc(s.pos)}${s.nsfw?", ":""}</textarea><button class="btn" id="cp">Sao chép Positive</button>
    <div class="plabel">② Âm (Negative) — dùng nguyên, không sửa</div><textarea rows="4" readonly>${esc(s.neg)}</textarea><button class="btn" id="cn">Sao chép Negative</button>
-   <div class="muted">Kích thước: ${SLOT_SIZE} · Nên có ${s.rec} ảnh${s.rec>1?" (theo thứ tự)":""} · Hiện có ${n}</div>
+   <div class="muted">Vẽ ${SLOT_SIZE} → upscale <b>${s.big?"2× (1664×2432)":"1.5× (1248×1824)"}</b> · Nên có ${s.rec} ảnh${s.rec>1?" (theo thứ tự)":""} · Hiện có ${n}</div>
    <button class="btn main" id="ad">＋ Thêm ảnh vào ô này</button><button class="btn" id="bk">← Quay lại</button>`);
   const cp=t=>{(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast("Đã sao chép"),()=>toast("Giữ và chọn văn bản để sao chép"));};
   $("#cp").onclick=()=>cp(s.pos+(s.nsfw?", ":""));$("#cn").onclick=()=>cp(s.neg);
@@ -951,17 +959,21 @@ function promptView(id){const s=SLOT_BY_ID[id];const n=DB.ids(id).length;
   $("#bk").onclick=()=>studioView.g||studioView.f!=="all"?studioG():showStudio();}
 async function imgView(id){const slot=id.split("#")[0];const ids=DB.ids(slot);const k=ids.indexOf(id);
   const b=modal(`Ảnh ${k+1}/${ids.length}`,`<img id="iv" style="width:100%;border-radius:8px"><div class="row" style="gap:6px"><button class="btn ${k>0?"":"dis"}" id="mvl" style="text-align:center">◀ Lên trước</button><button class="btn ${k<ids.length-1?"":"dis"}" id="mvr" style="text-align:center">Ra sau ▶</button></div><button class="btn" id="dl">🗑 Xóa ảnh này</button><button class="btn main" id="bk">← Quay lại</button>`);
-  await IMG.set($("#iv"),await IMG.url(id));
+  await IMG.set($("#iv"),await IMG.url(id));const rec=await DB.getRec(id);
+  $("#iv").insertAdjacentHTML("afterend",rec&&rec.v===2?`<div class="muted" style="margin:4px 0">${rec.w}×${rec.h} · ${(rec.blob.size/1048576).toFixed(1)} MB · ảnh gốc</div>`:`<div class="nbox">⚠ Ảnh này nạp từ bản cũ nên đã bị nén. Hãy xóa và nạp lại file gốc để nét hơn.</div>`);
   const swap=async j=>{await reorder(slot,k,j);imgView(ids[j]);};
   $("#mvl").onclick=()=>swap(k-1);$("#mvr").onclick=()=>swap(k+1);
   $("#dl").onclick=async()=>{if(!confirm("Xóa ảnh?"))return;await DB.del(id);studioG();};$("#bk").onclick=()=>studioG();}
 // đổi thứ tự: thứ tự = sắp theo id, nên đổi id bằng cách ghi lại 2 bản ghi
 async function reorder(slot,a,b){const ids=DB.ids(slot);const ia=ids[a],ib=ids[b];if(!ia||!ib)return;
   const ra=await DB.getRec(ia),rb=await DB.getRec(ib),ta=await DB.get(ia,true),tb=await DB.get(ib,true);
-  await DB.put({id:ia,slot,blob:rb.blob},tb);await DB.put({id:ib,slot,blob:ra.blob},ta);IMG.drop(ia);IMG.drop(ib);}
+  await DB.put({...rb,id:ia,slot},tb);await DB.put({...ra,id:ib,slot},ta);IMG.drop(ia);IMG.drop(ib);}
 
 // ---------------- BOOT ----------------
-async function boot(){load();try{await DB.open();await DB.loadIndex();}catch(e){toast("Không mở được bộ nhớ ảnh");}
+async function boot(){load();try{await DB.open();
+    // Bản ảnh v2: xóa 1 lần toàn bộ ảnh cũ (đã bị nén) để nạp lại ảnh gốc
+    if(localStorage.getItem("cv_imgver")!=="2"){await DB.clearAll();localStorage.setItem("cv_imgver","2");setTimeout(()=>toast("Đã xóa toàn bộ ảnh cũ. Hãy nạp lại ảnh gốc trong Xưởng Ảnh.",4000),600);}
+    await DB.loadIndex();}catch(e){toast("Không mở được bộ nhớ ảnh");}
   try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist();}catch(e){}
   const t=$("#title");for(let i=0;i<14;i++){const e=document.createElement("i");e.className="ember";e.style.left=rnd(2,98)+"%";e.style.setProperty("--dx",rnd(-60,60)+"px");e.style.animationDuration=rnd(6,13)+"s";e.style.animationDelay=(-rnd(0,12))+"s";t.appendChild(e);}
   await bgSet("title","bg_title");show("title");
