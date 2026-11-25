@@ -471,6 +471,28 @@ const UPGRADES = {
  energy:{n:"Ngọn Lửa Trong Tim",d:"+1 Năng Lượng lượt đầu mỗi trận",max:1,cost:[400]},
 };
 
+// ---------- CẢNH NHIỀU NÀNG ----------
+// Mở ở sảnh (mục Nữ Nhân) khi mọi nàng đã có cảnh thân mật riêng và thiện cảm ≥ 60.
+// Dòng "@id:..." = lời của nàng đó.
+const DUOS = {
+ duo_sera_elis:{n:"Hai Ngọn Nến",h:["sera","elis"],comp:"sitting together, holding hands, blush, looking at viewer",env:"bonfire, candles, ruined shrine, night",
+  lines:["~Đêm ấy, Elise mang nến đến bên lò lửa. Seraphine nghiêng đầu lắng nghe tiếng bước chân nàng.","@elis:Tôi… tôi nghe nói chị cũng chờ người ấy mỗi đêm.","@sera:Ta không thấy được em. Lại gần đây, để ta biết em trông thế nào.","~Bàn tay Seraphine lần theo gương mặt đỏ bừng của Elise. Rồi cả hai cùng quay về phía ngươi.","@sera:Đêm nay, đừng bắt ai trong bọn ta phải chờ nữa.","~Ánh lửa và ánh nến hòa làm một, ấm áp đến tận khi trời sáng."]},
+ duo_brun_morw:{n:"Kiếm Và Mực",h:["brun","morw"],comp:"face-to-face, rivalry, blush, glaring, kiss",env:"library, bookshelves, candles, night",
+  lines:["~Brunhild và Morwen cãi nhau đã ba ngày — về chuyện ai được ngồi cạnh ngươi bên lò lửa.","@morw:Hiệp sĩ cứng nhắc như cô thì biết gì về chuyện chiều chuộng?","@brun:Còn hơn một mụ phù thủy chỉ biết đọc sách.","~Cuộc cãi vã kết thúc theo cách không ai ngờ: Morwen kéo cổ áo Brunhild và hôn nàng.","@morw:…Thấy chưa? Cô cũng đâu cứng nhắc lắm.","@brun:Im đi. Và… làm lại lần nữa. Lần này để hắn xem."]},
+ duo_mira_elis:{n:"Món Quà Hồ Ly",h:["mira","elis"],comp:"hug from behind, teasing, embarrassed, blush, nightgown, looking at viewer",env:"merchant tent, lantern light, night",
+  lines:["~Mira bày ra một bộ áo ngủ mỏng như sương, nháy mắt với Elise.","@mira:Hàng hiếm đấy, nữ tu. Thử đi, miễn phí — chỉ một đêm thôi.","@elis:Tôi… tôi không thể mặc thứ này trước mặt người ấy…","@mira:Thì ta mặc cùng. Hai người xấu hổ cùng nhau thì đỡ xấu hổ hơn, đúng không~?","~Chiếc đuôi cáo quấn lấy eo Elise, kéo nàng ngã vào lòng Mira — ngay trước mắt ngươi."]},
+ duo_brun_sera:{n:"Người Gác Lửa",h:["brun","sera"],comp:"undressing armor, gentle, blush, sitting, looking at viewer",env:"bonfire, ruined shrine, ash, night",
+  lines:["~Brunhild đứng gác bên lò lửa suốt đêm. Seraphine khẽ gọi nàng lại gần.","@sera:Cô gác ngọn lửa của ta. Để ta sưởi ấm cho người gác lửa một lần.","@brun:Ta… không quen được người khác chăm sóc.","~Seraphine tháo từng mảnh giáp của Brunhild, chậm rãi, dịu dàng như tháo băng một vết thương.","~Rồi cả hai cùng đưa tay về phía ngươi."]},
+ duo_morw_nyx:{n:"Nghi Thức Kép",h:["morw","nyx"],comp:"magic circle, glowing runes, seductive smile, embrace, looking at viewer",env:"dream, throne of bones, purple mist, abyss",
+  lines:["~Trong giấc mơ, Morwen tìm đến ngai xương của Nyx.","@nyx:Một phù thủy dám bước vào cõi mộng của ta? Gan đấy.","@morw:Ta đến để học. Và ta nghe nói người cũng để ý hắn.","~Vòng rune tím và đôi cánh đêm khép lại quanh cả ba. Bóng tối ngọt như rượu.","@nyx:Bài học đầu tiên, phù thủy: ở đây, không ai cần phải giữ ý."]},
+ duo_mira_brun:{n:"Cược Rượu",h:["mira","brun"],comp:"drunk, blush, holding cup, laughing, leaning on another, looking at viewer",env:"tavern, wine barrel, candles, night",
+  lines:["~Mira lôi ra một vò rượu cũ, thách Brunhild uống thi.","@mira:Ai say trước phải làm theo lời người thắng. Cả đêm.","@brun:Ta là Cận Vệ Sói. Ta chưa từng thua.","~Nửa vò sau, Brunhild đỏ bừng mặt mà vẫn không chịu thua. Mira cũng thế.","@mira:…Hòa nhé? Vậy cả hai cùng làm theo lời… hắn."]},
+ trio_fire:{n:"Lò Lửa Ba Người",h:["sera","elis","brun"],comp:"sharing blanket, sitting close, blush, smile, looking at viewer",env:"bonfire, ruined shrine, snow, night",
+  lines:["~Đêm đông lạnh nhất của Vực Thẳm. Ba người phụ nữ cùng ngồi quanh lò lửa, chung một tấm chăn.","@elis:Chật quá… nhưng ấm.","@brun:Đừng đẩy. Ta đã nhường chỗ gần hắn nhất rồi đấy.","@sera:Không ai phải nhường cả. Đêm nay, ngọn lửa đủ cho tất cả chúng ta.","~Tiếng cười, tiếng thở và tiếng lửa tí tách hòa vào nhau đến tận sáng."]},
+ trio_abyss:{n:"Yến Tiệc Vực Thẳm",h:["morw","nyx","mira"],comp:"banquet, wine glass, seductive smile, lying on bed, looking at viewer",env:"dream, purple candles, black roses, abyss",
+  lines:["~Nyx mở một yến tiệc trong mộng. Khách mời: một phù thủy và một hồ ly.","@mira:Ta đến vì đồ ăn miễn phí thôi nhé… ơ, sao ai cũng nhìn ta?","@morw:Vì cô là món tráng miệng, hồ ly.","@nyx:Và vị khách danh dự đến rồi kìa.","~Rượu tím, nến đen, và ba nụ cười cùng hướng về phía ngươi."]},
+};
+
 // ===================== Ô ẢNH & PROMPT =====================
 const HERO_ENV = {
   sera:"bonfire, ruined shrine, ash, embers, night",
@@ -509,9 +531,9 @@ function addSlot(id,g,n,pos,note){SLOTS.push({id,g,n,pos,neg:NEG,note:note||""})
     addSlot(hid+"_ev0",g,h.n+" — Gặp gỡ",[Q,h.tags,"cowboy shot, looking at viewer",env,STYLE].join(", "));
     addSlot(hid+"_ev1",g,h.n+" — Thân thiết",[Q,h.tags,"close-up, blush, looking at viewer, soft smile",env,STYLE].join(", "));
     addSlot(hid+"_ev2",g,h.n+" — Ngã rẽ",[Q,h.tags,"dramatic angle, emotional, reaching towards viewer",env,STYLE].join(", "));
-    addSlot(hid+"_s1_love",g,h.n+" — "+h.s1.love.n+" (Tình)",[Q,MC,duo,"romantic, blush, embrace, looking at another, soft lighting, night",env,STYLE].join(", "),"Cảnh thân mật — thêm tag nhạy cảm của bạn. Thêm nhiều ảnh: ảnh tự chuyển theo lời thoại.");
-    addSlot(hid+"_s1_dark",g,h.n+" — "+h.s1.dark.n+" (Sa ngã)",[Q,MC,duo,"dark aura, purple lighting, corruption, glowing eyes, seductive smile",env,STYLE].join(", "),"Cảnh thân mật — thêm tag nhạy cảm của bạn. Thêm nhiều ảnh: ảnh tự chuyển theo lời thoại.");
-    addSlot(hid+"_s2",g,h.n+" — "+h.s2.n,[Q,MC,duo,"kiss, hand on another's chest, glowing magic sigil, light particles",env,STYLE].join(", "),"Có thể thêm tag nhạy cảm.");
+    addSlot(hid+"_s1_love",g,h.n+" — "+h.s1.love.n+" (Tình)",[Q,h.tags,"pov, looking at viewer, romantic, blush, soft smile, lying, reaching towards viewer, soft lighting, night",env,STYLE].join(", "),"Cảnh thân mật — thêm tag nhạy cảm của bạn. Thêm nhiều ảnh: ảnh tự chuyển theo lời thoại.");
+    addSlot(hid+"_s1_dark",g,h.n+" — "+h.s1.dark.n+" (Sa ngã)",[Q,h.tags,"pov, looking at viewer, dark aura, purple lighting, corruption, glowing eyes, seductive smile, half-closed eyes",env,STYLE].join(", "),"Cảnh thân mật — thêm tag nhạy cảm của bạn. Thêm nhiều ảnh: ảnh tự chuyển theo lời thoại.");
+    addSlot(hid+"_s2",g,h.n+" — "+h.s2.n,[Q,h.tags,"pov, looking at viewer, incoming kiss, hand on own chest, glowing magic sigil, light particles",env,STYLE].join(", "),"Có thể thêm tag nhạy cảm.");
     addSlot(hid+"_end",g,h.n+" — Kết thúc",[Q,h.tags,"smile, happy, sunrise, light particles, peaceful",env,STYLE].join(", "));
   }
   for(const [id,e] of Object.entries(ENEMIES)){
@@ -519,15 +541,15 @@ function addSlot(id,g,n,pos,note){SLOTS.push({id,g,n,pos,neg:NEG,note:note||""})
     addSlot("en_"+id,g,e.n,[Q,e.tags.replace("1girl, ","1girl, solo, "),"full body, battle stance, looking at viewer, menacing",STYLE].join(", "));
   }
   for(const [id,s] of Object.entries(MON_SCENES)){
-    addSlot(id,"Cảnh quái nữ / boss",ENEMIES[s.who].n+" — "+s.n,[Q,MC,ENEMIES[s.who].tags,"blush, seductive smile, looking at another, intimate",STYLE].join(", "),"Cảnh thân mật — thêm tag nhạy cảm. Nhiều ảnh = chuyển theo lời.");
+    addSlot(id,"Cảnh quái nữ / boss",ENEMIES[s.who].n+" — "+s.n,[Q,ENEMIES[s.who].tags.replace("1girl, ","1girl, solo, "),"pov, looking at viewer, blush, seductive smile",STYLE].join(", "),"Cảnh thân mật — thêm tag nhạy cảm. Nhiều ảnh = chuyển theo lời.");
   }
   for(const ev of EVENTS){ addSlot("evt_"+ev.id,"Sự kiện",ev.n,[Q,EVT_TAGS[ev.id]||"no humans, scenery",STYLE].join(", ")); }
-  addSlot("ev_spring","Cảnh sự kiện","Suối Hơi Nước (cùng nữ nhân)",[Q,MC,"1girl, mature female, onsen, steam, wet hair, partially submerged, blush, night, cave, lanterns",STYLE].join(", "),"Thêm tag nhân vật bạn muốn (ví dụ của Seraphine/Brunhild…) + tag nhạy cảm.");
-  addSlot("ev_ghost","Cảnh sự kiện","Cô Dâu Hồn Ma",[Q,MC,EVT_TAGS.ghost.replace("crying","hug, tears, smile"),STYLE].join(", "));
-  addSlot("ev_feast","Cảnh sự kiện","Đêm Hoan Lạc",[Q,MC,EVT_TAGS.feast,"harem, surrounded, wine, blush",STYLE].join(", "),"Thêm tag nhạy cảm.");
-  addSlot("ev_chained","Cảnh sự kiện","Món Nợ Chiến Binh",[Q,MC,EVT_TAGS.chained.replace("chained, shackles, ","").replace("defiant","against wall, kiss, smirk"),STYLE].join(", "));
+  addSlot("ev_spring","Cảnh sự kiện","Suối Hơi Nước (cùng nữ nhân)",[Q,"1girl, solo, mature female, pov, looking at viewer, onsen, steam, wet hair, partially submerged, blush, night, cave, lanterns",STYLE].join(", "),"");
+  addSlot("ev_ghost","Cảnh sự kiện","Cô Dâu Hồn Ma",[Q,EVT_TAGS.ghost.replace("1girl, ","1girl, solo, ").replace("crying","pov, outstretched arms, reaching towards viewer, tears, smile"),STYLE].join(", "));
+  addSlot("ev_feast","Cảnh sự kiện","Đêm Hoan Lạc",[Q,EVT_TAGS.feast,"pov, looking at viewer, wine, blush, smile",STYLE].join(", "),"Thêm tag nhạy cảm.");
+  addSlot("ev_chained","Cảnh sự kiện","Món Nợ Chiến Binh",[Q,EVT_TAGS.chained.replace("1girl, ","1girl, solo, ").replace("chained, shackles, ","").replace("defiant","pov, looking at viewer, leaning forward, smirk"),STYLE].join(", "));
   for(const [id,e] of Object.entries(ENDINGS)){
-    const t={end_flame:"no humans, scenery, giant bonfire, sunrise, golden light, ash turning to light",end_dark:"1boy, faceless male, throne of bones, darkness, purple sky, crown",end_nyx:MC+", "+HEROES.nyx.tags.replace("1girl, solo, ","1girl, ")+", sitting on throne together, couple, gentle smile",end_harem:MC+", multiple girls, harem, bonfire, ruined shrine, smile, night"}[id];
+    const t={end_flame:"no humans, scenery, giant bonfire, sunrise, golden light, ash turning to light",end_dark:"no humans, scenery, empty throne, throne of bones, crown, darkness, purple sky",end_nyx:HEROES.nyx.tags+", pov, sitting on throne, reaching towards viewer, tears, gentle smile",end_harem:"multiple girls, bonfire, ruined shrine, smile, night"}[id];
     addSlot(id,"Kết thúc",e.n,[Q,t,STYLE].join(", "));
   }
   for(const [id,c] of Object.entries(CARDS)){
@@ -536,6 +558,23 @@ function addSlot(id,g,n,pos,note){SLOTS.push({id,g,n,pos,neg:NEG,note:note||""})
   window.SLOT_SIZE=sz;
 })();
 const SLOT_BY_ID = Object.fromEntries(SLOTS.map(s=>[s.id,s]));
+// ---- Cảnh nhiều nàng: bản thường + bản Regional (BREAK) ----
+const HERO_KEY={
+  sera:"grey hair, long hair, blindfold, grey robe, pale skin",
+  brun:"white hair, ponytail, red eyes, scar across eye, black armor, toned",
+  elis:"blonde hair, long hair, blue eyes, nun, black veil, rosary",
+  mira:"fox ears, fox tail, brown hair, short hair, green eyes",
+  morw:"black hair, very long hair, purple eyes, witch hat, mole under eye",
+  nyx:"purple hair, very long hair, curled horns, demon wings, demon tail, yellow eyes",
+};
+const NG=["","1girl","2girls","3girls","4girls","5girls","6+girls"];
+function multiSlot(id,g,name,hids,comp,env){const n=hids.length;
+  const plain=[Q,NG[n]+", multiple girls, yuri",hids.map(h=>HERO_KEY[h]).join(", "),comp,env,STYLE].join(", ");
+  const common=[Q,NG[n]+", multiple girls, yuri",comp,env,STYLE].join(", ");
+  const regional=common+"\nBREAK\n"+hids.map(h=>ADULT+", "+HERO_KEY[h]).join("\nBREAK\n");
+  SLOTS.push({id,g,n:name,pos:plain,pos2:regional,neg:NEG,cols:n,heroes:hids,note:""});}
+(function(){for(const [id,d] of Object.entries(DUOS))multiSlot(id,"Cảnh nhiều nàng",d.n+" ("+d.h.map(h=>HEROES[h].n).join(" + ")+")",d.h,d.comp,d.env);
+  const i=SLOTS.findIndex(s=>s.id==="end_harem");const hs=["sera","brun","elis","mira","morw"];SLOTS.splice(i,1);multiSlot("end_harem","Kết thúc",ENDINGS.end_harem.n,hs,"group picture, sitting, around bonfire, smile, looking at viewer","ruined shrine, bonfire, night, embers");})();
 // ---- Phân loại ô: số ảnh đề xuất, cần tag 18+, tùy chọn, ưu tiên ----
 (function annotate(){
   const PRI=new Set(["bg_title","bg_hub","bg_act1","sera_portrait","sera_ev0","en_hollow","en_ghoul","en_ratgirl","en_crow","en_arachne","en_gwyndra","mira_portrait","mira_ev0"]);
@@ -547,14 +586,17 @@ const SLOT_BY_ID = Object.fromEntries(SLOTS.map(s=>[s.id,s]));
     else if(["ev_spring","ev_feast","ev_chained"].includes(id)){s.rec=3;s.nsfw=true;}
     else if(id==="ev_ghost"){s.rec=2;}
     else if(id==="end_harem"||id==="end_nyx"){s.rec=2;}
+    else if(DUOS[id]){s.rec=4;s.nsfw=true;}
     else if(id.startsWith("card_")){s.opt=true;}
-    if(s.nsfw)s.big=true;
+    if(s.nsfw||s.pos2)s.big=true;
     s.note=s.nsfw?"Phần prompt đã có bố cục sẵn. Bạn dán thêm tag 18+ của mình vào CUỐI ô Dương (Positive).":"Ảnh an toàn — dùng nguyên prompt, không cần thêm tag 18+.";
     if(id.endsWith("_portrait"))s.note+=" Dùng ở sảnh, hội thoại và danh sách nữ nhân; nhiều ảnh thì chọn ngẫu nhiên.";
     if(id==="ev_spring")s.note+=" Ô này dùng chung cho mọi nàng: nên thêm tag ngoại hình của nàng bạn muốn.";
     if(s.opt)s.note="Tùy chọn — ảnh minh họa nhỏ trên lá bài. Không có cũng không sao.";
+    if(s.pos2)s.note+=" Cảnh nhiều nàng: nên dùng bản Regional (BREAK) để đặc điểm từng nàng không bị lẫn sang nhau. Tag 18+ chung (tư thế, hành động) dán vào CUỐI phần chung trước BREAK đầu tiên; tag riêng của nàng nào dán vào vùng của nàng đó.";
     if(s.rec>1)s.note+=` Nên có ${s.rec} ảnh theo thứ tự diễn biến — ảnh tự chuyển theo lời thoại.`;}
 })();
+for(const k in SLOT_BY_ID)delete SLOT_BY_ID[k];for(const s of SLOTS)SLOT_BY_ID[s.id]=s;
 
 // ===================== CINDERVEIL — ENGINE =====================
 const $=s=>document.querySelector(s);
@@ -688,8 +730,9 @@ function vn(o){return new Promise(async res=>{closeModal();show("vn");const sc=$
   const urls=[];for(let i=0;i<ids.length;i++)urls[i]=IMG.url(ids[i]);
   async function showImg(k){if(!ids.length||k===curImg)return;curImg=k;const u=await urls[k];const back=front===A?B:A;await IMG.set(back,u);back.classList.add("on");front.classList.remove("on");front=back;}
   let i=0,typing=null;const box=sc.querySelector(".vbox"),nm=sc.querySelector(".vname"),tx=sc.querySelector(".vtext"),chd=sc.querySelector(".vch"),nx=sc.querySelector(".vnext");
-  function line(){chd.innerHTML="";let L=o.lines[i];const H=o.H||"";L=L.replace(/\{H\}/g,H);const nar=L[0]==="~";const t=nar?L.slice(1):L;
-    nm.textContent=nar?(i===0&&o.title?"— "+o.title+" —":""):(o.name||"");tx.className="vtext"+(nar?" nar":"");
+  function line(){chd.innerHTML="";let L=o.lines[i];const H=o.H||"";L=L.replace(/\{H\}/g,H);let spk=o.name||"";if(L[0]==="@"){const k=L.indexOf(":");const hid=L.slice(1,k);spk=HEROES[hid]?HEROES[hid].n:hid;L=L.slice(k+1);}
+    const nar=L[0]==="~";const t=nar?L.slice(1):L;
+    nm.textContent=nar?(i===0&&o.title?"— "+o.title+" —":""):spk;tx.className="vtext"+(nar?" nar":"");
     showImg(ids.length?Math.min(ids.length-1,Math.floor(i*ids.length/n)):0);
     if(M.set.tw){let k=0;tx.textContent="";clearInterval(typing);typing=setInterval(()=>{k+=2;tx.textContent=t.slice(0,k);if(k>=t.length){clearInterval(typing);typing=null;after();}},16);}else{tx.textContent=t;after();}
     nx.style.display="none";
@@ -866,7 +909,7 @@ async function finalBoss(){const nyx=M.heroes.nyx;const best=HERO_ORDER.filter(h
 // ---------------- HUB ----------------
 async function showHub(){show("hub");await bgSet("hub","bg_hub");
   if(!M.intro){M.intro=1;save();await playHeroEvent("sera");return showHub();}
-  const pend=HERO_ORDER.filter(h=>heroNext(h,"hub")).length;
+  const pend=HERO_ORDER.filter(h=>heroNext(h,"hub")).length+Object.keys(DUOS).filter(id=>duoOk(id)&&!M.gal[id]).length;
   $("#hub .mc").innerHTML=`<div class="top"><span class="sc">✦ Linh hồn <b>${M.souls}</b></span><span class="cc">◈ Ô uế <b>${M.corr}</b></span><span class="sp"></span>${M.ng?`<span class="pill">NG+${M.ng}</span>`:""}</div>
    <div class="scroll"><div class="pad"><h1 class="serif" style="font-size:30px">Lò Lửa Cuối Cùng</h1><div class="muted">Nơi Kẻ Tro Tàn trở về sau mỗi lần gục ngã.</div>
    ${R?`<button class="btn main" onclick="showMap()">Tiếp tục hành trình<small>Màn ${R.act} · Tầng ${R.floor+1}</small></button>`:`<button class="btn main" onclick="startRun()">Xuống Vực Thẳm<small>Bắt đầu một cuộc hành trình mới</small></button>`}
@@ -876,10 +919,13 @@ async function showHub(){show("hub");await bgSet("hub","bg_hub");
    <button class="btn" onclick="showStudio()">Xưởng Ảnh<small>Thêm ảnh của bạn vào game + prompt</small></button>
    <button class="btn" onclick="showSettings()">Cài đặt</button>
    <div class="muted" style="margin-top:8px">Hành trình: ${M.runs} · Chiến thắng: ${M.wins} · Kết thúc: ${Object.keys(M.ends).length}/4</div></div></div>`;}
+function duoOk(id){const d=DUOS[id];return d.h.every(h=>M.heroes[h].stage>=4&&M.heroes[h].aff>=60);}
+async function playDuo(id){const d=DUOS[id];await vn({slot:id,title:d.n,lines:d.lines,name:""});const first=!M.gal[id];M.gal[id]=1;if(first)d.h.forEach(h=>heroAff(h,6));save();if(first)toast("Mở khóa Hồi Ức: "+d.n);}
 function showHeroes(){const b=modal("Nữ Nhân",HERO_ORDER.map(hid=>{const h=HEROES[hid],st=M.heroes[hid];if(!st.met&&!h.hub)return `<div class="hcard"><div class="hp empty">?</div><div><h3>???</h3><div class="muted">Chưa gặp</div></div></div>`;
   const nx=heroNext(hid,"hub");const ids=DB.ids(hid+"_portrait");
-  return `<div class="hcard" data-h="${hid}"><div class="hp ${ids.length?"":"empty"}">${ids.length?`<img data-id="${ids[0]}">`:"trống"}</div><div style="flex:1"><h3>${h.n} ${nx?"<span style='color:#ff7fb0'>♥</span>":""}</h3><div class="muted">${h.title} · ${h.age} tuổi${st.path?` · ${st.path==="love"?"Tình":"Sa ngã"}`:""}</div><div class="aff"><i style="width:${st.aff}%"></i></div><div class="muted">Thiện cảm ${st.aff}/100 · Chặng ${Math.min(st.stage,5)}/5</div></div></div>`;}).join("")+`<p class="muted">Thiện cảm 55 → cảnh thân mật · 80 → Khế ước (thẻ bài vĩnh viễn). Lựa chọn tại Ngã rẽ quyết định nhánh Tình hay Sa ngã.</p>`);
-  lazyThumbs(b);b.querySelectorAll("[data-h]").forEach(el=>el.onclick=()=>heroDetail(el.dataset.h));}
+  return `<div class="hcard" data-h="${hid}"><div class="hp ${ids.length?"":"empty"}">${ids.length?`<img data-id="${ids[0]}">`:"trống"}</div><div style="flex:1"><h3>${h.n} ${nx?"<span style='color:#ff7fb0'>♥</span>":""}</h3><div class="muted">${h.title} · ${h.age} tuổi${st.path?` · ${st.path==="love"?"Tình":"Sa ngã"}`:""}</div><div class="aff"><i style="width:${st.aff}%"></i></div><div class="muted">Thiện cảm ${st.aff}/100 · Chặng ${Math.min(st.stage,5)}/5</div></div></div>`;}).join("")+`<h3 style="margin-top:14px">Cảnh nhiều nàng</h3>`+Object.entries(DUOS).map(([id,d])=>{const ok=duoOk(id),seen=M.gal[id];return `<button class="btn ${ok?(seen?"":"hot"):"dis"}" data-d="${id}"><b>${ok?esc(d.n):"🔒 "+esc(d.n)}</b>${ok&&!seen?" ♥ Mới":""}<small>${d.h.map(h=>HEROES[h].n).join(" + ")}${ok?"":" — cần mỗi nàng đã có cảnh thân mật riêng & thiện cảm ≥ 60"}</small></button>`;}).join("")+`<p class="muted">Thiện cảm 55 → cảnh thân mật · 80 → Khế ước (thẻ bài vĩnh viễn). Lựa chọn tại Ngã rẽ quyết định nhánh Tình hay Sa ngã.</p>`);
+  lazyThumbs(b);b.querySelectorAll("[data-h]").forEach(el=>el.onclick=()=>heroDetail(el.dataset.h));
+  b.querySelectorAll("[data-d]").forEach(el=>el.onclick=async()=>{if(!duoOk(el.dataset.d))return;closeModal();await playDuo(el.dataset.d);showHub();});}
 function heroDetail(hid){const h=HEROES[hid],st=M.heroes[hid];const nx=heroNext(hid,"hub");const canTalk=!M.talked[hid]&&!h.noHub,canGift=!M.gifted[hid]&&M.souls>=30&&!h.noHub;
   const b=modal(h.n,`<div class="muted">${h.title} · ${h.age} tuổi</div><p>${h.desc}</p><div class="aff"><i style="width:${st.aff}%"></i></div><div class="muted">Thiện cảm ${st.aff}/100</div>
    ${nx?`<button class="btn hot" id="hev">${["Gặp gỡ","Thân thiết","Ngã rẽ","Cảnh thân mật","Khế ước"][st.stage]} ♥</button>`:""}
@@ -891,6 +937,7 @@ function heroDetail(hid){const h=HEROES[hid],st=M.heroes[hid];const nx=heroNext(
 function showUpg(){const b=modal("Thăng Hoa — ✦ "+M.souls,Object.entries(UPGRADES).map(([k,u])=>{const l=upg(k);const c=u.cost[l];return `<button class="btn ${l>=u.max||M.souls<c?"dis":""}" data-k="${k}"><b>${u.n}</b> ${"●".repeat(l)}${"○".repeat(u.max-l)}<small>${u.d}${l<u.max?" — ✦ "+c:" — tối đa"}</small></button>`;}).join(""));
   b.querySelectorAll("[data-k]").forEach(el=>el.onclick=()=>{const k=el.dataset.k,u=UPGRADES[k],c=u.cost[upg(k)];if(M.souls<c)return;M.souls-=c;M.upg[k]=upg(k)+1;save();showUpg();showHub();});}
 function galleryList(){const L=[];for(const hid of HERO_ORDER){const h=HEROES[hid];L.push({id:hid+"_s1_love",n:h.n+" · "+h.s1.love.n,lines:h.s1.love.lines,name:h.n},{id:hid+"_s1_dark",n:h.n+" · "+h.s1.dark.n,lines:h.s1.dark.lines,name:h.n},{id:hid+"_s2",n:h.n+" · "+h.s2.n,lines:h.s2.lines,name:h.n},{id:hid+"_end",n:h.n+" · Kết thúc",lines:h.end,name:h.n});}
+  for(const [id,d] of Object.entries(DUOS))L.push({id,n:d.n,lines:d.lines,name:""});
   for(const [id,s] of Object.entries(MON_SCENES))L.push({id,n:s.n,lines:s.lines,name:ENEMIES[s.who].n});for(const [id,s] of Object.entries(EV_SCENES))L.push({id,n:s.n,lines:s.lines,name:""});for(const [id,s] of Object.entries(ENDINGS))L.push({id,n:s.n,lines:s.lines,name:""});return L;}
 function showGallery(){const L=galleryList();const un=L.filter(x=>M.gal[x.id]).length;
   const b=modal(`Hồi Ức ${un}/${L.length}`,`<div class="gal">${L.map((x,i)=>{const ok=M.gal[x.id];const ids=DB.ids(x.id);return `<div class="gi" data-i="${i}">${ok&&ids.length?`<img data-id="${ids[0]}">`:""}<span>${ok?esc(x.n):"???"}</span></div>`;}).join("")}</div>`);lazyThumbs(b);
@@ -927,7 +974,7 @@ async function showStudio(){studioView.g=null;const groups=[...new Set(SLOTS.map
   $("#exp").onclick=async()=>{toast("Đang đóng gói…");download(await exportPack(),"cinderveil_anh.cvpk");};
   $("#imp").onclick=()=>pickFiles(false,async fs=>{try{const n=await importPack(fs[0],(a,t)=>toast(`Nhập ${a}/${t}`));toast("Đã nhập "+n+" ảnh");showStudio();}catch(e){toast(""+e);}},".cvpk,application/octet-stream,*/*");
   $("#wipe").onclick=async()=>{if(!confirm("Xóa TOÀN BỘ ảnh trong game? Không thể hoàn tác (trừ khi bạn đã xuất gói ảnh)."))return;await DB.clearAll();toast("Đã xóa toàn bộ ảnh");showStudio();};
-  $("#ptx").onclick=()=>{const t=SLOTS.map(s=>`### [${s.id}] ${s.g} — ${s.n}\n# ${s.nsfw?"[CẦN THÊM TAG 18+ VÀO CUỐI POSITIVE]":"[ẢNH THƯỜNG]"} · Nên có ${s.rec} ảnh · upscale ${s.big?"2×":"1.5×"}${s.opt?" (tùy chọn)":""}\nPOSITIVE: ${s.pos}\nNEGATIVE: ${s.neg}\n`).join("\n");download(new Blob([t],{type:"text/plain"}),"cinderveil_prompts.txt");};}
+  $("#ptx").onclick=()=>{const t=SLOTS.map(s=>`### [${s.id}] ${s.g} — ${s.n}\n# ${s.nsfw?"[CẦN THÊM TAG 18+ VÀO CUỐI POSITIVE]":"[ẢNH THƯỜNG]"} · Nên có ${s.rec} ảnh · upscale ${s.big?"2×":"1.5×"}${s.opt?" (tùy chọn)":""}\nPOSITIVE: ${s.pos}\n${s.pos2?`REGIONAL (Columns ${Array(s.cols).fill(1).join(",")}, Use common prompt; trái→phải: ${s.heroes.map(h=>HEROES[h].n).join(" → ")}):\n${s.pos2}\n`:""}NEGATIVE: ${s.neg}\n`).join("\n");download(new Blob([t],{type:"text/plain"}),"cinderveil_prompts.txt");};}
 function pickFiles(multi,cb,accept="image/*"){const i=document.createElement("input");i.type="file";i.accept=accept;i.multiple=multi;i.onchange=()=>{if(i.files.length)cb([...i.files]);};i.click();}
 function slotCard(s){const ids=DB.ids(s.id),st=s.opt&&!ids.length?"opt":slotState(s);
   return `<div class="slotrow st-${st} ${s.nsfw?"is-nsfw":""}"><div class="row" style="align-items:flex-start"><div style="flex:1;min-width:0"><div class="sname">${s.pri?"⭐ ":""}${esc(s.n)}</div>
@@ -949,12 +996,15 @@ function studioG(){const v=studioView;let ss=SLOTS.filter(s=>(!v.g||s.g===v.g)&&
 function promptView(id){const s=SLOT_BY_ID[id];const n=DB.ids(id).length;
   const b=modal("Prompt",`<div class="sname" style="font-size:16px">${esc(s.n)}</div><div class="row" style="flex-wrap:wrap;gap:4px;margin:6px 0">${stChip(s)}${s.nsfw?`<span class="chip nsfw">🔞 Cần tag 18+</span>`:`<span class="chip safe">Ảnh thường</span>`}</div>
    <div class="${s.nsfw?"nbox":"sbox"}">${s.nsfw?"<b>🔞 Ô này cần bạn tự thêm tag người lớn.</b><br>":"<b>✓ Không cần thêm tag 18+.</b><br>"}${esc(s.note)}</div>
-   <div class="plabel">① Dương (Positive)${s.nsfw?' — <span style="color:#ff8fbd">dán tag 18+ của bạn vào cuối</span>':""}</div><textarea rows="7" readonly>${esc(s.pos)}${s.nsfw?", ":""}</textarea><button class="btn" id="cp">Sao chép Positive</button>
+   <div class="plabel">① Dương (Positive)${s.pos2?" — bản thường (dễ lẫn đặc điểm)":""}${s.nsfw?' — <span style="color:#ff8fbd">dán tag 18+ của bạn vào cuối</span>':""}</div><textarea rows="7" readonly>${esc(s.pos)}${s.nsfw?", ":""}</textarea><button class="btn" id="cp">Sao chép Positive</button>
+   ${s.pos2?`<div class="plabel">①b Bản Regional (BREAK) — <span style="color:#8fc7ff">khuyên dùng cho cảnh nhiều nàng</span></div>
+   <div class="sbox" style="font-size:12px"><b>Regional Prompter</b> (A1111/Forge): bật Active · Generation mode <b>Attention</b> · Divide mode <b>Columns</b> · Divide Ratio <b>${Array(s.cols).fill(1).join(",")}</b> · tích <b>Use common prompt</b>.<br>Thứ tự vùng từ trái sang phải: ${s.heroes.map(h=>HEROES[h].n).join(" → ")}.<br>Tag 18+ chung dán vào cuối phần chung (trước BREAK đầu). Tag riêng của nàng nào dán vào vùng của nàng đó.<br><b>Forge Couple</b>: thay mỗi BREAK bằng một dòng mới, bỏ phần chung lên trên cùng (Background mode: First Line).</div>
+   <textarea rows="9" readonly>${esc(s.pos2)}</textarea><button class="btn" id="cr">Sao chép bản Regional</button>`:""}
    <div class="plabel">② Âm (Negative) — dùng nguyên, không sửa</div><textarea rows="4" readonly>${esc(s.neg)}</textarea><button class="btn" id="cn">Sao chép Negative</button>
    <div class="muted">Vẽ ${SLOT_SIZE} → upscale <b>${s.big?"2× (1664×2432)":"1.5× (1248×1824)"}</b> · Nên có ${s.rec} ảnh${s.rec>1?" (theo thứ tự)":""} · Hiện có ${n}</div>
    <button class="btn main" id="ad">＋ Thêm ảnh vào ô này</button><button class="btn" id="bk">← Quay lại</button>`);
   const cp=t=>{(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast("Đã sao chép"),()=>toast("Giữ và chọn văn bản để sao chép"));};
-  $("#cp").onclick=()=>cp(s.pos+(s.nsfw?", ":""));$("#cn").onclick=()=>cp(s.neg);
+  $("#cp").onclick=()=>cp(s.pos+(s.nsfw?", ":""));$("#cn").onclick=()=>cp(s.neg);if(s.pos2)$("#cr").onclick=()=>cp(s.pos2);
   $("#ad").onclick=()=>pickFiles(true,async fs=>{await importFiles(id,fs,(a,t)=>toast(`Đang xử lý ${a}/${t}…`,4000));toast("Đã thêm "+fs.length+" ảnh");promptView(id);});
   $("#bk").onclick=()=>studioView.g||studioView.f!=="all"?studioG():showStudio();}
 async function imgView(id){const slot=id.split("#")[0];const ids=DB.ids(slot);const k=ids.indexOf(id);
