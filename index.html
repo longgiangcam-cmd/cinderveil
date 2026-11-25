@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="vi"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Cinderveil">
+<meta name="theme-color" content="#0a0908"><title>CINDERVEIL — Màn Tro</title>
+<style>:root{--bg:#0a0908;--panel:#15120f;--line:#3a2f24;--bone:#e2d6c2;--dim:#9a8c78;--ember:#e8893b;--ember2:#ffb267;--blood:#a3242a;--violet:#8d5bd6;--gold:#e0b44c;--sat:env(safe-area-inset-top);--sab:env(safe-area-inset-bottom)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--bone);font:15px/1.45 -apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden;overscroll-behavior:none}
+.serif,h1,h2,h3{font-family:"Cormorant Garamond",Baskerville,"Times New Roman",Georgia,serif;font-weight:600;letter-spacing:.5px}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+#app{position:fixed;inset:0;overflow:hidden}
+.scr{position:absolute;inset:0;display:none;flex-direction:column;padding-top:var(--sat);padding-bottom:var(--sab);overflow:hidden}
+.scr.on{display:flex}
+.bgimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;pointer-events:none}
+.shade{position:absolute;inset:0;z-index:0;pointer-events:none;background:linear-gradient(180deg,rgba(8,7,6,.55),rgba(8,7,6,.25) 40%,rgba(8,7,6,.85))}
+.scr>*:not(.bgimg):not(.shade){position:relative;z-index:1}
+.scroll{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:0}
+.btn{display:block;width:100%;padding:13px 14px;margin:7px 0;background:linear-gradient(#211b15,#16120e);border:1px solid var(--line);border-radius:10px;text-align:left;font-size:15px}
+.btn:active{transform:scale(.98);background:#2a221a}
+.btn.main{border-color:var(--ember);color:var(--ember2);text-align:center;font-size:17px}
+.btn.hot{border-color:#c34b7a;color:#ff9cc3}
+.btn.dis{opacity:.4;pointer-events:none}
+.btn small{display:block;color:var(--dim);font-size:12px}
+.row{display:flex;gap:8px;align-items:center}
+.pill{display:inline-block;padding:2px 8px;border-radius:99px;background:#1d1813;border:1px solid var(--line);font-size:12px;color:var(--dim)}
+.top{display:flex;gap:10px;align-items:center;padding:8px 12px;font-size:13px;background:rgba(10,9,8,.75);border-bottom:1px solid var(--line)}
+.top b{color:var(--bone)} .hpc{color:#ff7a6b} .gc{color:var(--gold)} .sc{color:#9fd0ff} .cc{color:#c58cff}
+.top .sp{flex:1}
+.ico{width:34px;height:34px;border-radius:8px;border:1px solid var(--line);background:#16120e;display:inline-flex;align-items:center;justify-content:center;font-size:16px}
+.pad{padding:12px 14px}
+h1{font-size:40px;margin:0;color:var(--ember2);text-shadow:0 0 18px rgba(232,137,59,.45)}
+h2{font-size:24px;margin:6px 0 10px;color:var(--ember2)}
+h3{font-size:18px;margin:4px 0;color:var(--bone)}
+.muted{color:var(--dim);font-size:13px}
+.empty{display:flex;align-items:center;justify-content:center;text-align:center;color:#5c5145;font-size:11px;background:#0f0d0b;border:1px dashed #2e261e}
+/* title */
+#title{justify-content:flex-end;align-items:stretch}
+#title .tbox{padding:24px 20px 40px;text-align:center}
+.ember{position:absolute;bottom:-10px;width:3px;height:3px;border-radius:50%;background:var(--ember2);opacity:0;animation:rise linear infinite;z-index:1;pointer-events:none;will-change:transform,opacity}
+@keyframes rise{0%{transform:translate3d(0,0,0);opacity:0}15%{opacity:.9}100%{transform:translate3d(var(--dx),-100vh,0);opacity:0}}
+/* map */
+.doors{display:flex;flex-direction:column;gap:10px;padding:12px}
+.door{display:flex;align-items:center;gap:12px;padding:16px 14px;background:rgba(18,15,12,.88);border:1px solid var(--line);border-radius:12px;text-align:left}
+.door:active{transform:scale(.98)}
+.door .di{font-size:26px;width:40px;text-align:center}
+.door.hero{border-color:#c34b7a} .door.elite{border-color:#7d2626} .door.boss{border-color:var(--ember)}
+.floorbar{display:flex;gap:4px;padding:6px 12px}
+.floorbar i{flex:1;height:5px;border-radius:3px;background:#2a231c}
+.floorbar i.on{background:var(--ember)} .floorbar i.cur{background:var(--ember2);box-shadow:0 0 6px var(--ember)}
+/* VN */
+#vn .vimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .35s;z-index:0;will-change:opacity}
+#vn .vimg.on{opacity:1}
+#vn.fit .vimg{object-fit:contain}
+#vn .vtools{position:absolute;top:calc(var(--sat) + 8px);right:10px;display:flex;gap:6px;z-index:3}
+#vn .vbox{position:absolute;left:8px;right:8px;bottom:calc(var(--sab) + 10px);z-index:2;background:rgba(10,8,7,.82);border:1px solid var(--line);border-radius:12px;padding:12px 14px 14px;min-height:110px}
+#vn .vname{font-family:Baskerville,Georgia,serif;color:var(--ember2);font-size:17px;margin-bottom:4px;min-height:4px}
+#vn .vtext{font-size:16px;line-height:1.55}
+#vn .vtext.nar{font-style:italic;color:#d6c9b4}
+#vn .vch{margin-top:8px}
+#vn .vch .btn{background:rgba(25,20,16,.95)}
+#vn.hide .vbox,#vn.hide .vtools .hb{opacity:0;pointer-events:none}
+#vn .vnext{position:absolute;right:14px;bottom:8px;color:var(--ember);font-size:12px;animation:blink 1.2s infinite}
+@keyframes blink{50%{opacity:.2}}
+#vn .vslot{position:absolute;left:0;right:0;top:35%;text-align:center;color:#4d4339;font-size:12px;z-index:0}
+/* combat */
+#combat .enemies{flex:1;display:flex;justify-content:center;align-items:flex-end;gap:8px;padding:8px;min-height:0}
+.en{position:relative;flex:1;max-width:48%;display:flex;flex-direction:column;align-items:center;transition:transform .15s,opacity .3s}
+.en .ef{width:100%;aspect-ratio:2/3;max-height:34vh;border-radius:10px;overflow:hidden;border:1px solid #3a2a22;background:#0d0b09;position:relative}
+.en .ef img{width:100%;height:100%;object-fit:cover;display:block}
+.en.tg .ef{border-color:var(--ember2);box-shadow:0 0 0 2px var(--ember)}
+.en.dead{opacity:0;pointer-events:none}
+.en .intent{position:absolute;top:6px;left:6px;background:rgba(0,0,0,.75);border-radius:8px;padding:2px 7px;font-weight:700;font-size:14px}
+.en .intent.atk{color:#ff8a7a}.en .intent.def{color:#8fc7ff}.en .intent.buf{color:#ffd36e}.en .intent.dbf{color:#c58cff}
+.en .en-n{font-size:12px;margin-top:3px;text-align:center;color:var(--bone)}
+.bar{position:relative;width:100%;height:14px;border-radius:7px;background:#2a0f10;overflow:hidden;margin-top:3px;border:1px solid #431a1a}
+.bar i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#8a1a1f,#d23a3a);transition:width .25s}
+.bar span{position:absolute;inset:0;text-align:center;font-size:10.5px;line-height:13px;font-weight:700;text-shadow:0 1px 2px #000}
+.bar.blk{border-color:#5aa0e0}
+.sts{display:flex;flex-wrap:wrap;gap:3px;margin-top:3px;justify-content:center;min-height:16px}
+.st{font-size:10.5px;padding:0 5px;border-radius:5px;background:#1d1813;border:1px solid var(--line)}
+.st.s{color:#ffb36e}.st.v{color:#ff8ad0}.st.w{color:#b0b0ff}.st.bl{color:#ff6b6b}.st.b{color:#8fc7ff}.st.o{color:#d9cfbf}
+.shake{animation:shk .25s}
+@keyframes shk{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.flt{position:absolute;left:50%;top:30%;transform:translate(-50%,0);font-weight:800;font-size:22px;color:#ffdfd0;text-shadow:0 2px 4px #000,0 0 8px #d33;pointer-events:none;animation:flt .8s forwards;z-index:5}
+.flt.blk{color:#bde0ff;text-shadow:0 2px 4px #000,0 0 8px #39f}.flt.heal{color:#bfffbf;text-shadow:0 2px 4px #000,0 0 8px #3c3}
+@keyframes flt{to{transform:translate(-50%,-40px);opacity:0}}
+.pbar{padding:6px 10px;background:rgba(10,9,8,.82);border-top:1px solid var(--line)}
+.pbar .row{gap:10px}
+.orb{width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#ffcf8a,#d26a1e 60%,#5a2508);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;color:#1a0d04;flex:none;box-shadow:0 0 10px rgba(232,137,59,.5)}
+.pbar .bar{height:16px}
+.hand{position:relative;height:178px;display:flex;justify-content:center;align-items:flex-end;padding:0 6px 6px;background:rgba(10,9,8,.9)}
+.hint{position:absolute;top:-22px;left:0;right:0;text-align:center;font-size:12px;color:var(--ember2);pointer-events:none}
+.card{position:relative;width:100px;height:152px;flex:none;border-radius:10px;background:linear-gradient(#2a221b,#17120e);border:1.5px solid #5b4936;margin:0 -10px;display:flex;flex-direction:column;overflow:hidden;transition:transform .15s;box-shadow:0 4px 10px rgba(0,0,0,.6)}
+.card.atk{border-color:#8a3b32}.card.skl{border-color:#3b5f86}.card.pow{border-color:#8a6b2f}.card.cur{border-color:#5b2c6b;background:linear-gradient(#24152a,#140b18)}.card.pact{border-color:#c34b7a;background:linear-gradient(#2e1a24,#170d12)}
+.card.sel{transform:translateY(-26px) scale(1.08);z-index:5;box-shadow:0 0 0 2px var(--ember2),0 8px 18px rgba(0,0,0,.8)}
+.card.no{filter:grayscale(.7) brightness(.7)}
+.card .cc{position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#ffcf8a,#c95e15);color:#1a0d04;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center;z-index:2;border:1px solid #000}
+.card .art{height:56px;background:#0e0c0a center/cover no-repeat;border-bottom:1px solid #00000080}
+.card .cn{font-size:12px;font-weight:700;text-align:center;padding:3px 3px 0;line-height:1.15}
+.card .cn.up{color:#9fe07a}
+.card .ct{font-size:9px;text-align:center;color:var(--dim);text-transform:uppercase;letter-spacing:.5px}
+.card .cd{font-size:10.5px;text-align:center;padding:2px 5px;line-height:1.25;color:#e8dccb}
+.cardgrid{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:10px}
+.cardgrid .card{margin:0}
+.endt{flex:none;padding:8px 10px;font-size:13px;line-height:1.1;border-radius:10px;background:linear-gradient(#5a2a10,#2c1407);border:1px solid var(--ember);color:var(--ember2);font-weight:700;z-index:6}
+.pile{position:absolute;top:-44px;font-size:12px;color:var(--dim);background:rgba(0,0,0,.6);padding:4px 8px;border-radius:8px}
+/* modal */
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:50;display:none;flex-direction:column;padding:calc(var(--sat) + 10px) 10px calc(var(--sab) + 10px)}
+#modal.on{display:flex}
+#modal .mbox{background:var(--panel);border:1px solid var(--line);border-radius:14px;flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+#modal .mh{display:flex;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line)}
+#modal .mh h3{flex:1}
+#toast{position:fixed;left:50%;top:calc(var(--sat) + 60px);transform:translateX(-50%);background:rgba(20,16,12,.95);border:1px solid var(--ember);padding:8px 14px;border-radius:10px;z-index:60;font-size:14px;display:none;max-width:88%;text-align:center}
+/* studio / gallery */
+.slotrow{border:1px solid var(--line);border-radius:10px;padding:8px;margin:8px 0;background:#120f0c;content-visibility:auto;contain-intrinsic-size:110px}
+.thumbs{display:flex;gap:6px;overflow-x:auto;padding-top:6px;min-height:20px}
+.thumbs img,.thumbs .th{width:56px;height:84px;object-fit:cover;border-radius:6px;flex:none;background:#0d0b09}
+.grp{position:sticky;top:0;background:var(--panel);padding:8px 2px;color:var(--ember2);font-family:Baskerville,Georgia,serif;font-size:17px;z-index:2;border-bottom:1px solid var(--line)}
+.gal{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px}
+.gal .gi{aspect-ratio:2/3;border-radius:8px;overflow:hidden;border:1px solid var(--line);position:relative;background:#0e0c0a}
+.gal .gi img{width:100%;height:100%;object-fit:cover}
+.gal .gi span{position:absolute;left:0;right:0;bottom:0;font-size:10.5px;padding:3px;background:rgba(0,0,0,.7);text-align:center}
+.hcard{display:flex;gap:10px;padding:10px;border:1px solid var(--line);border-radius:12px;background:rgba(18,15,12,.92);margin:8px 0;align-items:center}
+.hcard .hp{width:62px;height:93px;border-radius:8px;overflow:hidden;flex:none}
+.hcard .hp img{width:100%;height:100%;object-fit:cover}
+.aff{height:6px;border-radius:3px;background:#2a1a20;overflow:hidden;margin-top:4px}
+.aff i{display:block;height:100%;background:linear-gradient(90deg,#a3245a,#ff7fb0)}
+textarea{width:100%;background:#0d0b09;color:var(--bone);border:1px solid var(--line);border-radius:8px;padding:8px;font:12px/1.4 ui-monospace,Menlo,monospace;user-select:text;-webkit-user-select:text}
+.relics{display:flex;gap:4px;flex-wrap:wrap;padding:4px 12px}
+.relic{font-size:11px;padding:2px 7px;border-radius:6px;background:#1d1813;border:1px solid #5b4936;color:var(--gold)}
+#died{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:2}
+#died h1{color:#b3141c;font-size:52px;text-shadow:0 0 20px #000;letter-spacing:6px;animation:fadein 2s}
+@keyframes fadein{from{opacity:0;letter-spacing:20px}}
+.shopi{display:flex;flex-direction:column;align-items:center;gap:4px}
+.price{font-size:13px;color:var(--gold)}
+</style></head><body>
+<div id="app">
+ <section class="scr" id="title"><img class="bgimg" alt=""><div class="shade"></div>
+  <div class="tbox"><div class="muted" style="letter-spacing:4px">ROGUELITE THẺ BÀI · 18+</div><h1 class="serif">CINDERVEIL</h1><div class="serif" style="font-size:18px;color:var(--dim);margin-bottom:24px">Màn Tro</div>
+  <button class="btn main" id="tstart">Chạm để bắt đầu</button><div class="muted" style="margin-top:10px">Mọi nhân vật đều là người trưởng thành (18+).</div></div></section>
+ <section class="scr" id="hub"><img class="bgimg" alt=""><div class="shade"></div><div class="mc" style="display:flex;flex-direction:column;flex:1;min-height:0"></div></section>
+ <section class="scr" id="map"><img class="bgimg" alt=""><div class="shade"></div><div class="mc" style="display:flex;flex-direction:column;flex:1;min-height:0"></div></section>
+ <section class="scr" id="shop"><img class="bgimg" alt=""><div class="shade" style="background:rgba(8,7,6,.72)"></div><div class="mc" style="display:flex;flex-direction:column;flex:1;min-height:0"></div></section>
+ <section class="scr" id="reward"><div class="mc" style="display:flex;flex-direction:column;flex:1;min-height:0"></div></section>
+ <section class="scr" id="death"><img class="bgimg" alt=""><div class="shade"></div><div class="mc" style="flex:1"></div></section>
+ <section class="scr" id="combat"><img class="bgimg" alt=""><div class="shade"></div><div class="enemies"></div><div class="pbar"></div><div class="hand"></div></section>
+ <section class="scr" id="vn"><img class="vimg va" alt=""><img class="vimg vb" alt=""><div class="vslot"></div>
+  <div class="vtools"><button class="ico" id="vfit" title="Khớp ảnh">⤢</button><button class="ico hb" id="vhide" title="Ẩn chữ">👁</button></div>
+  <div class="vbox"><div class="vname"></div><div class="vtext"></div><div class="vch"></div><div class="vnext">▼</div></div></section>
+</div><div id="modal"></div><div id="toast"></div>
+<script>
+// ===================== CINDERVEIL — DATA =====================
+// Tất cả nhân vật là nữ trưởng thành (18+). Nhân vật chính ẩn danh.
+const Q = "masterpiece, best quality, amazing quality, very aesthetic, absurdres, newest";
+const STYLE = "anime coloring, dark fantasy, gothic, dramatic lighting, cinematic lighting, depth of field";
+const NEG = "lowres, worst quality, low quality, bad quality, normal quality, bad anatomy, bad hands, bad proportions, missing fingers, extra digits, fewer digits, extra arms, extra legs, deformed, mutated, jpeg artifacts, signature, watermark, username, artist name, logo, text, speech bubble, blurry, simple background, loli, child, aged down, young, multiple views, comic";
+const MC = "1boy, faceless male, hetero"; // nhân vật chính ẩn danh, không lộ mặt
+const ADULT = "mature female, adult";
+
+// ---------- THẺ BÀI ----------
+// fx: d=sát thương h=số đòn all=diện rộng b=giáp dr=rút e=năng lượng v=phơi yếu w=suy yếu bl=chảy máu s=sức mạnh hp=hồi lose=mất máu th=gai x=tiêu hao
+const CARDS = {
+  chem:{n:"Chém",c:1,t:"atk",r:0,fx:{d:6},up:{d:9},art:"sword slash, sparks, darkness"},
+  do:{n:"Đỡ Đòn",c:1,t:"skl",r:0,fx:{b:5},up:{b:8},art:"round shield, dented, embers"},
+  dap_khien:{n:"Đập Khiên",c:2,t:"atk",r:0,fx:{d:8,v:2},up:{d:10,v:3},art:"shield bash, impact, dust"},
+  xe_toac:{n:"Xé Toạc",c:1,t:"atk",r:1,fx:{d:4,bl:3},up:{d:5,bl:5},art:"serrated blade, blood splatter"},
+  chem_doi:{n:"Chém Đôi",c:1,t:"atk",r:1,fx:{d:4,h:2},up:{d:6,h:2},art:"twin daggers, crossed slashes"},
+  quet:{n:"Quét Ngang",c:1,t:"atk",r:1,fx:{d:6,all:1},up:{d:9,all:1},art:"wide sword arc, wind"},
+  lan:{n:"Lăn Tránh",c:1,t:"skl",r:1,fx:{b:6,dr:1},up:{b:8,dr:1},art:"dodge roll, motion blur, cloak"},
+  hit_tro:{n:"Hít Tro",c:0,t:"skl",r:1,fx:{dr:2,x:1},up:{dr:3,x:1},art:"ash particles, smoke, glowing embers"},
+  dam_xuyen:{n:"Đâm Xuyên",c:1,t:"atk",r:1,fx:{d:9},up:{d:12},art:"rapier thrust, light streak"},
+  khien_sat:{n:"Khiên Sắt",c:2,t:"skl",r:1,fx:{b:13},up:{b:17},art:"tower shield, iron, rivets"},
+  rach_mau:{n:"Rạch Máu",c:0,t:"skl",r:1,fx:{bl:3},up:{bl:5},art:"blood droplets, thin blade"},
+  gam:{n:"Gầm Thét",c:1,t:"skl",r:1,fx:{w:2,b:4},up:{w:3,b:6},art:"shockwave, roar, cracked ground"},
+  hien_mau:{n:"Hiến Máu",c:1,t:"atk",r:2,fx:{lose:3,d:14},up:{lose:3,d:19},art:"blood magic, crimson sword"},
+  vong_lua:{n:"Vòng Lửa",c:2,t:"atk",r:2,fx:{d:10,all:1},up:{d:14,all:1},art:"fire ring, explosion, embers"},
+  phan_don:{n:"Phản Đòn",c:1,t:"skl",r:2,fx:{b:6,th:4},up:{b:8,th:6},art:"spiked shield, thorns"},
+  hoi_tro:{n:"Hồi Tro",c:1,t:"skl",r:2,fx:{hp:5,x:1},up:{hp:8,x:1},art:"warm glow, healing embers"},
+  cuong_no:{n:"Cuồng Nộ",c:1,t:"pow",r:2,fx:{s:2},up:{s:3},art:"red aura, flames, clenched gauntlet"},
+  an_mau:{n:"Ấn Máu",c:1,t:"pow",r:2,fx:{pw:"bleedAura",pv:2},up:{pw:"bleedAura",pv:3},pd:"Đầu mỗi lượt: gây {pv} Chảy Máu lên tất cả kẻ thù.",art:"blood sigil, magic circle, red"},
+  tram_giap:{n:"Trảm Giáp",c:1,t:"atk",r:2,fx:{sp:"dmgBlk"},up:{sp:"dmgBlk",c:0},pd:"Gây sát thương bằng lượng Giáp hiện có.",art:"heavy armor, shoulder charge"},
+  loc_xoay:{n:"Lốc Kiếm",c:2,t:"atk",r:2,fx:{d:4,h:3,all:1},up:{d:5,h:3,all:1},art:"spinning blades, whirlwind"},
+  bong_toi:{n:"Màn Đêm",c:1,t:"skl",r:2,fx:{b:9,w:1},up:{b:12,w:2},art:"dark mist, shadow veil"},
+  lua_dau:{n:"Ngọn Lửa Đầu Tiên",c:3,t:"atk",r:3,fx:{d:30,x:1},up:{d:40,x:1},art:"primordial flame, giant fire, cathedral"},
+  tay_vuc:{n:"Bàn Tay Vực Thẳm",c:1,t:"skl",r:3,fx:{sp:"bleedx2"},up:{sp:"bleedx2",c:0},pd:"Nhân đôi Chảy Máu của mục tiêu.",art:"abyss hand, black tendrils"},
+  bat_hoai:{n:"Thân Bất Hoại",c:2,t:"pow",r:3,fx:{pw:"metal",pv:4},up:{pw:"metal",pv:6},pd:"Đầu mỗi lượt nhận {pv} Giáp.",art:"stone armor, runes, glowing cracks"},
+  huyet_khe:{n:"Huyết Khế",c:1,t:"pow",r:3,fx:{pw:"blood",pv:1},up:{pw:"blood",pv:1,c:0},pd:"Đầu mỗi lượt: +1 Năng Lượng, mất 2 HP.",art:"blood contract, demon sigil"},
+  // Thẻ khế ước (từ nữ nhân)
+  pact_sera:{n:"Phúc Lành Tro",c:1,t:"skl",r:4,fx:{hp:6,b:8,x:1},up:{hp:9,b:11,x:1},hero:"sera",art:"fire keeper blessing, warm flames"},
+  pact_brun:{n:"Kiếm Trảm Sói",c:2,t:"atk",r:4,fx:{d:20,s:1},up:{d:26,s:1},hero:"brun",art:"greatsword, wolf spirit, moonlight"},
+  pact_morw:{n:"Lời Nguyền Vực",c:1,t:"skl",r:4,fx:{v:3,w:3,all:1},up:{v:4,w:4,all:1},hero:"morw",art:"witch curse, purple runes"},
+  pact_elis:{n:"Kinh Cầu Máu",c:1,t:"skl",r:4,fx:{bl:8},up:{bl:12},hero:"elis",art:"rosary, blood prayer, candles"},
+  pact_mira:{n:"Mánh Khóe Hồ Ly",c:0,t:"skl",r:4,fx:{dr:2,e:1,x:1},up:{dr:3,e:1,x:1},hero:"mira",art:"fox fire, gold coins"},
+  pact_nyx:{n:"Nụ Hôn Mộng Dục",c:1,t:"atk",r:4,fx:{d:12,hp:6},up:{d:16,hp:8},hero:"nyx",art:"purple lips, dream mist, roses"},
+  // Lời nguyền
+  duc_vong:{n:"Dục Vọng",c:-1,t:"cur",r:9,fx:{unpl:1},pd:"Không thể dùng. Một khao khát không nguôi.",art:"pink mist, chains"},
+  o_ue:{n:"Ô Uế",c:-1,t:"cur",r:9,fx:{unpl:1},pd:"Không thể dùng.",art:"black sludge, rot"},
+};
+const STARTER = ["chem","chem","chem","chem","chem","do","do","do","do","dap_khien"];
+
+// ---------- DI VẬT ----------
+const RELICS = {
+  estus:{n:"Bình Estus Nứt",d:"Hồi 6 HP sau mỗi trận.",start:1},
+  nhan_mau:{n:"Nhẫn Máu",d:"Đầu trận +1 Sức Mạnh."},
+  giap_tro:{n:"Giáp Tro",d:"Đầu trận nhận 8 Giáp."},
+  mat_quy:{n:"Mắt Quỷ",d:"Lượt đầu rút thêm 2 lá."},
+  tim_lua:{n:"Tim Lửa",d:"Lượt đầu +1 Năng Lượng."},
+  moc_xuong:{n:"Móc Xương",d:"Mỗi đòn tấn công gây thêm 1 Chảy Máu."},
+  vang_rua:{n:"Vàng Rủa",d:"+50% vàng nhận được."},
+  long_qua:{n:"Lông Quạ",d:"+10 HP tối đa.",pick:{maxhp:10}},
+  so_tay:{n:"Sổ Tay Thợ Săn",d:"Phần thưởng thẻ có thêm 1 lựa chọn."},
+  kinh_vuc:{n:"Kinh Vực",d:"Kẻ thù bắt đầu trận với 2 Phơi Yếu."},
+  dao_gam:{n:"Dao Găm Cũ",d:"Đầu trận gây 5 sát thương lên tất cả kẻ thù."},
+  chuoi_hat:{n:"Chuỗi Hạt Elise",d:"Lần đầu HP < 30% mỗi trận: hồi 12 HP."},
+  nhan_mira:{n:"Nhẫn Bạc Của Mira",d:"Giảm 20% giá cửa hàng."},
+  an_khe:{n:"Ấn Khế Nyx",d:"+1 Năng Lượng mỗi lượt. Nhận lời nguyền Dục Vọng.",pick:{curse:"duc_vong"}},
+  coc_mau:{n:"Cốc Máu Lamia",d:"Hồi 2 HP mỗi khi hạ một kẻ thù."},
+  to_nhen:{n:"Tơ Arachne",d:"Đầu trận gây 1 Suy Yếu lên tất cả kẻ thù."},
+};
+
+// ---------- KẺ THÙ (toàn bộ nữ) ----------
+// move: n tên, d sát thương, h số đòn, b giáp, s tăng sức mạnh, w/v/bl lên người chơi, heal
+const ENEMIES = {
+  hollow:{n:"Nữ Binh Rỗng",hp:[20,24],moves:[{n:"Chém Gỉ",d:6},{n:"Giơ Khiên",b:6},{n:"Chém Gỉ",d:7}],tags:"1girl, mature female, undead, hollow soldier, rusted armor, torn clothes, grey skin, glowing eyes, broken sword"},
+  ghoul:{n:"Thây Ma Đói",hp:[28,32],moves:[{n:"Cắn Xé",d:5,bl:2},{n:"Gặm Nhấm",d:9}],tags:"1girl, mature female, zombie girl, ghoul, pale skin, stitches, tattered dress, long messy hair, crawling, red eyes"},
+  ratgirl:{n:"Nữ Chuột Cống",hp:[12,15],moves:[{n:"Cào",d:4},{n:"Cào",d:5}],tags:"1girl, mature female, mouse girl, mouse ears, mouse tail, rags, sewer, dirty, sharp claws, grin"},
+  crow:{n:"Nữ Quạ Xác",hp:[18,22],moves:[{n:"Mổ Liên Hồi",d:3,h:2},{n:"Tiếng Kêu",w:1}],tags:"1girl, mature female, harpy, black feathers, feathered wings, bird legs, crow girl, perched, graveyard"},
+  boneknight:{n:"Kỵ Sĩ Xương",hp:[40,46],moves:[{n:"Chém Nặng",d:11},{n:"Thế Thủ",b:10,s:1},{n:"Chém Nặng",d:12}],tags:"1girl, mature female, skeleton armor, bone knight, black armor, skull motif, halberd, glowing blue eyes"},
+  cultist:{n:"Nữ Tín Đồ Vực",hp:[32,36],moves:[{n:"Cầu Nguyện",s:3},{n:"Dao Nghi Lễ",d:7},{n:"Dao Nghi Lễ",d:7}],tags:"1girl, mature female, cultist, black hood, robe, ritual dagger, tattoos, candles, chanting"},
+  wraith:{n:"Oan Hồn Khóc",hp:[28,32],moves:[{n:"Móng Vuốt Hồn",d:4,h:3},{n:"Than Khóc",w:2,v:1}],tags:"1girl, mature female, ghost girl, translucent, white dress, floating, long hair covering eyes, wisps"},
+  gargoyle:{n:"Nữ Thạch Quỷ",hp:[44,50],moves:[{n:"Hóa Đá",b:14},{n:"Đập Cánh",d:13},{n:"Lao Xuống",d:9}],tags:"1girl, mature female, gargoyle girl, stone skin, stone wings, horns, cracked skin, cathedral rooftop"},
+  watcher:{n:"Nữ Canh Vực",hp:[58,64],moves:[{n:"Kiếm Đôi",d:7,h:2},{n:"Bước Ảo",b:12},{n:"Chém Vực",d:16}],tags:"1girl, mature female, abyss watcher, wolf knight, tattered blue cape, mask, dual swords, dark mist"},
+  voidspawn:{n:"Hư Không Nữ",hp:[48,54],moves:[{n:"Xúc Tu",d:6,bl:3},{n:"Nuốt Ánh Sáng",w:2,b:8},{n:"Xúc Tu",d:8,bl:2}],tags:"1girl, mature female, eldritch, monster girl, black skin, tentacles, glowing purple eyes, void, starry skin"},
+  nightmare:{n:"Ác Mộng Mê Hoặc",hp:[44,50],moves:[{n:"Thì Thầm",v:2,w:1},{n:"Cắn Mộng",d:12}],tags:"1girl, mature female, demon girl, small horns, bat wings, mist, mischievous smile, dream"},
+  // Tinh anh — sau khi thắng có lựa chọn cảnh
+  arachne:{n:"Nữ Nhện Arachne",hp:[66,70],elite:1,scene:"mon_arachne",relic:"to_nhen",moves:[{n:"Giăng Tơ",w:2,b:10},{n:"Nanh Độc",d:12,bl:3},{n:"Tám Chân",d:5,h:3}],tags:"1girl, mature female, arachne, spider girl, monster girl, drider, spider web, six eyes, black hair, cave, silk"},
+  lamia:{n:"Lamia Huyết Tộc",hp:[96,102],elite:1,scene:"mon_lamia",relic:"coc_mau",moves:[{n:"Siết Chặt",d:8,h:2},{n:"Hút Máu",d:10,heal:8},{n:"Ánh Mắt Rắn",v:2,w:2}],tags:"1girl, mature female, lamia, snake girl, monster girl, scales, snake tail, slit pupils, gold jewelry, red hair, crypt"},
+  succubus:{n:"Nữ Succubus Lạc Mộng",hp:[124,132],elite:1,scene:"mon_succubus",relic:"an_khe",moves:[{n:"Quyến Rũ",w:2,v:2,s:2},{n:"Roi Gai",d:9,h:2},{n:"Nụ Hôn Rút Hồn",d:15,heal:10}],tags:"1girl, mature female, succubus, demon girl, horns, bat wings, demon tail, pink hair, heart-shaped pupils, revealing clothes, smile"},
+  // Boss
+  gwyndra:{n:"Gwyndra — Nữ Hiệp Sĩ Rỗng",hp:[130,130],boss:1,scene:"boss_gwyndra",moves:[{n:"Trảm Đại Kiếm",d:16},{n:"Giáp Thép",b:16,s:2},{n:"Quét Lửa",d:7,h:2},{n:"Hét Chiến",w:2,v:2}],enrage:{at:.5,s:3,t:"Gwyndra gầm lên, lửa phủ kín thanh kiếm!"},tags:"1girl, mature female, tall female, knight, silver armor, tattered red cape, flaming greatsword, long blonde hair, ruined castle, boss"},
+  ornisa:{n:"Ornisa — Giám Mục Mục Rữa",hp:[185,185],boss:1,scene:"boss_ornisa",moves:[{n:"Thánh Ca Rữa",bl:5,w:2},{n:"Trượng Nặng",d:18},{n:"Phép Lành Đen",b:20,heal:15},{n:"Mưa Xương",d:6,h:3}],enrage:{at:.5,s:4,t:"Ornisa xé bỏ áo thánh, mục rữa lan khắp nhà thờ!"},tags:"1girl, mature female, bishop, white and gold robes, mitre, rotting, decay, holy staff, veil, cathedral, boss"},
+  nyx:{n:"Nyx — Nữ Hoàng Vực Thẳm",hp:[270,270],boss:1,final:1,moves:[{n:"Giấc Mơ Đỏ",v:3,w:2},{n:"Cánh Đêm",d:9,h:3},{n:"Ngai Xương",b:25,s:3},{n:"Nuốt Lửa",d:24}],enrage:{at:.5,s:5,t:"Nyx dang cánh. Bóng tối nuốt trọn ánh sáng cuối cùng!"},tags:"1girl, mature female, succubus queen, demon girl, curled horns, large demon wings, demon tail, very long purple hair, yellow eyes, slit pupils, crown, black dress, gold jewelry, throne of bones, boss"},
+};
+const POOLS = {
+  1:{n:[["hollow"],["ghoul"],["ratgirl","ratgirl"],["crow","hollow"],["ratgirl","crow"]],e:[["arachne"]],b:"gwyndra"},
+  2:{n:[["boneknight"],["cultist","hollow"],["wraith","wraith"],["gargoyle"],["cultist","crow"]],e:[["lamia"]],b:"ornisa"},
+  3:{n:[["watcher"],["voidspawn","wraith"],["nightmare","nightmare"],["voidspawn"],["watcher","nightmare"]],e:[["succubus"]],b:"nyx"},
+};
+const ACTS = {1:"Thành Đổ Nát Aldrenn",2:"Hầm Mộ Thánh Ornis",3:"Vực Thẳm Mộng Dục"};
+
+// ---------- NỮ NHÂN (heroine) ----------
+// Dòng bắt đầu bằng "~" = dẫn truyện; còn lại là lời thoại của nàng.
+// ev: chuỗi sự kiện (yêu cầu thiện cảm). s1: cảnh thân mật (love/dark). s2: khế ước.
+const HEROES = {
+ sera:{n:"Seraphine",title:"Người Giữ Lửa",age:"26",hub:1,acts:[],
+  desc:"Người phụ nữ mù giữ ngọn lửa cuối cùng. Giọng nói như tro ấm, dịu dàng nhưng cô độc.",
+  tags:"1girl, solo, "+ADULT+", long hair, grey hair, blindfold, hood, grey robe, tattered cloak, pale skin, gentle smile, embers, curvy",
+  ev:[
+   {req:0,lines:["~Lò lửa cuối cùng cháy leo lét giữa ngôi đền đổ nát. Một người phụ nữ choàng áo xám ngồi cạnh, đôi mắt bịt băng vải.","Ngươi tỉnh rồi, hỡi Kẻ Tro Tàn. Ngọn lửa gọi ngươi về… như nó đã gọi bao kẻ trước.","Ta là Seraphine, Người Giữ Lửa. Mỗi lần ngươi ngã xuống, ta sẽ ở đây chờ."],
+    ch:[{t:"Hỏi về ngọn lửa",aff:5,r:"Nó đang tàn. Nữ Hoàng Vực Thẳm đang nuốt dần nó. Và ngươi… là hy vọng mong manh cuối cùng."},
+        {t:"Ngồi xuống cạnh nàng, im lặng",aff:8,r:"~Nàng nghiêng đầu, khẽ tựa vai vào ngươi. Lâu lắm rồi mới có người ngồi gần nàng như thế."},
+        {t:"Ngắm nhìn thân hình nàng không chút ngại ngùng",aff:2,corr:3,r:"Ta không thấy, nhưng ta cảm được ánh mắt ấy. …Thật táo bạo."}]},
+   {req:15,lines:["~Seraphine đưa tay chạm lên mặt ngươi, lần theo từng vết sẹo.","Ta không thấy được ngươi. Nhưng ta nhớ hơi ấm của từng người trở về… ngươi ấm hơn họ."],
+    ch:[{t:"Để nàng chạm tiếp",aff:10,r:"~Ngón tay nàng dừng lại nơi môi ngươi lâu hơn mức cần thiết. Má nàng ửng hồng."},
+        {t:"Hỏi về những người trước",aff:5,r:"Họ đều tàn lụi thành Kẻ Rỗng. Ta mong ngươi thì không."},
+        {t:"Gạt tay nàng ra",aff:-5}]},
+   {req:35,lines:["~Đêm ấy ngọn lửa bùng lên khác thường. Seraphine run rẩy ôm lấy vai mình.","Ngọn lửa đòi một vật tế, hoặc một lời thề. Ta… không muốn mất thêm ai nữa."],
+    ch:[{t:"Thề sẽ trở về với nàng",path:"love",aff:10,r:"Vậy hãy giữ lời. Ta sẽ chờ — không phải với tư cách Người Giữ Lửa, mà là một người đàn bà."},
+        {t:"Bảo nàng hãy để bóng tối nuốt lấy cả hai",path:"dark",aff:6,corr:10,r:"…Ngươi nói như kẻ đến từ Vực Thẳm. Nhưng sao ta lại chẳng thấy ghét điều đó?"},
+        {t:"Chưa phải lúc",aff:-3,stay:1}]}],
+  s1:{love:{n:"Hơi Ấm Bên Lò Lửa",lines:["~Đêm không trăng. Seraphine tháo dải băng khỏi mắt — lần đầu tiên trước mặt một ai đó.","Ta muốn nhớ ngươi bằng thứ gì đó hơn là giọng nói.","~Áo choàng xám rơi xuống lớp tro. Nàng kéo ngươi lại gần, hơi thở run rẩy hòa cùng tiếng lửa tí tách.","~Đôi tay nàng vụng về, rồi dần quen thuộc. Mỗi cái chạm như một lời cầu nguyện.","~Đêm ấy, ngọn lửa cháy sáng nhất từ trước đến nay.","Đừng đi đâu cả… ít nhất là đến khi trời sáng."]},
+      dark:{n:"Ngọn Lửa Hoen Ố",lines:["~Ngọn lửa chuyển sang sắc tím. Seraphine không còn run nữa.","Ngươi đã mang bóng tối về đây… và ta đã nếm nó trên môi ngươi.","~Nàng đẩy ngươi ngã xuống bậc đá lạnh, tro tàn bay quanh hai thân thể quấn lấy nhau.","~Người Giữ Lửa không còn giữ gìn điều gì nữa.","Nữa đi. Hãy để ta quên mất mình từng là ai."]}},
+  s2:{n:"Khế Ước Tro Tàn",lines:["Ta trao ngươi phúc lành cuối cùng — một phần ngọn lửa trong chính ta.","~Nàng áp lòng bàn tay lên ngực ngươi. Một ấn lửa khắc lên da, ấm như nụ hôn.","Từ nay, dù ngươi ngã ở đâu, ta cũng ở đó."],card:"pact_sera"},
+  talk:["Ngươi về rồi. Ngọn lửa cũng vui.","Ta nghe thấy tim ngươi đập nhanh mỗi khi ở gần ta.","Hãy kể ta nghe về nơi ngươi đã ngã xuống.","Tro trên vai ngươi… để ta phủi cho."],
+  end:["~Ngọn lửa được thắp lại. Và bên nó, Seraphine không còn phải ngồi một mình nữa.","Lần này ta thấy được rồi. Ngươi đẹp hơn ta tưởng."]},
+
+ brun:{n:"Brunhild",title:"Nữ Hiệp Sĩ Sa Ngã",age:"29",acts:[1,2],
+  desc:"Cựu Cận Vệ Sói của Hoàng hậu đã chết. Mang lời nguyền Rỗng, kiêu hãnh và cô độc.",
+  tags:"1girl, solo, "+ADULT+", tall female, toned, white hair, long hair, ponytail, red eyes, scar across eye, black armor, gauntlets, greatsword, tattered cape, serious",
+  ev:[
+   {req:0,lines:["~Giữa đống xác Rỗng, một nữ hiệp sĩ giáp đen chống kiếm, máu nhỏ giọt xuống nền đá.","Lùi lại, kẻ lạ. Ta là Brunhild của Đội Cận Vệ Sói — hoặc từng là.","Lời nguyền đang ăn mòn ta. Nếu ngươi định cướp, hãy làm cho nhanh."],
+    ch:[{t:"Băng bó cho nàng (−5 HP)",hp:-5,aff:10,r:"…Ngươi ngu ngốc thật. Nhưng ta sẽ nhớ."},
+        {t:"Đề nghị cùng chiến đấu",aff:6,r:"Một Kẻ Tro Tàn muốn kề vai với ta? Được. Đừng chết trước mặt ta."},
+        {t:"Lục soát túi đồ của nàng (+35 vàng)",gold:35,aff:-10,corr:3}]},
+   {req:15,lines:["~Brunhild chặn ngươi trước cổng Hầm Mộ.","Ta đã thề bảo vệ Hoàng hậu. Bà chết, còn ta thì sống. Một hiệp sĩ như thế còn đáng giá gì?"],
+    ch:[{t:"Nàng vẫn còn danh dự",aff:10,r:"~Nàng quay đi, nhưng ngươi thấy đôi vai nàng thả lỏng."},
+        {t:"Đấu tập với nàng (−8 HP)",hp:-8,aff:12,r:"~Nàng hạ kiếm, thở dốc, rồi mỉm cười lần đầu tiên. 'Không tệ, Tro Tàn.'"},
+        {t:"Danh dự là thứ vô dụng",aff:-3,corr:5}]},
+   {req:35,lines:["~Lời nguyền bùng phát. Mắt Brunhild đỏ rực, mũi kiếm chĩa vào cổ ngươi.","Giết ta… trước khi ta thành một Kẻ Rỗng. Hoặc—","~Nàng ngập ngừng, lưỡi kiếm run lên.","—hoặc cho ta một lý do để tiếp tục làm người."],
+    ch:[{t:"Ôm lấy nàng, mặc lưỡi kiếm (−6 HP)",path:"love",hp:-6,aff:12,r:"~Thanh kiếm rơi xuống. Nàng vùi mặt vào vai ngươi, lặng im thật lâu."},
+        {t:"Bảo nàng buông bỏ lời thề và theo ngươi",path:"dark",aff:8,corr:10,r:"Một hiệp sĩ không còn lời thề… chỉ còn lại khát khao. Được thôi."},
+        {t:"Lùi lại",aff:-5,stay:1}]}],
+  s1:{love:{n:"Khi Giáp Rơi",lines:["~Trong một nhà nguyện đổ nát, Brunhild tháo từng mảnh giáp. Tiếng kim loại rơi vang vọng dưới mái vòm.","Chưa ai thấy ta thế này. Đừng nhìn ta như nhìn một hiệp sĩ.","~Bàn tay chai sạn của nàng run run khi chạm vào ngươi.","~Đêm ấy nàng không cần đến thanh kiếm nào.","Sáng mai… ta vẫn sẽ đi trước ngươi. Đó là lời thề mới của ta."]},
+      dark:{n:"Hiệp Sĩ Quỳ Gối",lines:["~Brunhild quỳ xuống, giáp đen nứt vỡ, đôi mắt đỏ không còn kháng cự.","Ngươi muốn ta buông bỏ tất cả? Vậy hãy lấp đầy chỗ trống đó.","~Nàng kéo ngươi xuống cùng, mạnh mẽ như một trận chiến.","~Lời nguyền trong nàng dịu đi — đổi bằng một cơn đói khác."]}},
+  s2:{n:"Khế Ước Sói Bạc",lines:["Kiếm của ta là của ngươi. Thân thể ta cũng vậy.","~Nàng cắt nhẹ lòng bàn tay, áp vào tay ngươi. Máu hai người hòa làm một."],card:"pact_brun"},
+  talk:["Ngươi lại chết à? Lần sau để ta đi trước.","Đừng nhìn ta lúc ta lau giáp… hoặc cứ nhìn đi.","Ở bên lò lửa, lời nguyền im lặng hơn.","Tay ngươi lạnh quá. Đưa đây."],
+  end:["~Brunhild đứng gác bên ngọn lửa mới — không còn là Kẻ Rỗng, chỉ là một người đàn bà đã chọn ở lại.","Ta không thề với ngai vàng nữa. Ta thề với ngươi."]},
+
+ morw:{n:"Morwen",title:"Phù Thủy Vực Thẳm",age:"31",acts:[2,3],
+  desc:"Học giả cấm thuật, đổi tri thức lấy những thứ 'thú vị'. Quyến rũ, nguy hiểm, tò mò vô đáy.",
+  tags:"1girl, solo, "+ADULT+", black hair, very long hair, purple eyes, mole under eye, witch hat, black dress, corset, long sleeves, glowing runes, staff, smirk, dark aura",
+  ev:[
+   {req:0,lines:["~Trong thư viện ngập nước, một phù thủy đội mũ nhọn ngồi vắt chân trên chồng sách mục.","Ồ, một Kẻ Tro Tàn còn biết suy nghĩ. Hiếm đấy.","Ta là Morwen. Ta đổi tri thức lấy… những thứ thú vị."],
+    ch:[{t:"Đổi 40 vàng lấy một phép hiếm",need:{gold:40},gold:-40,card:"rare",aff:5},
+        {t:"Khen trí tuệ của nàng",aff:8,r:"Nịnh hót. Nhưng ta thích được nịnh."},
+        {t:"Đe dọa nàng",aff:-8,r:"~Nàng búng tay. Ngươi bỗng thấy lạnh sống lưng."}]},
+   {req:15,lines:["Ta cần máu của kẻ đã chết nhiều lần. Của ngươi, chẳng hạn.","~Nàng nghiêng người, ánh mắt tím lướt dọc cổ ngươi."],
+    ch:[{t:"Cho nàng máu (−8 HP)",hp:-8,aff:12,r:"~Nàng liếm giọt máu trên đầu ngón tay, mắt tím lóe sáng. 'Ngọt hơn ta nghĩ.'"},
+        {t:"Đòi nàng trả giá trước (+40 vàng)",gold:40,aff:5,corr:3,r:"Trả giá? Ta thích kẻ biết mặc cả."},
+        {t:"Từ chối",aff:-3}]},
+   {req:35,lines:["~Morwen mở cuốn sách đen. Những con chữ trườn trên giấy như rắn.","Bên kia trang này là Vực Thẳm. Ta có thể đọc nó — nếu có ai đó giữ ta lại với thế giới này."],
+    ch:[{t:"Nắm lấy tay nàng, kéo nàng về",path:"love",aff:10,r:"~Cuốn sách đóng sập. Morwen nhìn ngươi, lần đầu tiên không có nụ cười giễu cợt."},
+        {t:"Cùng nàng đọc trang sách",path:"dark",aff:8,corr:12,relic:"kinh_vuc",r:"Phải rồi… cùng nhau rơi xuống mới thú vị."},
+        {t:"Bỏ đi",aff:-4,stay:1}]}],
+  s1:{love:{n:"Bài Học Riêng",lines:["~Ngọn nến cuối cùng trong thư viện. Morwen tháo mũ, mái tóc đen đổ xuống như mực tràn.","Ta đã đọc mọi cuốn sách viết về dục vọng. Chưa cuốn nào đúng cả.","~Nàng kéo ngươi ngã xuống giữa những trang giấy cũ.","Dạy ta đi, Kẻ Tro Tàn. Những điều sách không viết.","~Đến sáng, nàng ghi chép kín ba trang — rồi xé hết, vì có những thứ không nên viết ra."]},
+      dark:{n:"Nghi Thức Vực",lines:["~Vòng tròn rune bùng sáng tím quanh hai người.","Vực Thẳm cần một vật chứa. Ta chọn cả hai ta.","~Bóng tối quấn lấy da thịt, và tiếng cười của Morwen vỡ thành những tiếng thở dồn dập.","~Khi ánh rune tắt, ngươi không còn chắc ai đã trói buộc ai."]}},
+  s2:{n:"Khế Ước Mực Đen",lines:["Tên ngươi giờ đã được viết trong sách của ta. Không thể xóa được nữa.","~Nàng hôn lên mu bàn tay ngươi, để lại một dấu rune tím."],card:"pact_morw"},
+  talk:["Ta đang nghiên cứu ngươi. Đứng yên.","Lò lửa này… nhàm chán. Trừ khi ngươi ở đây.","Muốn nghe một bí mật không? Phải trả giá đấy.","Đừng chết nữa. Ta ghi chép mệt lắm."],
+  end:["~Morwen viết lại lịch sử của Kỷ Nguyên mới. Ở chương cuối chỉ có một cái tên — tên ngươi."]},
+
+ elis:{n:"Elise",title:"Nữ Tu Dị Giáo",age:"26",acts:[1,2],
+  desc:"Nữ tu còn cầu nguyện cho một vị thần đã chết. Nhút nhát, đức tin lung lay, khao khát thầm kín.",
+  tags:"1girl, solo, "+ADULT+", blonde hair, long hair, blue eyes, nun, black habit, veil, rosary, cross necklace, holding candle, blush, shy, curvy",
+  ev:[
+   {req:0,lines:["~Một nữ tu quỳ cầu nguyện trước pho tượng thánh đã bị chặt đầu.","Xin… đừng làm hại tôi. Tôi là Elise. Tôi cầu nguyện cho những linh hồn còn lạc ở đây."],
+    ch:[{t:"Cầu nguyện cùng nàng (+6 HP)",hp:6,aff:8,r:"~Nàng nhìn ngươi ngạc nhiên, rồi mỉm cười. Ánh nến dường như ấm hơn."},
+        {t:"Hỏi vì sao nàng ở lại nơi chết chóc này",aff:5,r:"Vì nếu tôi đi… sẽ chẳng còn ai cầu nguyện cho họ cả."},
+        {t:"Cười nhạo vị thần đã chết",aff:-5,corr:3,r:"~Nàng tái mặt… nhưng không phản bác."}]},
+   {req:15,lines:["~Elise giật mình giấu vội một cuốn kinh bìa đỏ sau lưng.","Thần đã im lặng quá lâu. Cuốn sách này nói… khoái lạc cũng là một lời cầu nguyện."],
+    ch:[{t:"Bảo nàng đừng xấu hổ",aff:10,r:"~Nàng đỏ mặt đến tận mang tai, nhưng không giấu cuốn sách nữa."},
+        {t:"Đọc cùng nàng",aff:8,corr:5,r:"~Hai người ngồi sát nhau dưới ánh nến. Nàng lật trang rất chậm."},
+        {t:"Giật lấy cuốn sách và đốt",aff:-5}]},
+   {req:35,lines:["Tôi đã thề trinh khiết với một vị thần không còn nữa. Lời thề ấy… còn ý nghĩa không?","~Nàng siết chặt tràng hạt, ngước nhìn ngươi."],
+    ch:[{t:"Lời thề nên dành cho người còn sống",path:"love",aff:10,relic:"chuoi_hat",r:"~Nàng tháo tràng hạt, đặt vào tay ngươi. 'Vậy… tôi thề với người.'"},
+        {t:"Hãy cùng ta phá bỏ nó",path:"dark",aff:8,corr:10,r:"Nếu thần còn nhìn thấy… thì hãy để ngài thấy."},
+        {t:"Ta không có câu trả lời",aff:-2,stay:1}]}],
+  s1:{love:{n:"Lời Nguyện Thầm",lines:["~Elise tháo khăn voan, mái tóc vàng xõa xuống dưới ánh nến.","Tôi không cầu nguyện với thần nữa. Tối nay, tôi cầu nguyện với người.","~Bàn tay nàng run rẩy, nhưng nụ hôn thì không.","~Chiếc áo dòng đen trượt xuống sàn đá, không ai nhặt lên.","Đây là lần đầu tiên tôi thấy được ơn phước thật sự."]},
+      dark:{n:"Thánh Lễ Đen",lines:["~Trên bệ thờ đổ nát, Elise tự tay cởi bỏ áo dòng.","Nếu thần thấy được, hãy để ngài thấy hết.","~Tiếng cầu kinh của nàng dần biến thành một thứ ngôn ngữ khác hẳn.","~Những ngọn nến tắt dần, từng ngọn một."]}},
+  s2:{n:"Khế Ước Huyết Kinh",lines:["Tôi viết tên người vào cuốn kinh này, bằng máu của tôi.","~Elise ôm lấy ngươi thật lâu, như sợ ngươi tan thành tro."],card:"pact_elis"},
+  talk:["Người về rồi! Tôi… tôi đã cầu nguyện cho người.","Tôi may lại áo cho người, nhưng vụng quá…","Đêm qua tôi mơ thấy người. Đừng hỏi là mơ gì!","Ngồi đây với tôi một chút được không?"],
+  end:["~Elise lập một ngôi đền nhỏ bên ngọn lửa mới. Nàng không thờ thần nào cả — chỉ thắp nến mỗi đêm ngươi trở về."]},
+
+ mira:{n:"Mira",title:"Nữ Thương Nhân Hồ Ly",age:"28",acts:[1,2,3],shop:1,
+  desc:"Thương nhân tai cáo lang thang khắp vùng chết. Tinh ranh, ham vàng, thật ra rất cô đơn.",
+  tags:"1girl, solo, "+ADULT+", fox girl, fox ears, fox tail, animal ear fluff, brown hair, short hair, green eyes, merchant, scarf, leather corset, hooded cloak, lantern, large backpack, sly smile",
+  ev:[
+   {req:0,lines:["~Một cô gái tai cáo ngồi trên chiếc ba lô khổng lồ, đếm vàng dưới ánh đèn lồng.","Khách quý! Mira đây — hàng tốt, giá… hợp lý, tùy tâm trạng."],
+    ch:[{t:"Trả giá lịch sự",aff:6,r:"Lịch sự ghê ta. Được, ta nhớ mặt ngươi rồi đó."},
+        {t:"Tặng nàng 20 vàng",need:{gold:20},gold:-20,aff:10,r:"Ơ… tặng không? Ngươi bị ngã đập đầu à? …Cảm ơn."},
+        {t:"Dọa cướp hàng",aff:-10,r:"~Đuôi nàng xù lên. 'Thử xem, bẫy của ta đang đói đấy.'"}]},
+   {req:15,lines:["Đường xuống Vực Thẳm nguy hiểm lắm. Hay ngươi đi cùng ta một đoạn… miễn phí.","~Chiếc đuôi nàng quất nhẹ vào chân ngươi."],
+    ch:[{t:"Hộ tống nàng (−6 HP, +30 vàng)",hp:-6,gold:30,aff:12,r:"~Đến nơi, nàng hôn chóc lên má ngươi rồi chạy biến."},
+        {t:"Hỏi sao nàng buôn bán ở nơi chết chóc",aff:8,r:"Vì ở đây không ai hỏi ta từ đâu đến. …Trừ ngươi."},
+        {t:"Đòi giảm giá",aff:2}]},
+   {req:35,lines:["Ta không bán thứ này cho ai cả. Nhưng với ngươi… ta có thể tặng.","~Nàng chìa ra một chiếc nhẫn bạc, mắt nhìn đi chỗ khác."],
+    ch:[{t:"Nhận nhẫn và hôn nàng",path:"love",aff:12,relic:"nhan_mira",r:"~Tai nàng dựng đứng, đuôi quẫy loạn. 'Đ-đồ ngốc! Ai cho phép!' …nhưng nàng không đẩy ra."},
+        {t:"Hỏi nàng còn bán gì khác — chính nàng chẳng hạn",path:"dark",aff:6,corr:8,r:"Ư hừm~ Giá cao lắm đấy. Ngươi trả nổi không?"},
+        {t:"Ta không nhận được",aff:-4,stay:1}]}],
+  s1:{love:{n:"Đêm Không Tính Tiền",lines:["~Trong căn lều nhỏ chất đầy hàng hóa, Mira tắt đèn lồng.","Lần đầu tiên ta không tính tiền ai đó.","~Chiếc đuôi mềm quấn quanh eo ngươi, giữ ngươi lại thật chặt.","~Nàng thì thầm những điều nàng chưa từng nói với ai.","Ở lại đến sáng nhé? Ta… không quen ngủ một mình."]},
+      dark:{n:"Món Hàng Đắt Nhất",lines:["Món hàng đắt nhất của ta là chính ta. Ngươi định trả bằng gì?","~Nàng tự tháo dây áo, nụ cười tinh quái không giấu nổi đôi má đỏ.","~Cuộc mặc cả kéo dài suốt đêm, và không ai thực sự thua.","Lần sau… ta tính lãi đấy."]}},
+  s2:{n:"Khế Ước Hồ Ly",lines:["Từ giờ ngươi là khách hàng duy nhất của ta. Vĩnh viễn. Không hoàn tiền.","~Nàng quấn đuôi quanh cổ tay ngươi như một sợi dây buộc."],card:"pact_mira"},
+  talk:["Hôm nay ta có hàng mới! …À không, ta chỉ muốn gặp ngươi.","Đừng nhìn đuôi ta nữa! …Muốn sờ à?","Ngươi còn sống, tốt. Ngươi còn nợ ta mà.","Ta để dành cho ngươi một bình estus. Đừng nói ai."],
+  end:["~Mira mở cửa hàng đầu tiên của Kỷ Nguyên mới. Biển hiệu ghi: 'Đồ của ngươi — miễn phí. Người khác — giá gấp đôi.'"]},
+
+ nyx:{n:"Nyx",title:"Nữ Hoàng Vực Thẳm",age:"hàng thế kỷ (dáng vẻ ~30)",acts:[2,3],noHub:1,
+  desc:"Kẻ đang nuốt dần Ngọn Lửa. Hiện ra trong giấc mơ, mời gọi ngươi về phía bóng tối.",
+  tags:"1girl, solo, "+ADULT+", succubus, demon girl, curled horns, demon wings, demon tail, very long hair, purple hair, yellow eyes, slit pupils, crown, black dress, gold jewelry, half-closed eyes, smile",
+  ev:[
+   {req:0,lines:["~Ngươi thiếp đi. Trong mơ, một người đàn bà có sừng ngồi trên ngai bằng xương.","Cuối cùng cũng có kẻ đi xa đến thế. Ta là Nyx — kẻ đang ăn dần ngọn lửa của các ngươi.","Đừng sợ. Ta chỉ muốn… ngắm ngươi một chút."],
+    ch:[{t:"Hỏi nàng muốn gì",aff:5,r:"Muốn gì ư? Một kẻ không quỳ gối. Thứ đó hiếm lắm."},
+        {t:"Rút kiếm trong mơ",aff:3,r:"~Nàng bật cười. 'Dễ thương thật.'"},
+        {t:"Bước lại gần ngai",aff:8,corr:8,r:"~Đầu ngón tay nàng lướt qua cằm ngươi. Rồi ngươi tỉnh dậy, người nóng ran."}]},
+   {req:15,lines:["Ngọn Lửa là sợi xích, Kẻ Tro Tàn. Bóng tối mới là tự do.","~Đôi cánh nàng khép lại quanh ngươi như một chiếc kén."],
+    ch:[{t:"Lắng nghe nàng",aff:8,corr:5},
+        {t:"Phản bác",aff:5,r:"Bướng bỉnh. Ta lại càng thích."},
+        {t:"Đưa tay cho nàng",aff:10,corr:10,relic:"an_khe",r:"~Một ấn ký tím hiện lên cổ tay ngươi. Sức mạnh tràn vào — cùng một cơn khát lạ lùng."}]},
+   {req:35,lines:["Khi ngươi đến được ngai của ta, ngươi sẽ phải chọn: giết ta, hay ngồi cạnh ta.","Nhưng tối nay… hãy để ta cho ngươi nếm thử câu trả lời."],
+    ch:[{t:"Nàng có thể là hơn một con quỷ",path:"love",aff:10,r:"…Chưa ai nói thế với ta. Chưa từng."},
+        {t:"Hôn nàng",path:"dark",aff:10,corr:15},
+        {t:"Thức dậy",aff:-3,stay:1}]}],
+  s1:{love:{n:"Giấc Mơ Có Thật",lines:["~Lần này không phải mơ. Nyx bước ra từ bóng tối, sừng cúi thấp, đôi cánh khép lại.","Ta đã nuốt bao nhiêu giấc mơ… nhưng chưa ai mơ về ta như thế.","~Nàng run rẩy như một người thường khi ngươi chạm vào.","~Đêm ấy, Nữ Hoàng Vực Thẳm học được thế nào là dịu dàng."]},
+      dark:{n:"Ngai Xương",lines:["~Trên ngai xương, Nyx kéo ngươi vào lòng, đôi cánh trùm kín như màn đêm.","Ngươi là của ta. Từ hơi thở đến linh hồn.","~Khoái lạc và bóng tối hòa làm một.","~Khi tỉnh dậy, ngươi không còn nhớ ngọn lửa trông ra sao."]}},
+  s2:{n:"Khế Ước Mộng Dục",lines:["Ta trao ngươi một nửa giấc mơ của ta. Đừng đánh mất nó.","~Nụ hôn của nàng có vị như rượu và tro."],card:"pact_nyx"},
+  talk:["…"],
+  end:["~Bên cạnh ngai vàng mới, Nyx tựa đầu vào vai ngươi. Bóng tối không còn lạnh nữa."]},
+};
+const HERO_ORDER=["sera","brun","elis","mira","morw","nyx"];
+
+// ---------- CẢNH QUÁI / BOSS (sau khi thắng) ----------
+const MON_SCENES = {
+ mon_arachne:{n:"Tơ Trắng",who:"arachne",ask:["~Arachne gục xuống giữa mạng tơ, sáu con mắt nhìn ngươi van lơn.","Đừng giết ta… Ta có thể cho ngươi thứ khác. Ở đây lạnh lẽo lắm, và đã lâu rồi ta không được ai chạm vào…"],
+  lines:["~Nàng giăng một chiếc võng tơ mềm như lụa, kéo ngươi lên.","Đừng sợ. Tơ của ta chỉ trói những gì ta muốn giữ.","~Tám chân khẽ khàng ôm lấy ngươi, ấm áp một cách kỳ lạ.","~Khi ngươi rời đi, nàng tặng ngươi một cuộn tơ bạc."]},
+ mon_lamia:{n:"Vòng Siết Đỏ",who:"lamia",ask:["~Lamia cuộn mình, máu chảy dọc lớp vảy đỏ.","Ngươi mạnh thật… Tha cho ta, và ta sẽ cho ngươi biết vòng siết của ta có thể dịu dàng đến mức nào."],
+  lines:["~Chiếc đuôi dài cuộn quanh ngươi, chậm rãi, từng vòng một.","Thả lỏng nào… ta không cắn đâu. Trừ khi ngươi xin.","~Hơi ấm của nàng trái ngược hẳn với hầm mộ lạnh giá.","~Nàng để lại trong tay ngươi một chiếc cốc bằng máu kết tinh."]},
+ mon_succubus:{n:"Lạc Mộng",who:"succubus",ask:["~Succubus quỳ gối, đôi cánh rách nát, nhưng nụ cười vẫn còn nguyên.","Ồ, ngươi thắng rồi~ Thay vì giết ta… sao không để ta trả nợ theo cách của một succubus?"],
+  lines:["~Nàng đẩy ngươi ngã xuống đám hoa hồng đen.","Ta sẽ cho ngươi một giấc mơ ngươi không bao giờ quên.","~Thời gian trôi đi như mật ngọt.","~Khi tỉnh dậy, trên cổ tay ngươi hằn một ấn ký hình trái tim."]},
+ boss_gwyndra:{n:"Kiếm Gãy",who:"gwyndra",ask:["~Gwyndra quỳ gối, thanh đại kiếm gãy đôi. Lớp giáp bạc nứt vỡ để lộ khuôn mặt mệt mỏi.","Ta đã gác cổng này ba trăm năm… Ngươi là kẻ đầu tiên đánh bại ta. Hãy cho ta biết cảm giác được sống thêm một lần, trước khi ngươi đi tiếp."],
+  lines:["~Nàng cởi bỏ lớp giáp đã bám chặt vào người hàng thế kỷ.","Ba trăm năm… ta quên mất da thịt mình ấm thế nào.","~Trên tường thành đổ nát, dưới bầu trời tro, nàng ôm ngươi như ôm lấy cuộc đời.","~Sáng ra, Gwyndra mở cổng — và mỉm cười tiễn ngươi đi."]},
+ boss_ornisa:{n:"Lễ Rửa Tội",who:"ornisa",ask:["~Ornisa ngã quỵ trên bệ thờ, lớp mục rữa trên người nàng rút dần, để lộ làn da trắng muốt.","Ngươi… đã thanh tẩy ta? Ta không còn nhớ lần cuối mình được làm người. Ở lại với ta, chỉ một đêm thôi."],
+  lines:["~Nàng gỡ chiếc mũ giám mục, tóc bạc đổ xuống bệ thờ.","Ta đã ban phước cho bao nhiêu người. Giờ ta muốn được nhận.","~Tiếng chuông nhà thờ vọng lên, lần đầu tiên sau nhiều thế kỷ.","~Nàng ở lại giữ nhà thờ, nhưng mỗi đêm sẽ thắp một ngọn nến cho ngươi."]},
+};
+
+// ---------- SỰ KIỆN NGẪU NHIÊN ----------
+// fx: gold hp maxhp corr souls card(rand/rare/id) relic(rand/id) curse upg remove fight scene healpct chance
+const EVENTS = [
+ {id:"corpse",n:"Xác Hiệp Sĩ",acts:[1,2],lines:["~Một xác nữ hiệp sĩ tựa vào tường, tay vẫn nắm chặt túi đồ.","~Có thứ gì đó lấp lánh bên trong… nhưng ngươi nghe tiếng sột soạt gần đó."],
+  ch:[{t:"Lục túi đồ",fx:{chance:{p:.6,a:{gold:50,msg:"Ngươi tìm được 50 vàng."},b:{fight:["hollow"],msg:"Một Nữ Binh Rỗng lao ra!"}}}},{t:"Để nàng yên nghỉ",fx:{corr:-3,msg:"Ngươi khép mắt cho nàng. Lòng nhẹ đi đôi chút."}}]},
+ {id:"altar",n:"Bàn Thờ Máu",acts:[1,2,3],lines:["~Một bàn thờ khắc hình nữ thần không mặt. Máu khô phủ kín rãnh khắc.","~Một giọng thì thầm: 'Hiến máu… nhận sức mạnh.'"],
+  ch:[{t:"Hiến máu (−10 HP, nhận thẻ hiếm)",need:{hp:11},fx:{hp:-10,card:"rare"}},{t:"Hiến linh hồn (Ô Uế +10, nhận di vật)",fx:{corr:10,relic:"rand"}},{t:"Rời đi",fx:{}}]},
+ {id:"mirror",n:"Gương Mộng",acts:[1,2,3],lines:["~Một tấm gương vỡ đứng giữa hành lang. Trong gương, ngươi thấy bóng hình của một người phụ nữ đang chờ ngươi."],
+  ch:[{t:"Chạm vào gương",fx:{affAny:6,msg:"Hình bóng mỉm cười với ngươi. (Thiện cảm +6 với một nữ nhân)"}},{t:"Đập vỡ gương",fx:{corr:5,card:"rand",msg:"Mảnh gương cứa tay. Một ký ức bạo liệt trở thành sức mạnh."}}]},
+ {id:"forge",n:"Lò Rèn Bỏ Hoang",acts:[1,2,3],lines:["~Một lò rèn cũ vẫn còn than hồng. Búa và đe vẫn nằm đó, như chờ ai đó quay lại."],
+  ch:[{t:"Rèn 2 thẻ ngẫu nhiên",fx:{upg:2}},{t:"Nung chảy một thẻ (−6 HP, loại bỏ 1 thẻ)",need:{hp:7},fx:{hp:-6,remove:1}},{t:"Rời đi",fx:{}}]},
+ {id:"spring",n:"Suối Nước Nóng Ngầm",acts:[1,2,3],img:1,lines:["~Hơi nước bốc lên từ một hồ nước khoáng giữa hang đá. Ấm áp đến lạ thường.","~Bên bờ có dấu chân ai đó vừa rời đi… hoặc đang chờ."],
+  ch:[{t:"Ngâm mình (hồi 30% HP)",fx:{healpct:.3}},{t:"Gọi người ấy cùng tắm",needHero:40,fx:{scene:"ev_spring"}},{t:"Rời đi",fx:{}}]},
+ {id:"cult",n:"Nghi Lễ Tín Đồ",acts:[2,3],lines:["~Những nữ tín đồ áo đen vây quanh vòng tròn máu, hát một bài ca không lời.","Kẻ Tro Tàn… hãy gia nhập chúng ta. Vực Thẳm ban phát cho kẻ biết nhận."],
+  ch:[{t:"Gia nhập nghi lễ (Ô Uế +12, nhận Ấn Máu)",fx:{corr:12,card:"an_mau"}},{t:"Phá hỏng nghi lễ",fx:{fight:["cultist","cultist"]}},{t:"Lặng lẽ rời đi",fx:{}}]},
+ {id:"mimic",n:"Rương Cổ",acts:[1,2,3],lines:["~Một chiếc rương gỗ chạm khắc nằm giữa phòng. Quá dễ dàng."],
+  ch:[{t:"Mở rương",fx:{chance:{p:.5,a:{relic:"rand",msg:"Bên trong là một di vật!"},b:{hp:-12,gold:30,msg:"Rương cắn ngươi! (−12 HP) Nhưng ngươi giật được 30 vàng."}}}},{t:"Đá rương rồi đi",fx:{}}]},
+ {id:"ghost",n:"Nữ Ma Lạc Lối",acts:[1,2,3],img:1,lines:["~Một hồn ma nữ mặc váy cưới rách ngồi khóc dưới gốc cây chết.","Lạnh quá… Ta chờ chàng ấy suốt trăm năm. Ngươi có thể… ôm ta một lần không? Chỉ một lần thôi."],
+  ch:[{t:"Ôm lấy nàng",fx:{scene:"ev_ghost"}},{t:"Cầu siêu cho nàng (+5 HP tối đa)",fx:{maxhp:5,msg:"Nàng mỉm cười và tan vào ánh sáng."}},{t:"Rời đi",fx:{}}]},
+ {id:"feast",n:"Đại Sảnh Hoan Lạc",acts:[2,3],img:1,lines:["~Tiếng nhạc vọng ra từ một đại sảnh còn nguyên vẹn đến kỳ lạ. Bên trong, những vũ nữ có sừng đang nhảy múa dưới ánh nến tím.","Mời vào, lữ khách~ Đêm nay không ai phải cô đơn."],
+  ch:[{t:"Bước vào bữa tiệc (Ô Uế +10, hồi đầy HP)",fx:{scene:"ev_feast"}},{t:"Rời đi",fx:{}}]},
+ {id:"statue",n:"Tượng Nữ Thần",acts:[1,2,3],lines:["~Pho tượng nữ thần đá vẫn còn nguyên khuôn mặt hiền hậu. Dưới chân là những bông hoa khô."],
+  ch:[{t:"Cầu nguyện (loại bỏ một Lời Nguyền, Ô Uế −8)",fx:{rmCurse:1,corr:-8}},{t:"Dâng 30 vàng (+8 HP tối đa)",need:{gold:30},fx:{gold:-30,maxhp:8}},{t:"Rời đi",fx:{}}]},
+ {id:"chained",n:"Nữ Tù Nhân Xích",acts:[2,3],img:1,lines:["~Một nữ chiến binh bị xích vào tường, đôi mắt vẫn còn ánh lửa.","Thả ta ra, và ta sẽ trả ơn. Ta không quen nợ ai."],
+  ch:[{t:"Phá xích (−8 HP)",need:{hp:9},fx:{hp:-8,scene:"ev_chained"}},{t:"Lấy chìa khóa trên tường (+25 vàng, bỏ mặc nàng)",fx:{gold:25,corr:5}},{t:"Rời đi",fx:{}}]},
+];
+// Cảnh sự kiện (gallery)
+const EV_SCENES = {
+ ev_spring:{n:"Suối Hơi Nước",hero:1,lines:["~Hơi nước mờ ảo. {H} trượt xuống làn nước ấm, ngồi sát bên ngươi.","Đừng nhìn chằm chằm như thế… mà thôi, cứ nhìn đi.","~Làn nước gợn sóng khi nàng tựa vào ngực ngươi.","~Hai người ở lại đến khi da nhăn cả lại, và chẳng ai muốn về."],fx:{healpct:.5,aff:8}},
+ ev_ghost:{n:"Cô Dâu Hồn Ma",lines:["~Ngươi ôm lấy nàng. Hồn ma lạnh buốt, rồi dần ấm lên trong vòng tay ngươi.","Chàng ấy chưa bao giờ ôm ta như thế này…","~Nàng hôn ngươi, nhẹ như sương, rồi tan thành những đốm sáng.","~Ngươi cảm thấy một luồng sinh lực lạ chảy vào người."],fx:{maxhp:4,healpct:.2,corr:2}},
+ ev_feast:{n:"Đêm Hoan Lạc",lines:["~Những vũ nữ kéo ngươi vào giữa sảnh. Rượu ngọt như mật, nhạc chậm như hơi thở.","Đêm nay ngươi là khách quý nhất của chúng ta~","~Những bàn tay mềm mại, những tiếng cười khúc khích, những đôi cánh khép lại quanh ngươi.","~Khi ngươi tỉnh dậy, đại sảnh chỉ còn là đống đổ nát. Nhưng cơ thể ngươi tràn đầy sức sống."],fx:{healpct:1,corr:10}},
+ ev_chained:{n:"Món Nợ Chiến Binh",lines:["~Xiềng xích rơi xuống. Nữ chiến binh xoa cổ tay, nhìn ngươi từ đầu đến chân.","Ta nói rồi, ta không quen nợ ai.","~Nàng ép ngươi vào tường đá, nụ hôn mạnh mẽ như một đòn kiếm.","~Trước khi đi, nàng để lại thanh dao của mình cho ngươi."],fx:{relic:"dao_gam"}},
+};
+
+// ---------- KẾT THÚC ----------
+const ENDINGS = {
+ end_flame:{n:"Kỷ Nguyên Lửa",lines:["~Ngươi đặt tay lên ngọn lửa đang tàn. Nó bùng lên, nuốt lấy ngươi — và thế giới lại có ánh sáng.","~Nhưng lần này, ngươi không cháy một mình."]},
+ end_dark:{n:"Kỷ Nguyên Bóng Tối",lines:["~Ngươi để ngọn lửa tắt. Bóng tối phủ xuống, dịu dàng như một tấm chăn.","~Ngươi ngồi lên ngai xương. Thế giới giờ thuộc về những kẻ không còn sợ đêm tối."]},
+ end_nyx:{n:"Vương Hậu Mộng Dục",lines:["~Ngươi tra kiếm vào vỏ và chìa tay cho Nyx.","Ngươi… chọn ta?","~Nữ Hoàng Vực Thẳm khóc lần đầu tiên trong hàng thế kỷ. Vực Thẳm ngừng lan rộng.","~Từ đó, có một vương quốc của những giấc mơ, nơi bóng tối và ánh lửa cùng tồn tại."]},
+ end_harem:{n:"Lò Lửa Của Chúng Ta",lines:["~Ngọn lửa mới cháy giữa đền thờ. Quanh nó là những người phụ nữ đã cùng ngươi đi qua địa ngục.","~Seraphine hát, Brunhild mài kiếm, Elise thắp nến, Mira đếm vàng, Morwen đọc sách.","~Không còn ai phải cô đơn bên ngọn lửa nữa."]},
+};
+
+// ---------- NÂNG CẤP VĨNH VIỄN (Linh Hồn) ----------
+const UPGRADES = {
+ maxhp:{n:"Sinh Lực",d:"+6 HP tối đa",max:5,cost:[60,100,150,220,300]},
+ gold:{n:"Túi Tiền",d:"+30 vàng khởi đầu",max:3,cost:[50,100,160]},
+ choice:{n:"Mắt Tinh Tường",d:"+1 lựa chọn thẻ thưởng",max:1,cost:[250]},
+ relic:{n:"Di Sản",d:"Bắt đầu với 1 di vật ngẫu nhiên",max:1,cost:[300]},
+ rest:{n:"Lửa Ấm",d:"Nghỉ ngơi hồi thêm 10%",max:2,cost:[80,160]},
+ energy:{n:"Ngọn Lửa Trong Tim",d:"+1 Năng Lượng lượt đầu mỗi trận",max:1,cost:[400]},
+};
+
+// ===================== Ô ẢNH & PROMPT =====================
+const HERO_ENV = {
+  sera:"bonfire, ruined shrine, ash, embers, night",
+  brun:"ruined castle, battlefield, moonlight, broken pillars",
+  elis:"chapel, broken statue, candles, stained glass, night",
+  mira:"lantern light, merchant tent, cave, warm lighting",
+  morw:"flooded library, bookshelves, candles, purple glow",
+  nyx:"dream, throne of bones, purple mist, abyss, starry sky",
+};
+const EVT_TAGS = {
+  corpse:"no humans, dead knight, corpse, leaning against wall, armor, loot bag, dungeon",
+  altar:"no humans, blood altar, faceless goddess statue, candles, blood, ritual",
+  mirror:"no humans, broken mirror, corridor, reflection, silhouette of woman, mist",
+  forge:"no humans, abandoned forge, anvil, hammer, glowing coals, sparks",
+  spring:"no humans, hot spring, onsen, cave, steam, night, lanterns",
+  cult:"multiple girls, mature female, cultists, black hoods, blood circle, ritual, candles",
+  mimic:"no humans, treasure chest, ornate, dungeon room, ominous",
+  ghost:"1girl, mature female, ghost, wedding dress, torn veil, translucent, sitting under dead tree, crying, moonlight",
+  feast:"multiple girls, mature female, demon girl, horns, dancers, banquet hall, purple candles, wine",
+  chained:"1girl, mature female, warrior, chained, shackles, dungeon wall, torn clothes, red hair, defiant",
+  statue:"no humans, goddess statue, gentle face, dried flowers, ruins, light rays",
+};
+const SLOTS = []; // {id, g(group), n(name), pos, neg, sz}
+function addSlot(id,g,n,pos,note){SLOTS.push({id,g,n,pos,neg:NEG,note:note||""});}
+(function buildSlots(){
+  const sz="832×1216 (dọc)";
+  addSlot("bg_title","Bối cảnh","Màn hình tiêu đề",[Q,"no humans, scenery, ruined cathedral, giant dying bonfire, ash falling, dark sky, castle silhouette",STYLE].join(", "));
+  addSlot("bg_hub","Bối cảnh","Lò Lửa (sảnh chính)",[Q,"no humans, scenery, ruined shrine, bonfire, coiled sword in bonfire, ash, embers, night, stone steps",STYLE].join(", "));
+  addSlot("bg_act1","Bối cảnh","Màn 1 — "+ACTS[1],[Q,"no humans, scenery, ruined castle, courtyard, crumbling walls, fog, grey sky, dead trees",STYLE].join(", "));
+  addSlot("bg_act2","Bối cảnh","Màn 2 — "+ACTS[2],[Q,"no humans, scenery, catacombs, skulls, candles, gothic crypt, underground, green fog",STYLE].join(", "));
+  addSlot("bg_act3","Bối cảnh","Màn 3 — "+ACTS[3],[Q,"no humans, scenery, abyss, purple void, floating ruins, black sea, dark starry sky, eldritch",STYLE].join(", "));
+  addSlot("bg_death","Bối cảnh","Màn hình tử trận",[Q,"no humans, scenery, fallen sword, ash, darkness, blood on ground, red light",STYLE].join(", "));
+  for(const hid of HERO_ORDER){
+    const h=HEROES[hid], env=HERO_ENV[hid], g="Nữ nhân · "+h.n, duo=h.tags.replace("1girl, solo, ","1girl, ");
+    addSlot(hid+"_portrait",g,h.n+" — Chân dung",[Q,h.tags,"upper body, looking at viewer",env,STYLE].join(", "),"Dùng ở sảnh, hội thoại, danh sách nữ nhân");
+    addSlot(hid+"_ev0",g,h.n+" — Gặp gỡ",[Q,h.tags,"cowboy shot, looking at viewer",env,STYLE].join(", "));
+    addSlot(hid+"_ev1",g,h.n+" — Thân thiết",[Q,h.tags,"close-up, blush, looking at viewer, soft smile",env,STYLE].join(", "));
+    addSlot(hid+"_ev2",g,h.n+" — Ngã rẽ",[Q,h.tags,"dramatic angle, emotional, reaching towards viewer",env,STYLE].join(", "));
+    addSlot(hid+"_s1_love",g,h.n+" — "+h.s1.love.n+" (Tình)",[Q,MC,duo,"romantic, blush, embrace, looking at another, soft lighting, night",env,STYLE].join(", "),"Cảnh thân mật — thêm tag nhạy cảm của bạn. Thêm nhiều ảnh: ảnh tự chuyển theo lời thoại.");
+    addSlot(hid+"_s1_dark",g,h.n+" — "+h.s1.dark.n+" (Sa ngã)",[Q,MC,duo,"dark aura, purple lighting, corruption, glowing eyes, seductive smile",env,STYLE].join(", "),"Cảnh thân mật — thêm tag nhạy cảm của bạn. Thêm nhiều ảnh: ảnh tự chuyển theo lời thoại.");
+    addSlot(hid+"_s2",g,h.n+" — "+h.s2.n,[Q,MC,duo,"kiss, hand on another's chest, glowing magic sigil, light particles",env,STYLE].join(", "),"Có thể thêm tag nhạy cảm.");
+    addSlot(hid+"_end",g,h.n+" — Kết thúc",[Q,h.tags,"smile, happy, sunrise, light particles, peaceful",env,STYLE].join(", "));
+  }
+  for(const [id,e] of Object.entries(ENEMIES)){
+    const g=e.boss?"Boss":(e.elite?"Tinh anh":"Kẻ thù");
+    addSlot("en_"+id,g,e.n,[Q,e.tags.replace("1girl, ","1girl, solo, "),"full body, battle stance, looking at viewer, menacing",STYLE].join(", "));
+  }
+  for(const [id,s] of Object.entries(MON_SCENES)){
+    addSlot(id,"Cảnh quái nữ / boss",ENEMIES[s.who].n+" — "+s.n,[Q,MC,ENEMIES[s.who].tags,"blush, seductive smile, looking at another, intimate",STYLE].join(", "),"Cảnh thân mật — thêm tag nhạy cảm. Nhiều ảnh = chuyển theo lời.");
+  }
+  for(const ev of EVENTS){ addSlot("evt_"+ev.id,"Sự kiện",ev.n,[Q,EVT_TAGS[ev.id]||"no humans, scenery",STYLE].join(", ")); }
+  addSlot("ev_spring","Cảnh sự kiện","Suối Hơi Nước (cùng nữ nhân)",[Q,MC,"1girl, mature female, onsen, steam, wet hair, partially submerged, blush, night, cave, lanterns",STYLE].join(", "),"Thêm tag nhân vật bạn muốn (ví dụ của Seraphine/Brunhild…) + tag nhạy cảm.");
+  addSlot("ev_ghost","Cảnh sự kiện","Cô Dâu Hồn Ma",[Q,MC,EVT_TAGS.ghost.replace("crying","hug, tears, smile"),STYLE].join(", "));
+  addSlot("ev_feast","Cảnh sự kiện","Đêm Hoan Lạc",[Q,MC,EVT_TAGS.feast,"harem, surrounded, wine, blush",STYLE].join(", "),"Thêm tag nhạy cảm.");
+  addSlot("ev_chained","Cảnh sự kiện","Món Nợ Chiến Binh",[Q,MC,EVT_TAGS.chained.replace("chained, shackles, ","").replace("defiant","against wall, kiss, smirk"),STYLE].join(", "));
+  for(const [id,e] of Object.entries(ENDINGS)){
+    const t={end_flame:"no humans, scenery, giant bonfire, sunrise, golden light, ash turning to light",end_dark:"1boy, faceless male, throne of bones, darkness, purple sky, crown",end_nyx:MC+", "+HEROES.nyx.tags.replace("1girl, solo, ","1girl, ")+", sitting on throne together, couple, gentle smile",end_harem:MC+", multiple girls, harem, bonfire, ruined shrine, smile, night"}[id];
+    addSlot(id,"Kết thúc",e.n,[Q,t,STYLE].join(", "));
+  }
+  for(const [id,c] of Object.entries(CARDS)){
+    addSlot("card_"+id,"Thẻ bài","Thẻ: "+c.n,[Q,c.hero?HEROES[c.hero].tags.replace("1girl, solo, ","1girl, ")+", "+c.art:"no humans, "+c.art,"dark background, card art, centered",STYLE].join(", "),"Tùy chọn — ảnh minh họa trên lá bài.");
+  }
+  window.SLOT_SIZE=sz;
+})();
+const SLOT_BY_ID = Object.fromEntries(SLOTS.map(s=>[s.id,s]));
+
+// ===================== CINDERVEIL — ENGINE =====================
+const $=s=>document.querySelector(s);
+const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+// ---------------- IMAGE DB ----------------
+const DB={db:null,idx:new Map(),
+  open(){return new Promise((res,rej)=>{const r=indexedDB.open("cinderveil_img",1);
+    r.onupgradeneeded=()=>{const d=r.result;const s=d.createObjectStore("img",{keyPath:"id"});s.createIndex("slot","slot");d.createObjectStore("thumb",{keyPath:"id"});};
+    r.onsuccess=()=>{DB.db=r.result;res();};r.onerror=()=>rej(r.error);});},
+  tx(st,m="readonly"){return DB.db.transaction(st,m).objectStore(st);},
+  async loadIndex(){DB.idx.clear();await new Promise(res=>{const c=DB.tx("img").index("slot").openKeyCursor();
+    c.onsuccess=()=>{const cur=c.result;if(!cur)return res();const s=cur.key;if(!DB.idx.has(s))DB.idx.set(s,[]);DB.idx.get(s).push(cur.primaryKey);cur.continue();};c.onerror=()=>res();});
+    for(const a of DB.idx.values())a.sort();},
+  ids(slot){return DB.idx.get(slot)||[];},
+  put(rec,th){return new Promise((res,rej)=>{const t=DB.db.transaction(["img","thumb"],"readwrite");t.objectStore("img").put(rec);t.objectStore("thumb").put({id:rec.id,blob:th});t.oncomplete=()=>{if(!DB.idx.has(rec.slot))DB.idx.set(rec.slot,[]);const a=DB.idx.get(rec.slot);if(!a.includes(rec.id))a.push(rec.id);a.sort();res();};t.onerror=()=>rej(t.error);});},
+  get(id,thumb){return new Promise(res=>{const r=DB.tx(thumb?"thumb":"img").get(id);r.onsuccess=()=>res(r.result&&r.result.blob);r.onerror=()=>res(null);});},
+  getRec(id){return new Promise(res=>{const r=DB.tx("img").get(id);r.onsuccess=()=>res(r.result);r.onerror=()=>res(null);});},
+  del(id){return new Promise(res=>{const t=DB.db.transaction(["img","thumb"],"readwrite");t.objectStore("img").delete(id);t.objectStore("thumb").delete(id);t.oncomplete=()=>{for(const a of DB.idx.values()){const i=a.indexOf(id);if(i>=0)a.splice(i,1);}IMG.drop(id);res();};});},
+};
+const IMG={cache:new Map(),max:48,
+  async url(id,thumb){const k=(thumb?"t:":"f:")+id;if(this.cache.has(k)){const u=this.cache.get(k);this.cache.delete(k);this.cache.set(k,u);return u;}
+    const b=await DB.get(id,thumb);if(!b)return null;const u=URL.createObjectURL(b);this.cache.set(k,u);
+    while(this.cache.size>this.max){const [ok,ou]=this.cache.entries().next().value;this.cache.delete(ok);URL.revokeObjectURL(ou);}return u;},
+  drop(id){for(const k of ["t:"+id,"f:"+id]){if(this.cache.has(k)){URL.revokeObjectURL(this.cache.get(k));this.cache.delete(k);}}},
+  async slot(slot,i=0,thumb=false){const ids=DB.ids(slot);if(!ids.length)return null;return this.url(ids[Math.min(i,ids.length-1)],thumb);},
+  async slotRand(slot,thumb){const ids=DB.ids(slot);if(!ids.length)return null;return this.url(pick(ids),thumb);},
+  // đặt ảnh vào <img>, chỉ hiện khi đã decode xong (mượt)
+  async set(el,url){if(!url){el.removeAttribute("src");el.style.visibility="hidden";return false;}
+    if(el.src===url){el.style.visibility="";return true;}
+    const im=new Image();im.src=url;try{await im.decode();}catch(e){}el.src=url;el.style.visibility="";return true;},
+  async preload(slot){for(const id of DB.ids(slot)){const u=await this.url(id);const im=new Image();im.src=u;try{await im.decode();}catch(e){}}},
+};
+async function processFile(file){
+  let bmp;try{bmp=await createImageBitmap(file);}catch(e){const u=URL.createObjectURL(file);const im=new Image();im.src=u;await im.decode();bmp=im;}
+  const mk=(max,q)=>{const s=Math.min(1,max/Math.max(bmp.width,bmp.height));const w=Math.round(bmp.width*s),h=Math.round(bmp.height*s);
+    const c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(bmp,0,0,w,h);
+    return new Promise(r=>c.toBlob(b=>{c.width=c.height=0;r(b);},"image/jpeg",q));};
+  const full=await mk(1600,.88),th=await mk(480,.8);if(bmp.close)bmp.close();return {full,th};
+}
+async function importFiles(slot,files,onp){let n=0;for(const f of files){const {full,th}=await processFile(f);
+  const id=slot+"#"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);await DB.put({id,slot,blob:full},th);n++;onp&&onp(n,files.length);}}
+async function exportPack(){const items=[],blobs=[];for(const [slot,ids] of DB.idx){for(const id of ids){const r=await DB.getRec(id);const t=await DB.get(id,true);if(!r)continue;items.push({id,slot,a:r.blob.size,b:t?t.size:0});blobs.push(r.blob);if(t)blobs.push(t);}}
+  const head=new TextEncoder().encode(JSON.stringify({v:1,items}));const len=new Uint32Array([head.length]);
+  return new Blob([new TextEncoder().encode("CVPK"),len,head,...blobs],{type:"application/octet-stream"});}
+async function importPack(file,onp){const buf=await file.arrayBuffer();const mg=new TextDecoder().decode(buf.slice(0,4));if(mg!=="CVPK")throw "Sai định dạng gói";
+  const len=new Uint32Array(buf.slice(4,8))[0];const head=JSON.parse(new TextDecoder().decode(buf.slice(8,8+len)));let off=8+len,n=0;
+  for(const it of head.items){const a=new Blob([buf.slice(off,off+it.a)],{type:"image/jpeg"});off+=it.a;const b=new Blob([buf.slice(off,off+it.b)],{type:"image/jpeg"});off+=it.b;await DB.put({id:it.id,slot:it.slot,blob:a},b);n++;onp&&onp(n,head.items.length);}return n;}
+function download(blob,name){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},4000);}
+
+// ---------------- SAVE ----------------
+let M,R=null; // meta, run
+function newMeta(){const h={};for(const k of HERO_ORDER)h[k]={aff:0,stage:0,path:null,met:0};return {souls:0,upg:{},heroes:h,corr:0,gal:{},ends:{},ng:0,runs:0,wins:0,pacts:[],set:{tw:1},visit:0,talked:{},gifted:{},intro:0};}
+function save(){try{localStorage.setItem("cv_meta",JSON.stringify(M));localStorage.setItem("cv_run",R?JSON.stringify(R):"");}catch(e){}}
+function load(){try{M=JSON.parse(localStorage.getItem("cv_meta"));}catch(e){}if(!M)M=newMeta();const d=newMeta();for(const k in d)if(M[k]===undefined)M[k]=d[k];for(const k of HERO_ORDER)if(!M.heroes[k])M.heroes[k]=d.heroes[k];
+  try{const r=localStorage.getItem("cv_run");R=r?JSON.parse(r):null;}catch(e){R=null;}}
+const upg=k=>M.upg[k]||0;
+const hasRelic=k=>R&&R.relics.includes(k);
+
+// ---------------- UI HELPERS ----------------
+function show(id){document.querySelectorAll(".scr").forEach(s=>s.classList.toggle("on",s.id===id));}
+function toast(t,ms=1800){const e=$("#toast");e.textContent=t;e.style.display="block";clearTimeout(e._t);e._t=setTimeout(()=>e.style.display="none",ms);}
+function modal(title,html,onclose){const m=$("#modal");m.innerHTML=`<div class="mbox"><div class="mh"><h3>${title}</h3><button class="ico" id="mx">✕</button></div><div class="scroll pad" id="mbody">${html}</div></div>`;m.classList.add("on");
+  $("#mx").onclick=()=>{closeModal();onclose&&onclose();};return $("#mbody");}
+function closeModal(){$("#modal").classList.remove("on");$("#modal").innerHTML="";}
+async function bgSet(scr,slot){const el=$("#"+scr+" .bgimg");if(el)await IMG.set(el,await IMG.slotRand(slot));}
+function topBar(){if(!R)return"";return `<div class="top"><span class="hpc">♥ <b>${R.hp}/${R.max}</b></span><span class="gc">◉ <b>${R.gold}</b></span><span class="sc">✦ <b>${R.souls}</b></span><span class="cc">◈ <b>${M.corr}</b></span><span class="sp"></span><button class="ico" onclick="openDeck()">🂠</button><button class="ico" onclick="openRelics()">◆</button></div>`;}
+function lazyThumbs(root){const io=new IntersectionObserver(es=>{for(const e of es)if(e.isIntersecting){const el=e.target;io.unobserve(el);IMG.url(el.dataset.id,true).then(u=>{if(u)el.src=u;});}},{root:root.closest(".scroll")||null,rootMargin:"200px"});
+  root.querySelectorAll("img[data-id]").forEach(i=>io.observe(i));}
+
+// ---------------- CARDS ----------------
+let UID=1;
+const mkCard=(id,up=0)=>({id,up,u:UID++});
+function cdef(c){const d=CARDS[c.id];const fx=c.up&&d.up?{...d.fx,...d.up}:{...d.fx};const cost=(c.up&&d.up&&d.up.c!==undefined)?d.up.c:d.c;return {d,fx,cost};}
+function cdesc(c){const {d,fx}=cdef(c);const p=[];const all=fx.all?" lên tất cả":"";
+  if(fx.lose)p.push(`Mất ${fx.lose} HP.`);
+  if(fx.d)p.push(`Gây ${fx.d+(C&&C.p?C.p.st.s||0:0)}${fx.h>1?"×"+fx.h:""} sát thương${all}.`);
+  if(fx.b)p.push(`Nhận ${fx.b} Giáp.`);
+  if(fx.v)p.push(`${fx.v} Phơi Yếu${all}.`);if(fx.w)p.push(`${fx.w} Suy Yếu${all}.`);if(fx.bl)p.push(`${fx.bl} Chảy Máu${all}.`);
+  if(fx.s)p.push(`+${fx.s} Sức Mạnh.`);if(fx.dr)p.push(`Rút ${fx.dr} lá.`);if(fx.e)p.push(`+${fx.e} Năng Lượng.`);if(fx.hp)p.push(`Hồi ${fx.hp} HP.`);if(fx.th)p.push(`${fx.th} Gai.`);
+  if(d.pd)p.push(d.pd.replace("{pv}",fx.pv));if(fx.x)p.push("Tiêu Hao.");return p.join(" ");}
+const TYPEN={atk:"Tấn công",skl:"Kỹ năng",pow:"Năng lực",cur:"Lời nguyền"};
+function cardHTML(c,extra=""){const {d,cost}=cdef(c);const cls=d.hero?"pact":d.t;const ids=DB.ids("card_"+c.id);
+  return `<div class="card ${cls} ${extra}" data-u="${c.u}">${cost>=0?`<div class="cc">${cost}</div>`:""}<div class="art"${ids.length?` data-art="${ids[0]}"`:""}></div><div class="cn ${c.up?"up":""}">${esc(d.n)}${c.up?"+":""}</div><div class="ct">${d.hero?"Khế ước":TYPEN[d.t]}</div><div class="cd">${esc(cdesc(c))}</div></div>`;}
+function hydrateArts(root){root.querySelectorAll("[data-art]").forEach(el=>IMG.url(el.dataset.art,true).then(u=>{if(u)el.style.backgroundImage=`url(${u})`;}));}
+function cardPool(r){return Object.keys(CARDS).filter(k=>CARDS[k].r===r);}
+function rollCard(kind){const x=Math.random();let r=kind==="b"?(x<.5?3:2):kind==="e"?(x<.25?3:x<.7?2:1):(x<.06?3:x<.38?2:1);if(kind==="rare")r=3;return pick(cardPool(r));}
+function openDeck(pickMode,cb,filter,oncancel){const list=(R?R.deck:[]).filter(c=>!filter||filter(c));
+  const b=modal(pickMode||`Bộ bài (${list.length})`,`<div class="cardgrid">${list.map(c=>cardHTML(c)).join("")}</div>`,oncancel);hydrateArts(b);
+  if(cb)b.querySelectorAll(".card").forEach(el=>el.onclick=()=>{const c=R.deck.find(x=>x.u==el.dataset.u);closeModal();cb(c);});}
+function openRelics(){modal("Di vật",R.relics.map(k=>`<div class="btn"><b class="gc">${RELICS[k].n}</b><small>${RELICS[k].d}</small></div>`).join("")||"<p class='muted'>Chưa có di vật.</p>");}
+function gainRelic(k){if(!k)return;if(k==="rand"){const pool=Object.keys(RELICS).filter(x=>!RELICS[x].start&&!R.relics.includes(x)&&x!=="an_khe");k=pick(pool);if(!k)return;}
+  if(R.relics.includes(k))return;R.relics.push(k);const p=RELICS[k].pick;if(p){if(p.maxhp){R.max+=p.maxhp;R.hp+=p.maxhp;}if(p.curse)R.deck.push(mkCard(p.curse));}toast("Nhận di vật: "+RELICS[k].n);}
+
+// ---------------- HEROINES ----------------
+function heroNext(hid,ctx){const h=HEROES[hid],st=M.heroes[hid];if(st.stage>=5)return null;
+  if(ctx==="hub"){if(!(h.hub||(st.stage>=1&&!h.noHub)))return null;}
+  else if(ctx==="shop"){if(!h.shop)return null;}
+  else {if(h.hub||h.shop||!h.acts.includes(R.act))return null;}
+  const req=st.stage<3?h.ev[st.stage].req:st.stage===3?55:80;if(st.aff<req)return null;
+  if(st.stage>=3&&!st.path)return null;return {hid,stage:st.stage};}
+function heroAff(hid,n){const st=M.heroes[hid];st.aff=Math.max(0,Math.min(100,st.aff+n));}
+async function playHeroEvent(hid){const h=HEROES[hid],st=M.heroes[hid];const s=st.stage;
+  if(s<3){const ev=h.ev[s];const res=await vn({slot:hid+"_ev"+s,fb:hid+"_portrait",name:h.n,lines:ev.lines,choices:ev.ch.map(c=>({t:c.t,dis:c.need&&!meetNeed(c.need)}))});
+    const c=ev.ch[res];st.met=1;if(c.aff)heroAff(hid,c.aff);if(c.corr)addCorr(c.corr);if(c.hp&&R){R.hp=Math.min(R.max,R.hp+c.hp);if(R.hp<1)R.hp=1;}if(c.gold&&R)R.gold=Math.max(0,R.gold+c.gold);
+    if(c.card&&R){const id=c.card==="rare"?rollCard("rare"):c.card;R.deck.push(mkCard(id));toast("Nhận thẻ: "+CARDS[id].n);}if(c.relic&&R)gainRelic(c.relic);
+    if(c.path)st.path=c.path;if(!c.stay)st.stage=s+1;
+    if(c.r)await vn({slot:hid+"_ev"+s,fb:hid+"_portrait",name:h.n,lines:[c.r]});
+    toast(`${h.n}: thiện cảm ${st.aff}`);}
+  else if(s===3){const sc=h.s1[st.path];const sid=hid+"_s1_"+st.path;await vn({slot:sid,name:h.n,title:sc.n,lines:sc.lines});M.gal[sid]=1;st.stage=4;heroAff(hid,5);if(R)R.hp=Math.min(R.max,R.hp+Math.round(R.max*.25));toast("Đã mở khóa Hồi Ức: "+sc.n);}
+  else if(s===4){const sid=hid+"_s2";await vn({slot:sid,fb:hid+"_s1_"+st.path,name:h.n,title:h.s2.n,lines:h.s2.lines});M.gal[sid]=1;st.stage=5;if(!M.pacts.includes(h.s2.card))M.pacts.push(h.s2.card);if(R)R.deck.push(mkCard(h.s2.card));toast("Khế ước! Thẻ "+CARDS[h.s2.card].n+" luôn có trong bộ bài khởi đầu.",2600);}
+  save();}
+function meetNeed(n){if(!R)return true;if(n.gold&&R.gold<n.gold)return false;if(n.hp&&R.hp<n.hp)return false;return true;}
+function addCorr(n){M.corr=Math.max(0,Math.min(100,M.corr+n));}
+
+// ---------------- VN PLAYER ----------------
+let VN=null;
+function vn(o){return new Promise(async res=>{closeModal();show("vn");const sc=$("#vn");sc.classList.remove("hide");
+  let slot=o.slot;if(o.fb&&!DB.ids(slot).length)slot=o.fb;const ids=DB.ids(slot);const n=o.lines.length;
+  const A=sc.querySelector(".va"),B=sc.querySelector(".vb");let front=A;A.classList.remove("on");B.classList.remove("on");let curImg=-1;
+  sc.querySelector(".vslot").textContent=ids.length||!slot?"":"[ ô ảnh trống: "+slot+" ]";
+  const urls=[];for(let i=0;i<ids.length;i++)urls[i]=IMG.url(ids[i]);
+  async function showImg(k){if(!ids.length||k===curImg)return;curImg=k;const u=await urls[k];const back=front===A?B:A;await IMG.set(back,u);back.classList.add("on");front.classList.remove("on");front=back;}
+  let i=0,typing=null;const box=sc.querySelector(".vbox"),nm=sc.querySelector(".vname"),tx=sc.querySelector(".vtext"),chd=sc.querySelector(".vch"),nx=sc.querySelector(".vnext");
+  function line(){chd.innerHTML="";let L=o.lines[i];const H=o.H||"";L=L.replace(/\{H\}/g,H);const nar=L[0]==="~";const t=nar?L.slice(1):L;
+    nm.textContent=nar?(i===0&&o.title?"— "+o.title+" —":""):(o.name||"");tx.className="vtext"+(nar?" nar":"");
+    showImg(ids.length?Math.min(ids.length-1,Math.floor(i*ids.length/n)):0);
+    if(M.set.tw){let k=0;tx.textContent="";clearInterval(typing);typing=setInterval(()=>{k+=2;tx.textContent=t.slice(0,k);if(k>=t.length){clearInterval(typing);typing=null;after();}},16);}else{tx.textContent=t;after();}
+    nx.style.display="none";
+    function after(){if(i===n-1&&o.choices){nx.style.display="none";chd.innerHTML=o.choices.map((c,j)=>`<button class="btn ${c.hot?"hot":""} ${c.dis?"dis":""}" data-j="${j}">${esc(c.t)}</button>`).join("");
+        chd.querySelectorAll("button").forEach(b=>b.onclick=e=>{e.stopPropagation();VN=null;res(+b.dataset.j);});}else nx.style.display="block";}
+    tx._full=t;}
+  VN={tap(){if(typing){clearInterval(typing);typing=null;tx.textContent=tx._full;if(i===n-1&&o.choices){line_after();}else nx.style.display="block";return;}
+      if(i===n-1&&o.choices)return;if(i<n-1){i++;line();}else{VN=null;res(-1);}}};
+  function line_after(){chd.innerHTML=o.choices.map((c,j)=>`<button class="btn ${c.hot?"hot":""} ${c.dis?"dis":""}" data-j="${j}">${esc(c.t)}</button>`).join("");chd.querySelectorAll("button").forEach(b=>b.onclick=e=>{e.stopPropagation();VN=null;res(+b.dataset.j);});}
+  line();});}
+
+// ---------------- RUN / MAP ----------------
+const NODE={combat:["⚔","Giao Chiến","Kẻ thù thường"],elite:["☠","Tinh Anh","Nguy hiểm — phần thưởng lớn"],event:["?","Sự Kiện","Điều chưa biết"],rest:["🔥","Lửa Trại","Nghỉ ngơi, rèn, gặp gỡ"],shop:["⚖","Thương Nhân","Mira và hàng hóa"],treasure:["◆","Kho Báu","Một di vật"],hero:["♥","Bóng Hình","Ai đó đang chờ ngươi"],boss:["♛","Chúa Tể","Kẻ cai quản tầng này"]};
+function startRun(){M.runs++;M.visit++;const max=70+upg("maxhp")*6;
+  R={act:1,floor:0,hp:max,max,gold:99+upg("gold")*30,souls:0,deck:[...STARTER,...M.pacts].map(id=>mkCard(id)),relics:["estus"],opts:null,heroDone:{}};
+  if(upg("relic"))gainRelic("rand");R.opts=genOpts();save();showMap();}
+function heroRunAvail(){return HERO_ORDER.filter(h=>!R.heroDone[h]&&heroNext(h,"run"));}
+function genOpts(){const f=R.floor+1;if(f===8)return ["boss"];if(f===1)return ["combat","combat"];
+  const w=[["combat",40],["event",20],["elite",f>=3?13:0],["rest",f>=3?11:0],["shop",f>=2?9:0],["treasure",4],["hero",heroRunAvail().length?16:0]];
+  const cnt=Math.random()<.5?2:3,out=[];let guard=0;while(out.length<cnt&&guard++<50){let tot=w.reduce((a,b)=>a+b[1],0),x=Math.random()*tot,t;for(const [k,v] of w){x-=v;if(x<0){t=k;break;}}if(!out.includes(t)||t==="combat"&&out.filter(o=>o==="combat").length<1)out.push(t);}
+  if(f===7&&!out.includes("rest"))out[0]="rest";return out;}
+async function showMap(){show("map");const s=$("#map");await bgSet("map","bg_act"+R.act);
+  s.querySelector(".mc").innerHTML=topBar()+`<div class="pad" style="padding-bottom:0"><div class="muted">Màn ${R.act}${M.ng?" · NG+"+M.ng:""}</div><h2 style="margin:2px 0">${ACTS[R.act]}</h2></div>
+   <div class="floorbar">${[1,2,3,4,5,6,7,8].map(i=>`<i class="${i<=R.floor?"on":""} ${i===R.floor+1?"cur":""}"></i>`).join("")}</div>
+   <div class="relics">${R.relics.map(k=>`<span class="relic">${RELICS[k].n}</span>`).join("")}</div>
+   <div class="scroll"><div class="pad muted" style="padding-bottom:0">Tầng ${R.floor+1}/8 — chọn lối đi:</div><div class="doors">${R.opts.map((o,i)=>`<button class="door ${o}" data-i="${i}"><span class="di">${NODE[o][0]}</span><span><b class="serif" style="font-size:18px">${NODE[o][1]}</b><br><span class="muted">${NODE[o][2]}</span></span></button>`).join("")}</div>
+   <div class="pad"><button class="btn" onclick="abandon()">Bỏ cuộc hành trình<small>Trở về Lò Lửa, giữ 50% linh hồn</small></button></div></div>`;
+  s.querySelectorAll(".door").forEach(b=>b.onclick=()=>enterNode(R.opts[+b.dataset.i]));}
+async function abandon(){if(!confirm("Bỏ cuộc hành trình này?"))return;await runEnd(false,true);}
+async function nodeDone(){C=null;R.floor++;if(R.floor>=8){R.act++;R.floor=0;if(R.act>3)return;R.hp=Math.min(R.max,R.hp+Math.round(R.max*.3));toast("Tiến vào: "+ACTS[R.act],2200);}
+  R.opts=genOpts();save();showMap();}
+async function enterNode(t){
+  if(t==="combat"){const g=pick(POOLS[R.act].n);return combat(g,"n");}
+  if(t==="elite")return combat(pick(POOLS[R.act].e),"e");
+  if(t==="boss")return combat([POOLS[R.act].b],"b");
+  if(t==="event")return doEvent();
+  if(t==="rest")return doRest();
+  if(t==="shop")return doShop();
+  if(t==="treasure"){gainRelic("rand");const g=rnd(20,40);R.gold+=g;await vn({slot:"evt_mimic",lines:["~Một rương cổ nằm lặng lẽ. Bên trong là một di vật và "+g+" vàng."]});return nodeDone();}
+  if(t==="hero"){const av=heroRunAvail();if(!av.length)return doEvent();const h=pick(av);R.heroDone[h]=1;await playHeroEvent(h);return nodeDone();}}
+async function doEvent(){const pool=EVENTS.filter(e=>e.acts.includes(R.act));const ev=pick(pool);
+  const heroOk=HERO_ORDER.some(h=>M.heroes[h].aff>=40&&M.heroes[h].met);
+  const res=await vn({slot:"evt_"+ev.id,name:"",title:ev.n,lines:ev.lines,choices:ev.ch.map(c=>({t:c.t,dis:(c.need&&!meetNeed(c.need))||(c.needHero&&!heroOk),hot:!!(c.fx.scene)}))});
+  const c=ev.ch[res];const r=await applyFx(c.fx);if(r!=="fight")nodeDone();}
+async function applyFx(fx){if(!fx)return;let f=fx;if(f.chance)f=Math.random()<f.chance.p?f.chance.a:f.chance.b;
+  if(f.gold)R.gold=Math.max(0,R.gold+Math.round(f.gold*(f.gold>0&&hasRelic("vang_rua")?1.5:1)));if(f.hp){R.hp=Math.max(1,Math.min(R.max,R.hp+f.hp));}if(f.maxhp){R.max+=f.maxhp;R.hp+=f.maxhp;}
+  if(f.healpct)R.hp=Math.min(R.max,R.hp+Math.round(R.max*f.healpct));if(f.corr)addCorr(f.corr);if(f.souls)R.souls+=f.souls;
+  if(f.card){const id=f.card==="rand"?rollCard("n"):f.card==="rare"?rollCard("rare"):f.card;R.deck.push(mkCard(id));toast("Nhận thẻ: "+CARDS[id].n);}
+  if(f.relic)gainRelic(f.relic);if(f.curse)R.deck.push(mkCard(f.curse));
+  if(f.upg){const cs=shuffle(R.deck.filter(c=>!c.up&&CARDS[c.id].up&&CARDS[c.id].t!=="cur")).slice(0,f.upg);cs.forEach(c=>c.up=1);toast("Rèn: "+cs.map(c=>CARDS[c.id].n).join(", "));}
+  if(f.rmCurse){const i=R.deck.findIndex(c=>CARDS[c.id].t==="cur");if(i>=0){toast("Đã gỡ: "+CARDS[R.deck[i].id].n);R.deck.splice(i,1);}}
+  if(f.affAny){const met=HERO_ORDER.filter(h=>M.heroes[h].met);if(met.length)heroAff(pick(met),f.affAny);}
+  if(f.msg)await vn({slot:"",lines:["~"+f.msg]});
+  if(f.remove)await new Promise(r=>openDeck("Chọn thẻ để loại bỏ",c=>{R.deck.splice(R.deck.indexOf(c),1);r();},null,r));
+  if(f.scene){const sc=EV_SCENES[f.scene];let H="",hid=null;if(sc.hero){const c=HERO_ORDER.filter(h=>M.heroes[h].aff>=40&&M.heroes[h].met);hid=pick(c);H=HEROES[hid].n;}
+    await vn({slot:f.scene,name:H,title:sc.n,lines:sc.lines,H});M.gal[f.scene]=1;if(hid&&sc.fx.aff)heroAff(hid,sc.fx.aff);await applyFx({...sc.fx,aff:undefined});}
+  save();if(f.fight){combat(f.fight,"n");return "fight";}}
+async function doRest(){const heal=Math.round(R.max*(.3+.1*upg("rest")));const hs=HERO_ORDER.filter(h=>!R.heroDone[h]&&!HEROES[h].hub&&!HEROES[h].shop&&M.heroes[h].met&&heroNext(h,"run"));
+  const ch=[{t:`Nghỉ ngơi (+${heal} HP)`},{t:"Rèn một thẻ (nâng cấp)"},...hs.map(h=>({t:`Bên lửa cùng ${HEROES[h].n} ♥`,hot:1}))];
+  const r=await vn({slot:"bg_hub",lines:["~Một đốm lửa nhỏ giữa hoang tàn. Ngươi có thể nghỉ một lát."],choices:ch});
+  if(r===0)R.hp=Math.min(R.max,R.hp+heal);else if(r===1){await new Promise(res=>openDeck("Chọn thẻ để rèn",c=>{c.up=1;toast("Đã rèn "+CARDS[c.id].n+"+");res();},c=>!c.up&&CARDS[c.id].up&&CARDS[c.id].t!=="cur",res));}
+  else{const h=hs[r-2];R.heroDone[h]=1;await playHeroEvent(h);}nodeDone();}
+async function doShop(){const mira=M.heroes.mira;if(!mira.met){await playHeroEvent("mira");}
+  const disc=hasRelic("nhan_mira")?.8:1;const price=r=>Math.round(({1:48,2:75,3:145,4:150}[r]+rnd(-6,6))*disc);
+  const items=[...[1,1,2,2,3].map(r=>({k:"c",id:pick(cardPool(r)),p:0})),...[0,1].map(()=>({k:"r",id:pick(Object.keys(RELICS).filter(x=>!RELICS[x].start&&!R.relics.includes(x)&&x!=="an_khe")),p:Math.round(rnd(150,190)*disc)}))];
+  items.forEach(it=>{if(it.k==="c")it.p=price(CARDS[it.id].r);});let removed=false;
+  const render=async()=>{show("shop");await bgSet("shop","mira_portrait");const tk=heroNext("mira","shop")&&!R.heroDone.mira;
+    $("#shop .mc").innerHTML=topBar()+`<div class="scroll"><div class="pad"><h2>Gian hàng của Mira</h2><div class="muted">“Nhìn thôi cũng tính tiền đấy~”</div>
+     <div class="cardgrid">${items.map((it,i)=>it.k==="c"&&!it.sold?`<div class="shopi" data-i="${i}">${cardHTML(mkCard(it.id))}<span class="price">◉ ${it.p}</span></div>`:"").join("")}</div>
+     ${items.map((it,i)=>it.k==="r"&&!it.sold&&it.id?`<button class="btn" data-i="${i}"><b class="gc">${RELICS[it.id].n}</b> — ◉ ${it.p}<small>${RELICS[it.id].d}</small></button>`:"").join("")}
+     <button class="btn ${removed?"dis":""}" id="rmv">Loại bỏ một thẻ — ◉ ${Math.round(75*disc)}</button>
+     ${tk?`<button class="btn hot" id="talk">Trò chuyện với Mira ♥</button>`:""}
+     <button class="btn main" id="leave">Rời đi</button></div></div>`;hydrateArts($("#shop"));
+    $("#shop").querySelectorAll("[data-i]").forEach(el=>el.onclick=()=>{const it=items[+el.dataset.i];if(R.gold<it.p)return toast("Không đủ vàng!");R.gold-=it.p;it.sold=1;if(it.k==="c"){R.deck.push(mkCard(it.id));toast("Mua: "+CARDS[it.id].n);}else gainRelic(it.id);save();render();});
+    $("#rmv").onclick=()=>{const p=Math.round(75*disc);if(R.gold<p)return toast("Không đủ vàng!");openDeck("Chọn thẻ để loại bỏ",c=>{R.gold-=p;R.deck.splice(R.deck.indexOf(c),1);removed=true;save();render();});};
+    if(tk)$("#talk").onclick=async()=>{R.heroDone.mira=1;await playHeroEvent("mira");render();};
+    $("#leave").onclick=()=>nodeDone();};render();}
+
+// ---------------- COMBAT ----------------
+let C=null;
+function mkEnemy(id){const d=ENEMIES[id];const sc=1+.12*M.ng;const hp=Math.round(rnd(d.hp[0],d.hp[1])*sc);return {id,d,hp,max:hp,blk:0,st:{},mi:d.boss||d.elite?0:rnd(0,d.moves.length-1),intent:null,enr:0,u:UID++};}
+async function combat(group,kind){closeModal();C={kind,en:group.map(mkEnemy),hand:[],draw:shuffle(R.deck.map(c=>({...c}))),disc:[],exh:[],energy:0,turn:0,p:{blk:0,st:{}},sel:null,busy:false,saved:0};
+  show("combat");await bgSet("combat","bg_act"+R.act);
+  if(hasRelic("nhan_mau"))C.p.st.s=1;if(hasRelic("giap_tro"))C.p.blk=8;if(hasRelic("kinh_vuc"))C.en.forEach(e=>e.st.v=2);if(hasRelic("to_nhen"))C.en.forEach(e=>e.st.w=1);
+  C.en.forEach(pickIntent);renderCombat(true);if(hasRelic("dao_gam")){await sleep(200);C.en.forEach(e=>hitEnemy(e,5));}
+  await startTurn();}
+function pickIntent(e){const m=e.d.moves[e.mi%e.d.moves.length];e.mi++;e.intent=m;}
+function intentHTML(e){const m=e.intent;if(!m)return"";if(m.d){const v=calcE(e,m.d);return `<div class="intent atk">⚔ ${v}${m.h>1?"×"+m.h:""}</div>`;}
+  if(m.b&&!m.w&&!m.v)return `<div class="intent def">🛡 ${m.b}${m.s?" ▲":""}</div>`;if(m.s&&!m.w)return `<div class="intent buf">▲ Cường hóa</div>`;return `<div class="intent dbf">☣ Nguyền</div>`;}
+function calcP(base,e){let v=base+(C.p.st.s||0);if(C.p.st.w)v*=.75;if(e&&e.st.v)v*=1.5;return Math.max(0,Math.floor(v));}
+function calcE(e,base){let v=base+(e.st.s||0)+M.ng;if(e.st.w)v*=.75;if(C.p.st.v)v*=1.5;return Math.max(0,Math.floor(v));}
+function stsHTML(st,blk){const L=[];if(blk)L.push(`<span class="st b">🛡${blk}</span>`);const nm={s:"Lực",v:"Phơi",w:"Yếu",bl:"Máu",th:"Gai",metal:"Thép",bleedAura:"Ấn",blood:"Khế"};
+  for(const k in st)if(st[k])L.push(`<span class="st ${["s","v","w","bl"].includes(k)?k:"o"}">${nm[k]||k} ${st[k]}</span>`);return `<div class="sts">${L.join("")}</div>`;}
+async function renderCombat(full){const s=$("#combat");
+  if(full){s.querySelector(".enemies").innerHTML=C.en.map(e=>`<div class="en" data-u="${e.u}"><div class="ef"><img alt=""><div class="intent"></div></div><div class="en-n">${esc(e.d.n)}</div><div class="bar"><i></i><span></span></div><div class="esx"></div></div>`).join("");
+    s.querySelectorAll(".en").forEach(el=>{const e=C.en.find(x=>x.u==el.dataset.u);IMG.slotRand("en_"+e.id,true).then(u=>{const im=el.querySelector("img");if(u)IMG.set(im,u);else{im.remove();el.querySelector(".ef").classList.add("empty");el.querySelector(".ef").insertAdjacentHTML("beforeend",`<span style="padding:6px">${esc(e.d.n)}<br>[en_${e.id}]</span>`);}});
+      el.onclick=()=>onEnemyTap(e);});}
+  C.en.forEach(e=>{const el=s.querySelector(`.en[data-u="${e.u}"]`);if(!el)return;el.classList.toggle("dead",e.hp<=0);el.classList.toggle("tg",!!C.sel&&needT(C.sel)&&e.hp>0);
+    const it=el.querySelector(".intent");it.outerHTML=intentHTML(e)||'<div class="intent"></div>';el.querySelector(".bar i").style.width=(100*Math.max(0,e.hp)/e.max)+"%";el.querySelector(".bar span").textContent=`${Math.max(0,e.hp)}/${e.max}${e.blk?" 🛡"+e.blk:""}`;el.querySelector(".bar").classList.toggle("blk",e.blk>0);el.querySelector(".esx").innerHTML=stsHTML(e.st);});
+  s.querySelector(".pbar").innerHTML=`<div class="row"><div class="orb">${C.energy}</div><div style="flex:1"><div class="row" style="justify-content:space-between;font-size:12px"><span>Kẻ Tro Tàn</span><span class="muted">Rút ${C.draw.length} · Bỏ ${C.disc.length}</span></div><div class="bar ${C.p.blk?"blk":""}"><i style="width:${100*R.hp/R.max}%"></i><span>${R.hp}/${R.max}${C.p.blk?" 🛡"+C.p.blk:""}</span></div>${stsHTML(C.p.st)}</div><button class="endt" id="endt">Kết thúc<br>lượt</button></div>`;
+  const hd=s.querySelector(".hand");hd.innerHTML=`<div class="hint">${C.sel?(needT(C.sel)?"Chạm kẻ thù để dùng":"Chạm lại lá bài để dùng"):""}</div>`+C.hand.map(c=>cardHTML(c,(C.sel===c?"sel ":"")+(canPlay(c)?"":"no"))).join("");
+  const n=C.hand.length,W=hd.clientWidth-12,cw=100;const ov=n>1&&n*cw>W?(n*cw-W)/(n-1):-4;hd.querySelectorAll(".card").forEach((el,i)=>{el.style.margin=`0 ${-ov/2}px`;el.onclick=()=>onCardTap(C.hand.find(c=>c.u==el.dataset.u));});
+  hydrateArts(hd);$("#endt").onclick=()=>endTurn();}
+function canPlay(c){const {d,cost}=cdef(c);return !d.fx.unpl&&cost<=C.energy;}
+function needT(c){const {fx}=cdef(c);if(fx.all)return false;return !!(fx.d||fx.v||fx.w||fx.bl||fx.sp)&&C.en.filter(e=>e.hp>0).length>1;}
+function onCardTap(c){if(C.busy||!c)return;if(!canPlay(c)){toast(cdef(c).d.fx.unpl?"Không thể dùng lá này":"Không đủ năng lượng");return;}
+  if(C.sel===c){if(!needT(c))return playCard(c,C.en.find(e=>e.hp>0));}C.sel=c;renderCombat();}
+function onEnemyTap(e){if(C.busy||!C.sel||e.hp<=0)return;playCard(C.sel,e);}
+function floatAt(el,txt,cls=""){if(!el)return;const f=document.createElement("div");f.className="flt "+cls;f.textContent=txt;el.appendChild(f);setTimeout(()=>f.remove(),800);}
+function enEl(e){return $(`#combat .en[data-u="${e.u}"]`);}
+function hitEnemy(e,n){if(e.hp<=0)return;let d=n;if(e.blk){const a=Math.min(e.blk,d);e.blk-=a;d-=a;}e.hp-=d;const el=enEl(e);if(el){el.classList.remove("shake");void el.offsetWidth;el.classList.add("shake");floatAt(el.querySelector(".ef"),d>0?"-"+d:"🛡","" );}
+  if(e.hp<=0){e.hp=0;if(hasRelic("coc_mau"))R.hp=Math.min(R.max,R.hp+2);}
+  else if(e.d.enrage&&!e.enr&&e.hp<=e.max*e.d.enrage.at){e.enr=1;e.st.s=(e.st.s||0)+e.d.enrage.s;toast(e.d.enrage.t,2400);}}
+function hitPlayer(n,att){let d=n;if(C.p.blk){const a=Math.min(C.p.blk,d);C.p.blk-=a;d-=a;}R.hp-=d;const pb=$("#combat .pbar");floatAt(pb,d>0?"-"+d:"🛡",d>0?"":"blk");
+  if(att&&C.p.st.th)hitEnemy(att,C.p.st.th);
+  if(hasRelic("chuoi_hat")&&!C.saved&&R.hp>0&&R.hp<R.max*.3){C.saved=1;R.hp+=12;toast("Chuỗi Hạt Elise phát sáng! +12 HP");}}
+function healP(n){R.hp=Math.min(R.max,R.hp+n);floatAt($("#combat .pbar"),"+"+n,"heal");}
+function drawN(n){for(let i=0;i<n;i++){if(!C.draw.length){if(!C.disc.length)break;C.draw=shuffle(C.disc);C.disc=[];}if(C.hand.length>=10)break;C.hand.push(C.draw.pop());}}
+async function playCard(c,target){const {d,fx,cost}=cdef(c);if(cost>C.energy)return;C.busy=true;C.sel=null;C.energy-=cost;C.hand.splice(C.hand.indexOf(c),1);
+  const alive=()=>C.en.filter(e=>e.hp>0);const tg=fx.all?alive():[target&&target.hp>0?target:alive()[0]].filter(Boolean);
+  if(fx.lose){R.hp-=fx.lose;}
+  if(fx.d){for(let h=0;h<(fx.h||1);h++){for(const e of tg){hitEnemy(e,calcP(fx.d,e));if(d.t==="atk"&&hasRelic("moc_xuong")&&e.hp>0)e.st.bl=(e.st.bl||0)+1;}if((fx.h||1)>1){renderCombat();await sleep(130);}}}
+  if(fx.sp==="dmgBlk")for(const e of tg)hitEnemy(e,Math.max(0,calcP(C.p.blk,e)-(C.p.st.s||0)));
+  if(fx.sp==="bleedx2")for(const e of tg)e.st.bl=(e.st.bl||0)*2;
+  for(const e of tg){if(e.hp<=0)continue;if(fx.v)e.st.v=(e.st.v||0)+fx.v;if(fx.w)e.st.w=(e.st.w||0)+fx.w;if(fx.bl)e.st.bl=(e.st.bl||0)+fx.bl;}
+  if(fx.b){C.p.blk+=fx.b;floatAt($("#combat .pbar"),"+"+fx.b+"🛡","blk");}if(fx.s)C.p.st.s=(C.p.st.s||0)+fx.s;if(fx.dr)drawN(fx.dr);if(fx.e)C.energy+=fx.e;if(fx.hp)healP(fx.hp);if(fx.th)C.p.st.th=(C.p.st.th||0)+fx.th;
+  if(fx.pw)C.p.st[fx.pw]=(C.p.st[fx.pw]||0)+fx.pv;
+  if(d.t==="pow"||fx.x)C.exh.push(c);else C.disc.push(c);
+  C.busy=false;renderCombat();if(R.hp<=0)return defeat();if(!alive().length)return victory();}
+async function startTurn(){C.turn++;C.p.blk=0;C.p.st.th=0;const p=C.p;
+  if(p.st.metal)p.blk+=p.st.metal;
+  C.energy=3+(hasRelic("an_khe")?1:0)+(C.turn===1?(hasRelic("tim_lua")?1:0)+upg("energy"):0);
+  if(p.st.blood){C.energy+=p.st.blood;R.hp-=2*p.st.blood;}
+  if(p.st.bl){R.hp-=p.st.bl;p.st.bl--;}
+  if(p.st.bleedAura)C.en.forEach(e=>{if(e.hp>0)e.st.bl=(e.st.bl||0)+p.st.bleedAura;});
+  if(R.hp<=0){renderCombat();return defeat();}
+  drawN(5+(C.turn===1&&hasRelic("mat_quy")?2:0));renderCombat();}
+async function endTurn(){if(C.busy)return;C.busy=true;C.sel=null;
+  for(const c of C.hand)C.disc.push(c);C.hand=[];const p=C.p;if(p.st.v)p.st.v--;if(p.st.w)p.st.w--;renderCombat();await sleep(250);
+  for(const e of C.en){if(e.hp<=0)continue;e.blk=0;if(e.st.bl){e.hp-=e.st.bl;floatAt(enEl(e)?.querySelector(".ef"),"-"+e.st.bl);e.st.bl--;if(e.hp<=0){e.hp=0;renderCombat();continue;}}
+    const m=e.intent;const el=enEl(e);if(el){el.style.transform="translateY(10px) scale(1.04)";setTimeout(()=>el.style.transform="",180);}
+    if(m.d){for(let h=0;h<(m.h||1);h++){hitPlayer(calcE(e,m.d),e);renderCombat();if(R.hp<=0)break;await sleep(160);}}
+    if(m.b)e.blk+=m.b;if(m.s)e.st.s=(e.st.s||0)+m.s;if(m.w)p.st.w=(p.st.w||0)+m.w;if(m.v)p.st.v=(p.st.v||0)+m.v;if(m.bl)p.st.bl=(p.st.bl||0)+m.bl;if(m.heal)e.hp=Math.min(e.max,e.hp+m.heal);
+    if(e.st.v)e.st.v--;if(e.st.w)e.st.w--;pickIntent(e);renderCombat();if(R.hp<=0){C.busy=false;return defeat();}await sleep(220);}
+  C.busy=false;if(!C.en.some(e=>e.hp>0))return victory();await startTurn();}
+async function victory(){const k=C.kind;await sleep(350);const g=Math.round((k==="b"?rnd(70,90):k==="e"?rnd(28,38):rnd(12,20))*(hasRelic("vang_rua")?1.5:1));R.gold+=g;
+  const sl=Math.round((k==="b"?90:k==="e"?35:12)*(1+.1*M.ng));R.souls+=sl;if(hasRelic("estus"))R.hp=Math.min(R.max,R.hp+6);
+  const boss=C.en.find(e=>e.d.boss||e.d.elite);
+  if(boss&&boss.d.final)return finalBoss();
+  if(boss&&MON_SCENES[boss.d.scene]){const ms=MON_SCENES[boss.d.scene];
+    const r=await vn({slot:"en_"+boss.id,name:boss.d.n,lines:ms.ask,choices:[{t:"Tha mạng — chấp nhận lời đề nghị ♥",hot:1},{t:`Kết liễu (+${Math.round(sl*.8)} linh hồn)`}]});
+    if(r===0){await vn({slot:boss.d.scene,name:boss.d.n,title:ms.n,lines:ms.lines});M.gal[boss.d.scene]=1;addCorr(3);R.hp=Math.min(R.max,R.hp+Math.round(R.max*.15));if(boss.d.relic)gainRelic(boss.d.relic);}
+    else{R.souls+=Math.round(sl*.8);if(k==="e")gainRelic("rand");}}
+  else if(k==="e")gainRelic("rand");
+  if(k==="b"){gainRelic("rand");R.hp=Math.min(R.max,R.hp+Math.round(R.max*.25));}
+  save();await rewardCards(k,g,sl);nodeDone();}
+function rewardCards(k,g,sl){return new Promise(res=>{const n=3+(hasRelic("so_tay")?1:0)+upg("choice");const ids=[];let guard=0;while(ids.length<n&&guard++<40){const id=rollCard(k);if(!ids.includes(id))ids.push(id);}
+  const cs=ids.map(id=>mkCard(id,Math.random()<.08?1:0));show("reward");
+  $("#reward .mc").innerHTML=topBar()+`<div class="scroll pad"><h2>Chiến thắng</h2><div class="btn">◉ +${g} vàng · ✦ +${sl} linh hồn</div><div class="muted" style="margin-top:10px">Chọn một thẻ thêm vào bộ bài:</div><div class="cardgrid">${cs.map(c=>cardHTML(c)).join("")}</div><button class="btn main" id="skip">Bỏ qua</button></div>`;hydrateArts($("#reward"));
+  $("#reward").querySelectorAll(".card").forEach(el=>el.onclick=()=>{R.deck.push(cs.find(c=>c.u==el.dataset.u));save();res();});$("#skip").onclick=()=>res();});}
+async function defeat(){C.busy=true;show("death");await bgSet("death","bg_death");$("#death .mc").innerHTML=`<div id="died"><h1 class="serif">ĐÃ GỤC NGÃ</h1></div>`;await sleep(2400);await runEnd(false);}
+async function runEnd(win,abandon){const keep=win?R.souls:Math.round(R.souls*(abandon?.5:.6));M.souls+=keep;heroAff("sera",3);R=null;M.visit++;M.talked={};M.gifted={};save();
+  toast(`Linh hồn mang về: ✦ ${keep}`,2600);showHub();}
+async function finalBoss(){const nyx=M.heroes.nyx;const best=HERO_ORDER.filter(h=>h!=="nyx").sort((a,b)=>M.heroes[b].aff-M.heroes[a].aff)[0];const many=HERO_ORDER.filter(h=>h!=="nyx"&&M.heroes[h].aff>=80).length;
+  const ch=[{t:"Thắp lại Ngọn Lửa"},{t:"Để Ngọn Lửa tàn — ngồi lên ngai",dis:M.corr<50},{t:"Chìa tay cho Nyx ♥",dis:nyx.stage<4,hot:1},{t:"Mang ngọn lửa về cho tất cả bọn họ ♥",dis:many<4,hot:1}];
+  const r=await vn({slot:"en_nyx",name:"Nyx",lines:["~Nyx gục xuống bên ngai xương, đôi cánh rách nát.","Vậy là… ngươi đến được đây rồi. Giờ thì chọn đi, Kẻ Tro Tàn.","~(Mở khóa: Bóng Tối cần Ô Uế ≥ 50 · Nyx cần cảnh thân mật với nàng · Hậu cung cần 4 nữ nhân thiện cảm ≥ 80)"],choices:ch});
+  const key=["end_flame","end_dark","end_nyx","end_harem"][r];const E=ENDINGS[key];
+  await vn({slot:key,title:E.n,lines:E.lines});M.gal[key]=1;M.ends[key]=1;
+  if(key==="end_flame"&&M.heroes[best].aff>=60){await vn({slot:best+"_end",fb:best+"_portrait",name:HEROES[best].n,lines:HEROES[best].end});M.gal[best+"_end"]=1;}
+  if(key==="end_nyx"){await vn({slot:"nyx_end",fb:"nyx_portrait",name:"Nyx",lines:HEROES.nyx.end});M.gal.nyx_end=1;}
+  M.wins++;M.ng++;await vn({slot:"bg_title",lines:[`~KẾT THÚC: ${E.n}. Vòng lặp mới bắt đầu (NG+${M.ng}) — kẻ thù mạnh hơn, nhưng các nàng vẫn nhớ ngươi.`]});
+  await runEnd(true);}
+
+// ---------------- HUB ----------------
+async function showHub(){show("hub");await bgSet("hub","bg_hub");
+  if(!M.intro){M.intro=1;save();await playHeroEvent("sera");return showHub();}
+  const pend=HERO_ORDER.filter(h=>heroNext(h,"hub")).length;
+  $("#hub .mc").innerHTML=`<div class="top"><span class="sc">✦ Linh hồn <b>${M.souls}</b></span><span class="cc">◈ Ô uế <b>${M.corr}</b></span><span class="sp"></span>${M.ng?`<span class="pill">NG+${M.ng}</span>`:""}</div>
+   <div class="scroll"><div class="pad"><h1 class="serif" style="font-size:30px">Lò Lửa Cuối Cùng</h1><div class="muted">Nơi Kẻ Tro Tàn trở về sau mỗi lần gục ngã.</div>
+   ${R?`<button class="btn main" onclick="showMap()">Tiếp tục hành trình<small>Màn ${R.act} · Tầng ${R.floor+1}</small></button>`:`<button class="btn main" onclick="startRun()">Xuống Vực Thẳm<small>Bắt đầu một cuộc hành trình mới</small></button>`}
+   <button class="btn ${pend?"hot":""}" onclick="showHeroes()">Nữ Nhân ${pend?"♥ "+pend:""}<small>Trò chuyện, tặng quà, sự kiện</small></button>
+   <button class="btn" onclick="showUpg()">Thăng Hoa<small>Dùng linh hồn để mạnh hơn vĩnh viễn</small></button>
+   <button class="btn" onclick="showGallery()">Hồi Ức<small>Xem lại các cảnh đã mở khóa</small></button>
+   <button class="btn" onclick="showStudio()">Xưởng Ảnh<small>Thêm ảnh của bạn vào game + prompt</small></button>
+   <button class="btn" onclick="showSettings()">Cài đặt</button>
+   <div class="muted" style="margin-top:8px">Hành trình: ${M.runs} · Chiến thắng: ${M.wins} · Kết thúc: ${Object.keys(M.ends).length}/4</div></div></div>`;}
+function showHeroes(){const b=modal("Nữ Nhân",HERO_ORDER.map(hid=>{const h=HEROES[hid],st=M.heroes[hid];if(!st.met&&!h.hub)return `<div class="hcard"><div class="hp empty">?</div><div><h3>???</h3><div class="muted">Chưa gặp</div></div></div>`;
+  const nx=heroNext(hid,"hub");const ids=DB.ids(hid+"_portrait");
+  return `<div class="hcard" data-h="${hid}"><div class="hp ${ids.length?"":"empty"}">${ids.length?`<img data-id="${ids[0]}">`:"trống"}</div><div style="flex:1"><h3>${h.n} ${nx?"<span style='color:#ff7fb0'>♥</span>":""}</h3><div class="muted">${h.title} · ${h.age} tuổi${st.path?` · ${st.path==="love"?"Tình":"Sa ngã"}`:""}</div><div class="aff"><i style="width:${st.aff}%"></i></div><div class="muted">Thiện cảm ${st.aff}/100 · Chặng ${Math.min(st.stage,5)}/5</div></div></div>`;}).join("")+`<p class="muted">Thiện cảm 55 → cảnh thân mật · 80 → Khế ước (thẻ bài vĩnh viễn). Lựa chọn tại Ngã rẽ quyết định nhánh Tình hay Sa ngã.</p>`);
+  lazyThumbs(b);b.querySelectorAll("[data-h]").forEach(el=>el.onclick=()=>heroDetail(el.dataset.h));}
+function heroDetail(hid){const h=HEROES[hid],st=M.heroes[hid];const nx=heroNext(hid,"hub");const canTalk=!M.talked[hid]&&!h.noHub,canGift=!M.gifted[hid]&&M.souls>=30&&!h.noHub;
+  const b=modal(h.n,`<div class="muted">${h.title} · ${h.age} tuổi</div><p>${h.desc}</p><div class="aff"><i style="width:${st.aff}%"></i></div><div class="muted">Thiện cảm ${st.aff}/100</div>
+   ${nx?`<button class="btn hot" id="hev">${["Gặp gỡ","Thân thiết","Ngã rẽ","Cảnh thân mật","Khế ước"][st.stage]} ♥</button>`:""}
+   ${h.noHub?`<p class="muted">Nàng chỉ xuất hiện trong giấc mơ, ở Vực Thẳm.</p>`:`<button class="btn ${canTalk?"":"dis"}" id="htk">Trò chuyện (+4)</button><button class="btn ${canGift?"":"dis"}" id="hgf">Tặng Than Hồng (✦30, +8)</button>`}
+   <p class="muted">${!nx&&st.stage<5?(st.stage<3?`Sự kiện kế tiếp cần thiện cảm ${h.ev[st.stage].req}`:st.stage===3?"Cảnh thân mật cần thiện cảm 55":"Khế ước cần thiện cảm 80")+(h.hub||st.stage>=1?"":" · gặp nàng trong hành trình"):""}${!h.hub&&!h.shop&&st.stage<3&&st.met?" · sự kiện của nàng cũng xảy ra trong hành trình (Màn "+h.acts.join(", ")+")":""}</p>`);
+  if(nx)$("#hev").onclick=async()=>{closeModal();await playHeroEvent(hid);showHub();};
+  if(!h.noHub){$("#htk").onclick=async()=>{M.talked[hid]=1;heroAff(hid,4);save();closeModal();await vn({slot:hid+"_portrait",name:h.n,lines:[pick(h.talk)]});showHub();};
+    $("#hgf").onclick=()=>{M.souls-=30;M.gifted[hid]=1;heroAff(hid,8);save();toast(h.n+" mỉm cười. Thiện cảm "+st.aff);heroDetail(hid);};}}
+function showUpg(){const b=modal("Thăng Hoa — ✦ "+M.souls,Object.entries(UPGRADES).map(([k,u])=>{const l=upg(k);const c=u.cost[l];return `<button class="btn ${l>=u.max||M.souls<c?"dis":""}" data-k="${k}"><b>${u.n}</b> ${"●".repeat(l)}${"○".repeat(u.max-l)}<small>${u.d}${l<u.max?" — ✦ "+c:" — tối đa"}</small></button>`;}).join(""));
+  b.querySelectorAll("[data-k]").forEach(el=>el.onclick=()=>{const k=el.dataset.k,u=UPGRADES[k],c=u.cost[upg(k)];if(M.souls<c)return;M.souls-=c;M.upg[k]=upg(k)+1;save();showUpg();showHub();});}
+function galleryList(){const L=[];for(const hid of HERO_ORDER){const h=HEROES[hid];L.push({id:hid+"_s1_love",n:h.n+" · "+h.s1.love.n,lines:h.s1.love.lines,name:h.n},{id:hid+"_s1_dark",n:h.n+" · "+h.s1.dark.n,lines:h.s1.dark.lines,name:h.n},{id:hid+"_s2",n:h.n+" · "+h.s2.n,lines:h.s2.lines,name:h.n},{id:hid+"_end",n:h.n+" · Kết thúc",lines:h.end,name:h.n});}
+  for(const [id,s] of Object.entries(MON_SCENES))L.push({id,n:s.n,lines:s.lines,name:ENEMIES[s.who].n});for(const [id,s] of Object.entries(EV_SCENES))L.push({id,n:s.n,lines:s.lines,name:""});for(const [id,s] of Object.entries(ENDINGS))L.push({id,n:s.n,lines:s.lines,name:""});return L;}
+function showGallery(){const L=galleryList();const un=L.filter(x=>M.gal[x.id]).length;
+  const b=modal(`Hồi Ức ${un}/${L.length}`,`<div class="gal">${L.map((x,i)=>{const ok=M.gal[x.id];const ids=DB.ids(x.id);return `<div class="gi" data-i="${i}">${ok&&ids.length?`<img data-id="${ids[0]}">`:""}<span>${ok?esc(x.n):"???"}</span></div>`;}).join("")}</div>`);lazyThumbs(b);
+  b.querySelectorAll(".gi").forEach(el=>el.onclick=async()=>{const x=L[+el.dataset.i];if(!M.gal[x.id])return toast("Chưa mở khóa");closeModal();await vn({slot:x.id,name:x.name,title:x.n,lines:x.lines,H:"nàng"});showHub();});}
+function showSettings(){const b=modal("Cài đặt",`<button class="btn" id="tw">Hiệu ứng chữ chạy: <b>${M.set.tw?"Bật":"Tắt"}</b></button>
+  <div class="btn"><b>Chơi toàn màn hình trên iPhone</b><small>Mở file trong Safari → nút Chia sẻ → “Thêm vào Màn hình chính”. Mở từ biểu tượng ngoài màn hình chính sẽ ẩn thanh trình duyệt.</small></div>
+  <button class="btn" id="rst">Xóa dữ liệu tiến trình<small>Giữ nguyên ảnh trong Xưởng Ảnh</small></button>`);
+  $("#tw").onclick=()=>{M.set.tw=M.set.tw?0:1;save();showSettings();};$("#rst").onclick=()=>{if(confirm("Xóa toàn bộ tiến trình? (ảnh vẫn giữ)")){M=newMeta();R=null;save();closeModal();showHub();}};}
+
+// ---------------- STUDIO ----------------
+let studioGroup=null;
+async function showStudio(){const groups=[...new Set(SLOTS.map(s=>s.g))];const tot=[...DB.idx.values()].reduce((a,b)=>a+b.length,0);
+  let est="";try{const e=await navigator.storage.estimate();est=` · dùng ${(e.usage/1048576).toFixed(0)} MB`;}catch(e){}
+  const b=modal("Xưởng Ảnh",`<div class="muted">${tot} ảnh${est}. Ảnh được nén & lưu trong máy. Mỗi ô có thể có nhiều ảnh: cảnh nhiều ảnh sẽ tự chuyển theo lời thoại, ảnh chân dung/kẻ thù sẽ chọn ngẫu nhiên.</div>
+   <div class="row" style="flex-wrap:wrap;gap:6px;margin:8px 0"><button class="pill" id="exp">⇩ Xuất gói ảnh</button><button class="pill" id="imp">⇧ Nhập gói ảnh</button><button class="pill" id="ptx">⇩ Danh sách prompt .txt</button></div>
+   <div class="muted">Prompt dùng cho WAI-Illustrious v17 · kích thước gợi ý ${SLOT_SIZE} · Euler a, 28 bước, CFG 5–6.</div>
+   ${groups.map(g=>{const ss=SLOTS.filter(s=>s.g===g);const n=ss.reduce((a,s)=>a+DB.ids(s.id).length,0);return `<button class="btn" data-g="${esc(g)}"><b>${esc(g)}</b><small>${ss.length} ô · ${n} ảnh · ${ss.filter(s=>!DB.ids(s.id).length).length} ô trống</small></button>`;}).join("")}`);
+  b.querySelectorAll("[data-g]").forEach(el=>el.onclick=()=>studioG(el.dataset.g));
+  $("#exp").onclick=async()=>{toast("Đang đóng gói…");download(await exportPack(),"cinderveil_anh.cvpk");};
+  $("#imp").onclick=()=>pickFiles(false,async fs=>{try{const n=await importPack(fs[0],(a,t)=>toast(`Nhập ${a}/${t}`));toast("Đã nhập "+n+" ảnh");showStudio();}catch(e){toast(""+e);}},".cvpk,application/octet-stream,*/*");
+  $("#ptx").onclick=()=>{const t=SLOTS.map(s=>`### [${s.id}] ${s.g} — ${s.n}${s.note?"\n# "+s.note:""}\nPOSITIVE: ${s.pos}\nNEGATIVE: ${s.neg}\n`).join("\n");download(new Blob([t],{type:"text/plain"}),"cinderveil_prompts.txt");};}
+function pickFiles(multi,cb,accept="image/*"){const i=document.createElement("input");i.type="file";i.accept=accept;i.multiple=multi;i.onchange=()=>{if(i.files.length)cb([...i.files]);};i.click();}
+function studioG(g){studioGroup=g;const ss=SLOTS.filter(s=>s.g===g);
+  const b=modal(g,`<button class="pill" id="back">← Nhóm khác</button>`+ss.map(s=>{const ids=DB.ids(s.id);return `<div class="slotrow" data-s="${s.id}"><div class="row"><div style="flex:1"><b>${esc(s.n)}</b><div class="muted" style="font-size:11px">${s.id} · ${ids.length} ảnh</div></div><button class="pill" data-p="${s.id}">Prompt</button><button class="pill" style="color:var(--ember2);border-color:var(--ember)" data-a="${s.id}">+ Ảnh</button></div>
+    <div class="thumbs">${ids.map(id=>`<img data-id="${id}" data-v="${id}">`).join("")}</div></div>`;}).join(""));
+  lazyThumbs(b);$("#back").onclick=showStudio;
+  b.querySelectorAll("[data-a]").forEach(el=>el.onclick=()=>pickFiles(true,async fs=>{await importFiles(el.dataset.a,fs,(a,t)=>toast(`Đang xử lý ${a}/${t}…`,4000));toast("Đã thêm "+fs.length+" ảnh");studioG(g);}));
+  b.querySelectorAll("[data-p]").forEach(el=>el.onclick=()=>promptView(el.dataset.p));
+  b.querySelectorAll("[data-v]").forEach(el=>el.onclick=()=>imgView(el.dataset.v));}
+function promptView(id){const s=SLOT_BY_ID[id];const b=modal("Prompt · "+s.n,`${s.note?`<div class="pill" style="margin-bottom:8px;color:#ff9cc3">${esc(s.note)}</div>`:""}<div class="muted">Dương (Positive)</div><textarea rows="8" id="pp">${esc(s.pos)}</textarea><button class="btn" id="cp">Sao chép Positive</button>
+  <div class="muted">Âm (Negative)</div><textarea rows="5" id="pn">${esc(s.neg)}</textarea><button class="btn" id="cn">Sao chép Negative</button><div class="muted">Kích thước: ${SLOT_SIZE}</div><button class="btn main" id="bk">← Quay lại</button>`);
+  const cp=t=>{(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast("Đã sao chép"),()=>{toast("Giữ và chọn văn bản để sao chép");});};
+  $("#cp").onclick=()=>cp(s.pos);$("#cn").onclick=()=>cp(s.neg);$("#bk").onclick=()=>studioG(studioGroup||s.g);}
+async function imgView(id){const b=modal("Ảnh",`<img id="iv" style="width:100%;border-radius:8px"><button class="btn" id="dl">Xóa ảnh này</button><button class="btn main" id="bk">← Quay lại</button>`);await IMG.set($("#iv"),await IMG.url(id));
+  $("#dl").onclick=async()=>{if(!confirm("Xóa ảnh?"))return;await DB.del(id);studioG(studioGroup);};$("#bk").onclick=()=>studioG(studioGroup);}
+
+// ---------------- BOOT ----------------
+async function boot(){load();try{await DB.open();await DB.loadIndex();}catch(e){toast("Không mở được bộ nhớ ảnh");}
+  try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist();}catch(e){}
+  const t=$("#title");for(let i=0;i<14;i++){const e=document.createElement("i");e.className="ember";e.style.left=rnd(2,98)+"%";e.style.setProperty("--dx",rnd(-60,60)+"px");e.style.animationDuration=rnd(6,13)+"s";e.style.animationDelay=(-rnd(0,12))+"s";t.appendChild(e);}
+  await bgSet("title","bg_title");show("title");
+  $("#vn").addEventListener("click",e=>{if(e.target.closest(".vtools")||e.target.closest(".vch"))return;if($("#vn").classList.contains("hide")){$("#vn").classList.remove("hide");return;}if(VN)VN.tap();});
+  $("#vhide").onclick=()=>$("#vn").classList.toggle("hide");$("#vfit").onclick=()=>$("#vn").classList.toggle("fit");
+  $("#tstart").onclick=()=>showHub();
+  document.addEventListener("gesturestart",e=>e.preventDefault());}
+window.addEventListener("load",boot);
+
+</script></body></html>
