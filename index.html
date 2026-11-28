@@ -17395,4 +17395,794 @@ const _setL=showSettings;showSettings=function(){const r=_setL();const b=$("#mbo
   $("#langset").onclick=()=>{try{localStorage.setItem("cv_lang",vi?"en":"vi");}catch(e){}try{save();}catch(e){}location.reload();};return r;};
 
 </script>
-<script>(function(){var l="en";try{l=localStorage.getItem("cv_lang")||"en"}catch(e){}window.CV_LANG=l==="vi"?"vi":"en";var s=document.createElement("script");s.textContent=document.getElementById(CV_LANG==="vi"?"js_vi":"js_en").textContent;document.body.appendChild(s);})();</script></body></html>
+<script>(function(){var l="en";try{l=localStorage.getItem("cv_lang")||"en"}catch(e){}window.CV_LANG=l==="vi"?"vi":"en";var s=document.createElement("script");s.textContent=document.getElementById(CV_LANG==="vi"?"js_vi":"js_en").textContent;document.body.appendChild(s);})();</script><script id="cv530">// ===================== 5.30 — VỪA MÀN HÌNH CHÍNH · ĐIỀU KHIỂN MƯỢT · CHUYỂN ẢNH RÕ · ĐÒN NẶNG TAI =====================
+// Chạy sau bản EN/VI nên áp cho cả hai ngôn ngữ.
+(function(){
+if(window.__cv530)return;window.__cv530=1;
+const VI=window.CV_LANG==="vi";const T=(v,e)=>VI?v:e;
+const q=s=>document.querySelector(s);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const safe=f=>{try{return f();}catch(e){}};
+const has=n=>typeof window[n]==="function";
+const vxok=()=>safe(()=>typeof vxOn==="function"&&vxOn());
+
+// ---------------- 1) BỐ CỤC: không cắt chữ, không tràn mép, chừa vùng tai thỏ / thanh home ----------------
+const st=document.createElement("style");st.id="cv530";st.textContent=`
+#title h1{font-size:clamp(32px,12.4vw,54px)!important;letter-spacing:.04em!important;white-space:nowrap}
+#title .tbox{padding-left:14px!important;padding-right:14px!important}
+.scr{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
+#combat .enemies{padding-top:50px!important;padding-bottom:6px!important}
+#combat .en .ef{max-height:var(--efmax,36vh)!important;max-width:calc(var(--efmax,36vh)*2/3)!important}
+#combat .hand{padding-bottom:max(8px,calc(var(--sab,0px) * .35))!important}
+/* hàng HUD trên cùng: x1 · thức tỉnh · chuỗi · bình thuốc — nằm gọn trên đầu kẻ địch */
+#combat .spdbtn{top:calc(var(--sat,0px) + 8px)!important}
+#combat .awg{top:calc(var(--sat,0px) + 2px)!important;left:62px!important;width:44px!important;height:44px!important}
+#combat .awg .awl{bottom:-6px!important;font-size:8.5px!important;padding:0 5px!important}
+#cpots{left:auto!important;right:8px!important;top:calc(var(--sat,0px) + 8px)!important}
+#cpots .pots{flex-direction:row!important;gap:5px!important}
+#chainui{top:calc(var(--sat,0px) + 7px)!important;flex-direction:row!important;align-items:center!important;gap:7px!important;padding:3px 11px!important;border-radius:16px!important;white-space:nowrap;max-width:calc(100vw - 236px)}
+#chainui .cs2{display:none!important}
+#chainui .cl{font-size:9px!important;letter-spacing:.12em!important}
+#chainui .cm{font-size:11.5px!important}
+#chainui .ct{font-size:19px!important}
+/* ---- chọn bài ---- */
+#combat .hand .card.sel{transform:translateY(-58px) scale(1.24) rotate(0deg)!important;z-index:20!important}
+.cvgo{position:fixed;z-index:46;transform:translate(-50%,-100%);white-space:nowrap;font:800 10.5px/1 var(--fb,sans-serif);letter-spacing:.06em;
+ padding:6px 10px;border-radius:11px;background:linear-gradient(180deg,#ffc27e,#c4561a);color:#2a0c02;box-shadow:0 0 14px rgba(255,150,60,.8),0 2px 6px rgba(0,0,0,.6);pointer-events:none;animation:cvGo 1s ease-in-out infinite}
+@keyframes cvGo{50%{margin-top:-3px}}
+#combat .hand.hassel .card:not(.sel){filter:brightness(.62) saturate(.8)}
+#combat .hand .hint{display:none!important}
+#combat .en.tg .ef{animation:cvTg 1s ease-in-out infinite}
+@keyframes cvTg{50%{filter:brightness(1.18) drop-shadow(0 0 10px rgba(255,120,60,.9))}}
+.card.cvq{outline:2px dashed rgba(255,200,120,.9);outline-offset:3px}
+/* ---- chuyển ảnh phase 2 / bị hạ ---- */
+.cvx-old{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:5;pointer-events:none;border-radius:inherit}
+.cvx-fl{position:absolute;inset:-2px;z-index:8;pointer-events:none;border-radius:inherit;background:radial-gradient(circle at 50% 40%,#fff 0,rgba(var(--xc),.95) 40%,rgba(var(--xc),0) 78%);opacity:0;mix-blend-mode:screen}
+.cvx-ring{position:absolute;left:50%;top:42%;width:40%;aspect-ratio:1;z-index:9;pointer-events:none;border-radius:50%;transform:translate(-50%,-50%) scale(0);border:3px solid #fff;box-shadow:0 0 18px 6px rgba(var(--xc),1),inset 0 0 18px 4px rgba(var(--xc),.9)}
+.cvx-stamp{position:fixed;z-index:47;pointer-events:none;transform:translate(-50%,-50%);white-space:nowrap;text-align:center}
+.cvx-stamp b{display:block;font:900 clamp(26px,9vw,40px)/1 var(--fd,serif);letter-spacing:.12em;color:#fff;text-shadow:0 0 14px rgba(var(--xc),1),0 0 34px rgba(var(--xc),.9),0 3px 3px #000}
+.cvx-stamp small{display:block;margin-top:5px;font:800 11px/1 var(--fb,sans-serif);letter-spacing:.3em;color:rgba(var(--xc),1);text-shadow:0 1px 2px #000}
+.cvx-stamp i{display:block;height:2px;margin:7px auto 0;width:72vw;background:linear-gradient(90deg,transparent,rgba(var(--xc),1),transparent)}
+#combat .en.cvx-up{z-index:30!important}
+/* ---- chuỗi nhiều lá ---- */
+.cvch{position:fixed;left:50%;z-index:46;pointer-events:none;transform:translate(-50%,-50%);font:900 46px/1 var(--fd,serif);color:#fff;letter-spacing:.04em;white-space:nowrap;
+ text-shadow:0 0 10px rgba(var(--cc),1),0 0 28px rgba(var(--cc),.9),0 0 60px rgba(var(--cc),.6),0 4px 3px #000}
+.cvch small{display:block;text-align:center;font:800 11px/1 var(--fb,sans-serif);letter-spacing:.32em;margin-top:4px;color:rgba(var(--cc),1)}
+.cvedge{position:fixed;inset:0;z-index:43;pointer-events:none;opacity:0;box-shadow:inset 0 0 70px 18px rgba(var(--cc),.75),inset 0 0 160px 30px rgba(var(--cc),.35)}
+`;document.head.appendChild(st);
+
+// --- kẻ địch luôn vừa khung (không trồi lên tai thỏ / dưới ô chuỗi) ---
+function fitEnemies(){const s=q("#combat");if(!s||!s.classList.contains("on"))return;const box=s.querySelector(".enemies");if(!box)return;
+  const cs=getComputedStyle(box);const avail=box.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom);if(avail<60)return;
+  let extra=0;box.querySelectorAll(".en").forEach(en=>{const ef=en.querySelector(".ef");if(!ef)return;extra=Math.max(extra,en.offsetHeight-ef.offsetHeight);});
+  const solo=box.classList.contains("solo");const cap=innerHeight*(solo?.46:.36);
+  const m=Math.max(90,Math.min(cap,avail-extra-12));const cur=parseFloat(s.style.getPropertyValue("--efmax"))||0;
+  if(Math.abs(cur-m)>1)s.style.setProperty("--efmax",m+"px");}
+// --- tay bài: tính theo bề rộng THẬT của lá (trước đây giả định 100px → lá đầu/cuối tràn mép) ---
+function fitHand(){const hd=q("#combat .hand");if(!hd)return;const cards=[...hd.querySelectorAll(".card")];const n=cards.length;if(!n)return;
+  const cw=cards[0].offsetWidth||100,ch=cards[0].offsetHeight||140;
+  // lá ngoài cùng xoay quanh điểm dưới chân lá → góc trên lệch ra ngoài; trừ phần lệch đó để không bị cắt mép
+  const r=Math.abs(parseFloat(cards[0].style.getPropertyValue("--rot"))||0)*Math.PI/180;const spill=Math.max(0,cw/2*(Math.cos(r)-1)+ch*1.2*Math.sin(r));
+  const W=hd.clientWidth-16-2*spill;const ov=n>1&&n*cw>W?(n*cw-W)/(n-1):-4;
+  cards.forEach(el=>{el.style.margin=`0 ${-ov/2}px`;});}
+function fitAll(){safe(fitEnemies);safe(fitHand);}
+if(has("renderCombat")){const _r=renderCombat;renderCombat=function(){const r=_r.apply(this,arguments);safe(fitHand);safe(fitEnemies);requestAnimationFrame(fitAll);setTimeout(fitAll,120);safe(selDeco);return r;};}
+addEventListener("resize",()=>{fitAll();setTimeout(fitAll,250);});
+addEventListener("orientationchange",()=>setTimeout(fitAll,350));
+if(window.visualViewport)visualViewport.addEventListener("resize",()=>setTimeout(fitAll,60));
+// ô chuỗi: gọn một dòng, không phình to che ảnh
+if(has("chainShow")){const _c=chainShow;chainShow=function(){const r=_c.apply(this,arguments);safe(()=>{const el=q("#chainui");if(!el||!C)return;const m=chainMult();
+  el.querySelector(".cl").innerHTML=T("CHUỖI","CHAIN")+" <u>"+(C.played||0)+"</u>";el.querySelector(".cm").textContent=m>1?"×"+m.toFixed(2):"";
+  const sz=Math.min(1.12,parseFloat(el.style.getPropertyValue("--cs"))||1);el.style.setProperty("--cs",sz);});return r;};}
+
+// ---------------- 2) ĐIỀU KHIỂN: chạm 1 lần chọn · chạm lại / vuốt lên để đánh · đánh dồn không bị nuốt ----------------
+// a) Hàng đợi: bấm/kéo lá khi lá trước còn đang bay → không bị bỏ qua, tự đánh ngay khi rảnh.
+let QP=null;
+function qMark(){document.querySelectorAll("#combat .hand .card.cvq").forEach(x=>x.classList.remove("cvq"));if(QP){const el=q(`#combat .hand .card[data-u="${QP.c.u}"]`);if(el)el.classList.add("cvq");}}
+async function qRun(){for(let i=0;i<150&&QP;i++){if(!C){QP=null;return;}if(!C.busy){const {c,t}=QP;QP=null;qMark();
+      if(!C.hand.includes(c)||!canPlay(c))return;let tg=t&&t.hp>0?t:null;if(!tg&&needsEnemyQ(c)){const al=C.en.filter(e=>e.hp>0);if(al.length===1)tg=al[0];else return;}
+      return playCard(c,tg||C.en.find(e=>e.hp>0));}await sleep(30);}QP=null;qMark();}
+function needsEnemyQ(c){return safe(()=>needsEnemy(c))||false;}
+function queuePlay(c,t){if(!C||!c)return;QP={c,t};qMark();safe(()=>haptic(6));qRun();}
+window.cvQueuePlay=queuePlay;
+// b) Chạm lá
+if(has("onCardTap")){const _ot=onCardTap;onCardTap=function(c){if(!C||!c)return;
+  if(C.busy){if(!canPlay(c))return;if(needT(c)){C.sel=c;safe(()=>renderCombat());return;}return queuePlay(c,null);}
+  return _ot.apply(this,arguments);};}
+if(has("onEnemyTap")){const _oe=onEnemyTap;onEnemyTap=function(e){if(C&&C.busy&&C.sel&&e&&e.hp>0){const c=C.sel;return queuePlay(c,e);}return _oe.apply(this,arguments);};}
+// c) Nhãn trên lá đang chọn: biết ngay bước tiếp theo
+function selDeco(){const hd=q("#combat .hand");if(!hd||!C)return;hd.classList.toggle("hassel",!!C.sel);let g=q(".cvgo");const el=hd.querySelector(".card.sel");
+  if(!el||!C.sel||!q("#combat.on")){if(g)g.remove();return;}
+  if(!g){g=document.createElement("div");g.className="cvgo";document.body.appendChild(g);}
+  g.textContent=needT(C.sel)?T("▲ CHẠM KẺ ĐỊCH","▲ TAP AN ENEMY"):T("▲ CHẠM LẠI / VUỐT LÊN","▲ TAP AGAIN / SWIPE UP");
+  const place=()=>{if(!el.isConnected){g.remove();return;}const r=el.getBoundingClientRect();g.style.left=Math.max(70,Math.min(innerWidth-70,r.left+r.width/2))+"px";g.style.top=(r.top-6)+"px";};
+  place();setTimeout(place,200);}
+if(has("show")){const _sw=show;show=function(){safe(()=>{const g=q(".cvgo");if(g)g.remove();});return _sw.apply(this,arguments);};}
+// d) Chạm vùng trống → bỏ chọn (trước phải bấm đúng lá mới huỷ)
+addEventListener("pointerup",ev=>{safe(()=>{if(!C||!C.sel||ev.target.closest("#combat .hand .card,#combat .en,button,.pot,#modal,.czoom"))return;if(!ev.target.closest("#combat.on"))return;
+  if(typeof DRAG!=="undefined"&&DRAG&&DRAG.on)return;C.sel=null;renderCombat();});},{passive:true});
+// e) Vuốt nhanh lên trên lá = đánh luôn (không cần kéo tới tận quái). Lá cần chọn mục tiêu khi có nhiều quái vẫn dùng mũi tên như cũ.
+{let F=null;
+ addEventListener("pointerdown",ev=>{const el=ev.target.closest&&ev.target.closest("#combat .hand .card");F=el?{el,u:el.dataset.u,x:ev.clientX,y:ev.clientY,t:performance.now(),id:ev.pointerId}:null;},{passive:true,capture:true});
+ addEventListener("pointerup",ev=>{const f=F;F=null;if(!f||ev.pointerId!==f.id||!C)return;const dy=ev.clientY-f.y,dx=ev.clientX-f.x,dt=performance.now()-f.t;
+   if(dy<-44&&Math.abs(dx)<Math.abs(dy)*.9&&dt<260){const c=C.hand.find(x=>x.u==f.u);if(!c||!canPlay(c))return;
+     if(needT(c))return; // nhiều mục tiêu → để cơ chế kéo/mũi tên lo
+     // nếu cơ chế kéo đã tự đánh (thả trên vùng chơi) thì thôi
+     setTimeout(()=>{if(!C||!C.hand.includes(c))return;if(C.busy)return queuePlay(c,null);if(typeof _noClick!=="undefined")_noClick=Date.now();playCard(c,C.en.find(e=>e.hp>0));},40);}},{passive:true,capture:true});}
+// f) Kéo: chạm khi đang bận vẫn nhấc được lá; thả lúc đang bận → xếp hàng thay vì bật về tay
+if(has("dragEnd")){const _de=dragEnd;window.removeEventListener("pointerup",dragEnd);
+  dragEnd=function(ev){const D=typeof DRAG!=="undefined"?DRAG:null;if(D&&D.on&&C&&C.busy&&(!ev||ev.pointerId===D.id)){const hand=q("#combat .hand").getBoundingClientRect();const y=ev?ev.clientY:hand.bottom;
+      if(y<hand.top-10||D.tg){const c=D.c,t=D.tg||null;const r=_de.apply(this,arguments);if(!needsEnemyQ(c)||t||C.en.filter(e=>e.hp>0).length===1)queuePlay(c,t);return r;}}
+    return _de.apply(this,arguments);};
+  addEventListener("pointerup",ev=>dragEnd(ev),{passive:true});}
+// cho phép bắt đầu kéo cả khi lá trước đang bay (trước đây bị chặn bởi C.busy)
+addEventListener("pointerdown",ev=>{safe(()=>{if(!C||!C.busy)return;const el=ev.target.closest&&ev.target.closest("#combat .hand .card");if(!el)return;const c=C.hand.find(x=>x.u==el.dataset.u);if(!c)return;
+  if(typeof DRAG!=="undefined"&&!DRAG){el.classList.add("press");DRAG={c,el,x0:ev.clientX,y0:ev.clientY,on:false,id:ev.pointerId,tg:null};}});},{passive:true});
+// g) Ngưỡng nhấc lá thấp hơn (16px → 9px) để kéo ăn tay hơn; giữ để xem bài vẫn như cũ
+addEventListener("pointermove",ev=>{safe(()=>{const D=typeof DRAG!=="undefined"?DRAG:null;if(!D||D.on||ev.pointerId!==D.id)return;const d=Math.hypot(ev.clientX-D.x0,ev.clientY-D.y0);
+  if(d>=10&&d<16&&ev.clientY-D.y0<-8&&canPlay(D.c)&&typeof dragStart==="function"){D.x0=ev.clientX;D.y0=ev.clientY;dragStart();}});},{passive:true,capture:true});
+
+// ---------------- 3) CHUYỂN ẢNH PHASE 2 / BỊ HẠ: rõ ràng, có nhịp ----------------
+function enOfImg(im){const en=im.closest&&im.closest(".en");if(!en||!C||!C.en)return null;return C.en.find(e=>String(e.u)===en.dataset.u)||null;}
+function rectOf(el){if(!el)return null;const r=el.getBoundingClientRect();if(!r.width)return null;return {x:r.left+r.width/2,y:r.top+r.height/2,w:r.width,h:r.height,r};}
+function colOf(e){return safe(()=>ph2Col(e))||"255,90,60";}
+function stamp(x,y,col,big,small,ms){const s=document.createElement("div");s.className="cvx-stamp";s.style.setProperty("--xc",col);s.style.left=x+"px";s.style.top=y+"px";
+  s.innerHTML=`${small?`<small>${small}</small>`:""}<b>${big}</b><i></i>`;document.body.appendChild(s);
+  const hw=Math.min(innerWidth/2,(s.querySelector("b").offsetWidth||200)/2+10);s.style.left=Math.max(hw,Math.min(innerWidth-hw,x))+"px";
+  s.animate([{opacity:0,transform:"translate(-50%,-50%) scale(1.9)",filter:"blur(6px)"},{opacity:1,transform:"translate(-50%,-50%) scale(1)",filter:"blur(0)",offset:.14,easing:"cubic-bezier(.2,1.4,.4,1)"},{opacity:1,offset:.78},{opacity:0,transform:"translate(-50%,-62%) scale(1.04)"}],{duration:ms||1500,fill:"forwards"}).onfinish=()=>s.remove();}
+async function artSwap(im,oldSrc,kind,e){const ef=im.closest(".ef");const en=im.closest(".en");if(!ef||!en)return;const col=kind==="dead"?"255,235,210":colOf(e);ef.style.setProperty("--xc",col);
+  en.classList.add("cvx-up");setTimeout(()=>en.classList.remove("cvx-up"),1800);
+  // ảnh cũ phủ lên trên, nung trắng rồi vỡ ra để lộ ảnh mới
+  const o=document.createElement("img");o.className="cvx-old";o.src=oldSrc;o.style.objectFit=getComputedStyle(im).objectFit||"cover";o.style.objectPosition=getComputedStyle(im).objectPosition;
+  const fl=document.createElement("i");fl.className="cvx-fl";const rg=document.createElement("i");rg.className="cvx-ring";ef.append(o,fl,rg);
+  const hold=kind==="dead"?260:380;
+  safe(()=>ef.animate([{transform:"translate(0,0)"},{transform:"translate(-4px,2px)"},{transform:"translate(4px,-2px)"},{transform:"translate(-3px,1px)"},{transform:"translate(2px,0)"},{transform:"translate(0,0)"}],{duration:hold,easing:"linear"}));
+  o.animate([{filter:"brightness(1) saturate(1)"},{filter:kind==="dead"?"brightness(.5) saturate(0) contrast(1.4)":"brightness(2.6) saturate(.2) contrast(1.2)",offset:.9},{filter:"brightness(4) saturate(0)"}],{duration:hold,fill:"forwards",easing:"ease-in"});
+  safe(()=>{SFX.play(kind==="dead"?"windup":"charge",kind==="dead"?.8:1.1);haptic(18);});
+  await sleep(hold);
+  // khoảnh khắc lộ ảnh: chớp sáng + vòng nổ + ảnh mới phóng vào
+  fl.animate([{opacity:0},{opacity:1,offset:.12},{opacity:0}],{duration:620,easing:"ease-out",fill:"forwards"});
+  rg.animate([{transform:"translate(-50%,-50%) scale(0)",opacity:1},{transform:"translate(-50%,-50%) scale(3.4)",opacity:0}],{duration:620,easing:"cubic-bezier(.1,.8,.3,1)",fill:"forwards"});
+  o.animate([{opacity:1,transform:"scale(1)",filter:"brightness(4) saturate(0)"},{opacity:0,transform:"scale(1.18)",filter:"brightness(5) saturate(0) blur(6px)"}],{duration:420,easing:"ease-out",fill:"forwards"});
+  im.animate(kind==="dead"
+    ?[{transform:"scale(1.16)",filter:"brightness(2.4) saturate(0)"},{transform:"scale(1.03)",filter:"brightness(1.1) saturate(.6)",offset:.35},{transform:"scale(1)",filter:"brightness(1) saturate(1)"}]
+    :[{transform:"scale(1.22)",filter:"brightness(2.6) contrast(1.2)"},{transform:"scale(.97)",filter:"brightness(1.2)",offset:.45},{transform:"scale(1)",filter:"brightness(1)"}],{duration:kind==="dead"?1300:760,easing:"cubic-bezier(.2,.9,.3,1)"});
+  const p=rectOf(ef);
+  safe(()=>{SFX.play(kind==="dead"?"kill":"phaseRoar",kind==="dead"?1:.7);haptic(kind==="dead"?40:30);
+    if(p&&vxok()){vxFlash(p.x,p.y,p.w*2.2,col,.3);vxRing(p.x,p.y,p.w*.8,col,.5);vxRing(p.x,p.y,p.w*1.5,"255,255,255",.6,.06);vxShock(p.x,p.y,p.w*1.6,.5);
+      if(kind==="dead"){vxEmbers(p.x,p.y+p.h*.2,40,"255,170,90",p.w*.6,260,1.8);vxDebris(p.x,p.y,18);}else{vxPillar(p.x,p.y+p.h*.5,p.w*.8,col,.9);vxSparks(p.x,p.y,40,col,{speed:900,grav:260});}}
+    hfxEdge(col,700,kind==="dead"?.7:1);});
+  if(p){const nm=e&&e.d&&e.d.n?String(e.d.n).split(" — ")[0]:"";
+    if(kind==="dead")stamp(p.x,p.y+p.h*.18,"255,90,60",T("BỊ HẠ","DEFEATED"),nm.toUpperCase(),1500);
+    else if(!(e&&e.d&&e.d.boss))stamp(p.x,p.y+p.h*.18,col,T("GIAI ĐOẠN II","PHASE II"),nm.toUpperCase(),1400);}
+  setTimeout(()=>{o.remove();fl.remove();rg.remove();},900);}
+// theo dõi mọi lần đổi ảnh kẻ địch; chỉ diễn khi đúng là phase 2 (lần đầu) hoặc bị hạ (lần đầu)
+const MO=new MutationObserver(list=>{for(const m of list){const im=m.target;if(im.tagName!=="IMG"||!im.closest||!im.closest("#combat .en .ef"))continue;if(im.classList.contains("cvx-old"))continue;
+  const old=m.oldValue;if(!old||old===im.src||/^data:image\/gif|^about:/.test(old))continue;const e=enOfImg(im);if(!e)continue;
+  let kind=null;if((e.hp<=0||e._dead)&&!e._cvD){e._cvD=1;kind="dead";}else if(e.hp>0&&e._p2&&!e._cvP){e._cvP=1;kind="phase";}
+  if(kind&&typeof SLEEP_MUL!=="undefined"&&SLEEP_MUL)artSwap(im,old,kind,e);}});
+function moOn(){const s=q("#combat");if(s&&!s._cvmo){s._cvmo=1;MO.observe(s,{subtree:true,attributes:true,attributeFilter:["src"],attributeOldValue:true});}}
+moOn();setTimeout(moOn,1000);
+// quái không có ảnh "bị hạ": vẫn có dấu "BỊ HẠ" rõ ràng + chớp trắng ở khung
+if(has("hitEnemy")){const _h=hitEnemy;hitEnemy=function(e,n){const h0=e?e.hp:0;const r=_h.apply(this,arguments);
+  safe(()=>{if(e&&h0>0&&e.hp<=0&&!e._cvD&&typeof SLEEP_MUL!=="undefined"&&SLEEP_MUL){setTimeout(()=>{if(e._cvD)return;e._cvD=1;const ef=enEl(e)?.querySelector(".ef");const p=rectOf(ef);if(!p)return;
+      ef.style.setProperty("--xc","255,235,210");const fl=document.createElement("i");fl.className="cvx-fl";ef.appendChild(fl);fl.animate([{opacity:0},{opacity:1,offset:.1},{opacity:0}],{duration:520,fill:"forwards"}).onfinish=()=>fl.remove();
+      const nm=e.d&&e.d.n?String(e.d.n).split(" — ")[0]:"";stamp(p.x,p.y+p.h*.18,"255,90,60",T("BỊ HẠ","DEFEATED"),nm.toUpperCase(),1600);},320);}});return r;};}
+
+// ---------------- 4) CHUỖI NHIỀU LÁ: càng dồn càng nổ to ----------------
+let lastChain=0;
+function chainBurst(n){const lv=Math.min(6,n-1);if(lv<1)return;const col=lv>=5?"255,70,40":lv>=3?"255,130,50":"255,200,110";const W=innerWidth,H=innerHeight;
+  const el=document.createElement("div");el.className="cvch";el.style.setProperty("--cc",col);el.style.top=(H*.34)+"px";el.style.fontSize=(38+lv*6)+"px";
+  el.innerHTML=`×${n}<small>${T("CHUỖI","CHAIN")}${lv>=5?" · "+T("BÙNG CHÁY","INFERNO"):lv>=3?" · "+T("RỰC LỬA","BLAZING"):""}</small>`;document.body.appendChild(el);
+  el.animate([{opacity:0,transform:"translate(-50%,-50%) scale(2.2) rotate(-6deg)"},{opacity:1,transform:"translate(-50%,-50%) scale(.92) rotate(0)",offset:.16,easing:"cubic-bezier(.2,1.5,.4,1)"},{opacity:1,transform:"translate(-50%,-50%) scale(1)",offset:.55},{opacity:0,transform:"translate(-50%,-80%) scale(1.06)"}],{duration:760+lv*60,fill:"forwards"}).onfinish=()=>el.remove();
+  const ed=document.createElement("div");ed.className="cvedge";ed.style.setProperty("--cc",col);document.body.appendChild(ed);
+  ed.animate([{opacity:0},{opacity:Math.min(1,.35+lv*.13),offset:.12},{opacity:0}],{duration:520+lv*70,fill:"forwards"}).onfinish=()=>ed.remove();
+  safe(()=>{if(vxok()){vxFlash(W/2,H*.34,W*(.5+lv*.12),col,.22);vxRing(W/2,H*.34,W*(.25+lv*.07),col,.4);if(lv>=2)vxRing(W/2,H*.34,W*(.45+lv*.08),"255,240,220",.5,.05);
+      if(lv>=3){vxShock(W/2,H*.38,W*(.5+lv*.08),.45);vxSparks(W/2,H*.34,14+lv*6,col,{speed:600+lv*80,grav:500});}if(lv>=5)vxImpactFrame(true);}
+    if(lv>=3&&has("vxShakeEl"))vxShakeEl(q("#combat"),3+lv,200+lv*20);haptic(8+lv*5);});
+  safe(()=>SFX.play("chainHit",n));}
+if(has("playCard")){const _pc=playCard;playCard=async function(c,t){const p0=C?C.played||0:0;const r=await _pc.apply(this,arguments);
+  safe(()=>{if(C&&(C.played||0)>p0&&(C.played||0)>=2&&typeof SLEEP_MUL!=="undefined"&&SLEEP_MUL)chainBurst(C.played);});
+  if(QP)qRun();return r;};}
+if(has("startTurn")){const _s=startTurn;startTurn=async function(){QP=null;return _s.apply(this,arguments);};}
+
+// ---------------- 5) ÂM THANH "ĐÃ TAI" ----------------
+// Loa điện thoại gần như không phát được tần số < 100Hz → các tiếng trầm 40–80Hz cũ gần như mất hết, nghe nhạt.
+// Bus hiệu ứng mới: bão hoà sinh hoạ âm (tai nghe ra "độ nặng" trên loa nhỏ) + đẩy dải 2–4kHz cho tiếng chém sắc
+// + nén nhanh & limiter cho to, chắc, không vỡ. Thêm lớp "punch" cho mọi đòn đánh, và tiếng chuỗi leo cao theo số lá.
+const SX={bus:null,ctx:null};
+function satCurve(k){const n=2048,c=new Float32Array(n);for(let i=0;i<n;i++){const x=i/(n-1)*2-1;c[i]=Math.tanh(k*x)/Math.tanh(k);}return c;}
+function sxBuild(cx){const c=cx||AU.ctx;if(!c)return null;if(!cx&&SX.ctx===c&&SX.bus)return SX.bus;
+  const inp=c.createGain();inp.gain.value=1;
+  // nhánh hoạ âm: lấy phần trầm, bão hoà mạnh, lọc bỏ dưới 110Hz → nghe "uỳnh" trên loa điện thoại
+  const lp=c.createBiquadFilter();lp.type="lowpass";lp.frequency.value=260;const pre=c.createGain();pre.gain.value=3.2;
+  const ws=c.createWaveShaper();ws.curve=satCurve(4);ws.oversample="2x";const hp=c.createBiquadFilter();hp.type="highpass";hp.frequency.value=110;hp.Q.value=.7;
+  const hg=c.createGain();hg.gain.value=.55;inp.connect(lp);lp.connect(pre);pre.connect(ws);ws.connect(hp);hp.connect(hg);
+  // nhánh chính: bão hoà nhẹ toàn dải + đẩy độ "sắc"
+  const ws2=c.createWaveShaper();ws2.curve=satCurve(1.6);const pk=c.createBiquadFilter();pk.type="peaking";pk.frequency.value=2800;pk.Q.value=.9;pk.gain.value=4;
+  const sh=c.createBiquadFilter();sh.type="lowshelf";sh.frequency.value=180;sh.gain.value=3;inp.connect(ws2);ws2.connect(sh);sh.connect(pk);
+  const sum=c.createGain();sum.gain.value=1;pk.connect(sum);hg.connect(sum);
+  const cmp=c.createDynamicsCompressor();cmp.threshold.value=-22;cmp.knee.value=6;cmp.ratio.value=6;cmp.attack.value=.002;cmp.release.value=.12;
+  const mk=c.createGain();mk.gain.value=1.5;
+  const lim=c.createDynamicsCompressor();lim.threshold.value=-2.5;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=.001;lim.release.value=.08;
+  sum.connect(cmp);cmp.connect(mk);mk.connect(lim);lim.connect(c.destination);
+  if(cx)return inp;SX.ctx=c;SX.bus=inp;return inp;}
+window.__sxb=sxBuild;
+function sxVol(){return safe(()=>M&&M.set&&M.set.sfxv!=null?M.set.sfxv:1)??1;}
+if(typeof AU!=="undefined"&&AU.play){const _pl=AU.play.bind(AU);
+  AU.play=function(type,mul){if(!this.init())return;const bus=safe(sxBuild);if(!bus)return _pl(type,mul);const o=this.out;this.out=bus;try{_pl(type,mul);punch(type,mul);}finally{this.out=o;}};
+  const S=AU.S;const tone=(f,d,o)=>AU.tone(f,d,o),nz=(d,o)=>AU.nz(d,o);
+  // lớp "punch" chung: tiếng tách đầu đòn + thân trầm-trung (120–220Hz) mà loa nhỏ phát được
+  const PUNCH={hit:[1,.9],heavy:[1.35,.8],crit:[1.6,.75],kill:[1.8,.7],pierce:[.8,1.1],thud:[1.1,.8],bash:[1.3,.8],stab:[.8,1.1],slashW:[.9,1],slashV:[.9,1],pactHit:[1.2,.85],fireV:[1,.95],bigHurt:[1.2,.7],hurt:[.9,.75]};
+  function punch(type,mul){const P=PUNCH[type];if(!P)return;const [k,pt]=P;const m=(mul||1)*pt;
+    nz(.012,{f:"highpass",fr:3800,g:.5*k,a:.001});                                  // tách
+    tone(220*m,.11,{to:70*m,g:.55*k,a:.001});                                       // thân
+    tone(440*m,.05,{to:160*m,type:"square",lp:1800,g:.07*k,a:.001});                // gằn
+    nz(.09*k,{fr:1600*m,to:380,q:.8,g:.32*k,a:.002});                              // vỡ
+    if(k>=1.3)nz(.45,{f:"lowpass",fr:900,to:120,g:.16*k,a:.004,rev:.45});}
+  window.__punch=punch;          // vang đuôi
+  // chém/đánh lá: rõ tiếng vút trước đòn
+  const card0=S.card;S.card=m=>{card0&&card0(m);nz(.16,{fr:500*m,to:4200*m,q:1.1,g:.22,a:.03});tone(900*m,.05,{to:1800*m,type:"triangle",g:.05,at:.02});};
+  // tiếng chuỗi: mỗi lá thêm một nấc cao hơn (thang ngũ cung), từ lá thứ 4 có chũm choẹ + trống, lá 6+ thêm hợp âm bùng nổ
+  const PENTA=[0,2,4,7,9,12,14,16,19,21,24];
+  S.chainHit=n=>{n=Math.max(2,n|0);const i=Math.min(PENTA.length-1,n-2);const f=392*Math.pow(2,PENTA[i]/12);
+    tone(f,.28,{type:"triangle",g:.14,a:.003,rev:.45});tone(f*1.5,.22,{g:.07,a:.003,at:.02,rev:.5});tone(f*2,.18,{type:"triangle",g:.05,at:.04,rev:.6});
+    nz(.06,{f:"highpass",fr:5000,g:.18,a:.002});
+    if(n>=4){tone(170,.16,{to:60,g:.6,a:.001});nz(.35,{f:"highpass",fr:6000,to:9000,g:.12,a:.003,rev:.5});}
+    if(n>=6){[1,1.26,1.5,2].forEach((r,j)=>tone(f*r/2,.6,{type:"sawtooth",lp:2600,g:.05,a:.01,at:.03+j*.012,rev:.6}));nz(.5,{f:"lowpass",fr:1400,to:150,g:.25,a:.003,rev:.5});}};
+  // chọn lá / nhấc lá: giòn, rõ
+  const sel0=S.sel;S.sel=m=>{sel0&&sel0(m);tone(1320,.05,{type:"triangle",g:.07,a:.001});nz(.03,{f:"highpass",fr:4500,g:.08});};
+}
+// âm lượng hiệu ứng tổng: mặc định to hơn; nhạc tự "nhún" xuống mỗi đòn (đã có musDuck)
+})();
+</script><script id="cv531a">// ===================== 5.31a — GÓI ẢNH: GỘP THÔNG MINH · NHỚ ẢNH ĐÃ XOÁ · XUẤT ẢNH MỚI =====================
+(function(){
+if(window.__cv531a)return;window.__cv531a=1;
+const VI=window.CV_LANG==="vi";const T=(v,e)=>VI?v:e;
+const LS={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
+// --- ảnh đã xoá trên máy này: ghi nhớ để lần nhập gói sau không tự quay lại ---
+const TOMB_K="cv_tomb",EXP_K="cv_expd";
+let tomb=new Set(LS.get(TOMB_K,[]));let tombDirty=0;
+function tombSave(){clearTimeout(tombDirty);tombDirty=setTimeout(()=>{const a=[...tomb];LS.set(TOMB_K,a.slice(-8000));},300);}
+if(typeof DB!=="undefined"&&DB.del){const _d=DB.del.bind(DB);DB.del=function(id){tomb.add(id);tombSave();const s=exportedSet();if(s.delete(id))exportedSave(s);return _d(id);};}
+if(typeof DB!=="undefined"&&DB.clearAll){const _c=DB.clearAll.bind(DB);DB.clearAll=function(){tomb=new Set();LS.set(TOMB_K,[]);LS.set(EXP_K,[]);return _c();};}
+// --- ảnh đã xuất: để nút "Xuất ảnh mới" chỉ gói phần thêm sau ---
+let _exp=null;function exportedSet(){if(!_exp)_exp=new Set(LS.get(EXP_K,[]));return _exp;}
+function exportedSave(s){LS.set(EXP_K,[...s]);}
+function allIds(){const out=[];for(const [slot,ids] of DB.idx)for(const id of ids)out.push([slot,id]);return out;}
+// --- xuất: có thể chỉ xuất một phần ---
+async function exportSome(filter){const items=[],blobs=[];for(const [slot,id] of allIds()){if(filter&&!filter(id,slot))continue;const r=await DB.getRec(id);const t=await DB.get(id,true);if(!r||!r.blob)continue;
+    items.push({id,slot,a:r.blob.size,b:t?t.size:0,t:r.blob.type,w:r.w,h:r.h,v:r.v});blobs.push(r.blob);if(t)blobs.push(t);}
+  const head=new TextEncoder().encode(JSON.stringify({v:1,items}));const len=new Uint32Array([head.length]);
+  return {n:items.length,ids:items.map(i=>i.id),blob:new Blob([new TextEncoder().encode("CVPK"),len,head,...blobs],{type:"application/octet-stream"})};}
+exportPack=async function(){const r=await exportSome(null);const s=exportedSet();r.ids.forEach(i=>s.add(i));exportedSave(s);return r.blob;};
+window.cvExportNew=async function(){const s=exportedSet();const r=await exportSome(id=>!s.has(id));if(!r.n){toast(T("Không có ảnh mới nào kể từ lần xuất trước","No new images since the last export"),2600);return;}
+  r.ids.forEach(i=>s.add(i));exportedSave(s);const d=new Date();const tag=`${d.getFullYear()}${String(d.getMonth()+1).padStart(2,"0")}${String(d.getDate()).padStart(2,"0")}-${String(d.getHours()).padStart(2,"0")}${String(d.getMinutes()).padStart(2,"0")}`;
+  download(r.blob,`cinderveil_anh_moi_${tag}.cvpk`);toast(T(`Đã gói ${r.n} ảnh mới`,`Packed ${r.n} new images`),2400);};
+// --- nhập: bỏ qua ảnh đã có · hỏi trước khi nhập lại ảnh đã xoá · giữ nguyên ảnh chỉ có ở máy này ---
+importPack=async function(file,onp){const buf=await file.arrayBuffer();const mg=new TextDecoder().decode(buf.slice(0,4));if(mg!=="CVPK")throw T("Sai định dạng gói","Not an image pack");
+  const len=new Uint32Array(buf.slice(4,8))[0];const head=JSON.parse(new TextDecoder().decode(buf.slice(8,8+len)));
+  const have=new Set();for(const [,id] of allIds())have.add(id);
+  const dead=head.items.filter(it=>!have.has(it.id)&&tomb.has(it.id));let revive=false;
+  if(dead.length)revive=await cvConfirm(T(`Gói này có ${dead.length} ảnh mà bạn đã xoá trên máy này. Nhập lại cả những ảnh đó?`,`This pack has ${dead.length} images you deleted on this device. Bring them back too?`),T("Nhập lại","Restore"));
+  let off=8+len,n=0,skip=0,k=0;const tot=head.items.length;
+  for(const it of head.items){const a0=off;off+=it.a;const b0=off;off+=it.b;k++;
+    if(have.has(it.id)||(tomb.has(it.id)&&!revive)){skip++;if(k%25===0)onp&&onp(k,tot);continue;}
+    const a=new Blob([buf.slice(a0,a0+it.a)],{type:it.t||"image/jpeg"});const b=new Blob([buf.slice(b0,b0+it.b)],{type:"image/jpeg"});
+    await DB.put({id:it.id,slot:it.slot,blob:a,w:it.w,h:it.h,v:it.v},b);if(revive)tomb.delete(it.id);n++;onp&&onp(k,tot);}
+  if(revive)tombSave();
+  // ảnh đến từ gói coi như đã có ở máy kia → không cần xuất lại
+  const s=exportedSet();head.items.forEach(it=>s.add(it.id));exportedSave(s);
+  try{if(n)await cleanAndCompress(false);}catch(e){}
+  setTimeout(()=>toast(T(`Thêm ${n} ảnh mới · bỏ qua ${skip} ảnh đã có`,`Added ${n} new · skipped ${skip} existing`),3200),400);return n;};
+// --- nút trong Xưởng Ảnh ---
+if(typeof showStudio==="function"){const _ss=showStudio;showStudio=async function(){const r=await _ss.apply(this,arguments);try{const ex=document.getElementById("exp");
+    if(ex&&!document.getElementById("expnew")){const s=exportedSet();let nNew=0;for(const [,id] of allIds())if(!s.has(id))nNew++;
+      ex.insertAdjacentHTML("beforebegin",`<button class="pill" id="expnew">⬆ ${T("Xuất ảnh mới","Export new images")} (${nNew})</button>`);
+      document.getElementById("expnew").onclick=()=>{toast(T("Đang đóng gói…","Packing…"));window.cvExportNew();};}}catch(e){}return r;};}
+// --- xin trình duyệt giữ kho ảnh, không tự dọn khi máy đầy ---
+try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist();}catch(e){}
+})();
+</script><script id="cv531">// ===================== 5.31 — TRUYỆN TRANH "BIÊN NIÊN MÀN TRO" =====================
+// Dữ liệu tập → prompt ChatGPT theo khuôn cố định (comicPrompt) → ô ảnh trong Xưởng Ảnh (nhóm "Truyện tranh")
+// → mục "Truyện" ở sảnh: mở khoá theo tiến độ, đọc theo trang hoặc từng khung (tự dò khung), chưa có ảnh thì đọc kịch bản.
+// Kinh thư thế giới: claude/cinderveil-truyen-bible.md trong Project.
+(function(){
+if(window.__cv531)return;window.__cv531=1;
+const VI=window.CV_LANG==="vi";const T=(v,e)=>VI?v:e;const L=o=>o?(VI?o.vi:(o.en||o.vi)):"";
+const q=s=>document.querySelector(s);const safe=f=>{try{return f();}catch(e){}};
+const escH=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+// ---------------- BẢNG NHÂN VẬT (khớp ảnh trong game) ----------------
+const CAST={
+ queen:{n:"Nữ hoàng Aldrenn",d:"QUEEN ALDRENN — adult woman, tall and slender, oval face, calm pale-grey eyes, long straight silver-white hair down to her waist, very pale skin, crown of black iron with one small flame-shaped red gem in the center, long white gown with gold embroidery and wide flowing sleeves."},
+ gwyp:{n:"Gwyndra (thời trẻ)",d:"GWYNDRA, young — tall athletic adult female knight, strong jaw, amber eyes, long straight golden-blonde hair down to mid-back, a thin vertical scar on her LEFT cheek, polished silver plate armor (breastplate, pauldrons, gauntlets), long blood-red cape, long black skirt under the armor, a huge plain steel two-handed greatsword. Never wears a helmet."},
+ gwyh:{n:"Gwyndra (Rỗng)",d:"GWYNDRA, hollow (present day) — the same tall athletic adult female knight centuries later: same strong jaw, the thin vertical scar on her LEFT cheek, long golden-blonde hair dulled grey by ash, glowing orange eyes, silver plate armor scratched and blackened, the blood-red cape torn to rags, long black skirt, her huge greatsword now burning with orange-red fire. Never wears a helmet."},
+ brun:{n:"Brunhild",d:"BRUNHILD — very tall muscular adult woman, sharp face, red eyes, long white hair in a high ponytail, a horizontal scar across the bridge of her nose to both cheeks, black plate armor with a silver wolf-head emblem on the chest and a grey wolf-fur mantle, huge black two-handed greatsword."},
+ dull:{n:"Dullahan (khi còn đầu)",d:"DULLAHAN before the curse — adult woman knight, cold blue eyes, long straight white hair, black full plate armor with thin blue trim, dark-blue cape, rides a black warhorse."},
+ dullh:{n:"Dullahan (không đầu)",d:"DULLAHAN after the curse — the same black plate armor with thin blue trim and dark-blue cape, NO head on her shoulders: pale-blue ghost-flame rises from the neck; she carries her own head (long white hair, calm face, blue eyes CLOSED) under her left arm; rides a black warhorse."},
+ morr:{n:"Morrigan",d:"MORRIGAN — adult witch, tall and thin, sharp pale face, red eyes, dark lips, very long straight black hair with black crow feathers woven in, a high-collared cloak made of black feathers over a black dress, crows always around her."},
+ tsub:{n:"Tsubaki",d:"TSUBAKI — tall adult swordswoman, calm narrow eyes, red eyes, long straight black hair in a high ponytail, a small scar on her RIGHT cheek, dark-red kimono top with black hakama, long red scarf, katana at her left hip, a small gourd on her belt."},
+ kaede:{n:"Kaede (sư tỷ)",d:"KAEDE, Tsubaki's elder sword-sister — adult swordswoman, gentle face, dark-brown eyes, long loose straight black hair, white kimono with a red maple-leaf pattern, katana with a white hilt wrap and a RED ribbon tied to the hilt."},
+ mira:{n:"Mira",d:"MIRA — adult fox-woman merchant: orange fox ears and one big fluffy orange fox tail, short messy brown hair, green eyes, sly smile, cream scarf, brown leather coat full of pouches, carries a paper lantern."},
+ sera:{n:"Seraphine",d:"SERAPHINE — adult woman, soft face, long straight grey hair, her eyes always covered by a strip of white cloth (blindfold), very pale skin, tattered grey hooded cloak, gentle sad smile."},
+ hollow:{n:"Binh Rỗng",d:"HOLLOW SOLDIERS — undead female soldiers with grey skin, rusty torn armor, empty faces, faint glowing eyes."},
+ ashen:{n:"Kẻ Tro Tàn xưa",d:"A FORMER ASHEN ONE — a figure in a ragged ash-grey hooded cloak; the face is ALWAYS hidden in deep shadow, never visible."},
+ hand:{n:"Người chơi",d:"THE PLAYER — never shown; only a gloved hand seen from a first-person point of view."},
+};
+// ---------------- PHONG CÁCH (khớp ảnh WAI trong game — không "nhựa") ----------------
+const STYLE=`ART STYLE — must match the game's existing illustrations:
+- Dark-fantasy anime illustration with a PAINTERLY, gritty, MATTE finish. NOT glossy, NOT plastic, NOT 3D, NOT smooth airbrushed gradients, NOT clean vector cel-shading.
+- Very high contrast: big areas of pure black shadow; figures carved out by strong rim light from the fire.
+- Limited palette in every panel: near-black + cold desaturated blue-grey + ONE hot accent (ember orange-red fire; violet-pink magic only in Abyss scenes).
+- Rough visible dry-brush strokes and ink-splatter texture; jagged, sharp flame shapes; sparks and embers flying like paint flecks.
+- Anime faces with sharp eyes; dramatic low or high camera angles; cinematic composition.`;
+const LETTER=`LETTERING — very important:
+- All lettering is in ENGLISH. Write every text EXACTLY as given, word for word, correct spelling and punctuation. Do not shorten, rephrase, or add any other words.
+- Speech balloon: white oval, thin black outline, black bold serif font, text centered, plenty of padding. The tail points clearly to the SPEAKER'S MOUTH. Put the balloon right next to the speaker's head, never near another character.
+- Whisper balloon: same but with a dashed outline.
+- Narration caption: rectangle of aged parchment with a thin gold frame, dark-brown italic serif font, text centered.
+- Same font size in all balloons and captions. Text never touches the outline.`;
+const DONT=`DO NOT: add panel numbers, page numbers, titles, sound effects, signatures, watermarks or any extra text; add characters that are not listed; show the player's face or body (only the gloved hand when stated); draw nudity or gore; make the style shiny, plastic or 3D.
+PRIORITY if anything conflicts: 1) the exact text, 2) the panel count and layout, 3) the character designs, 4) everything else.`;
+
+// ---------------- TẬP TRUYỆN ----------------
+// u: điều kiện mở — {start}|{seen:"id"}|{kill:"id"}|{met:"hero"}|{act:n}|{wins:n}|{runs:n}; nhiều điều kiện = phải đủ tất cả
+// page.rows: chiều cao từng hàng (% trang); panel.r = hàng (1..), panel.c = "full"|"left"|"right"
+// tx.k: cap (dẫn truyện) | say (lời nói) | wh (thì thầm); tx.at: vị trí ô chữ trong khung
+const SEASONS=[{id:1,n:{vi:"Mùa 1 — Tro Của Aldrenn",en:"Season 1 — Ashes of Aldrenn"}}];
+const EPS=[
+{id:"e01",s:1,no:1,n:{vi:"Đêm Aldrenn Tắt Lửa",en:"The Night Aldrenn Went Dark"},kind:{vi:"Chính sử",en:"Main history"},u:{start:1},
+ sum:{vi:"Nữ hoàng dâng hơi ấm của cả kinh thành cho ngọn lửa — và để lại một mệnh lệnh.",en:"The queen gives the warmth of an entire city to the flame — and leaves one order behind."},
+ pages:[{rows:[18,17,14,22,13,16],cast:["queen","gwyp","gwyh","hand"],panels:[
+  {r:1,c:"full",shot:"EXTREME WIDE SHOT, high aerial angle, night",d:"A vast gothic capital glowing with thousands of hearths and lanterns. In the center, a colossal furnace-tower with glowing cracks.",vd:"Kinh đô Aldrenn về đêm, ngàn bếp lửa sáng rực quanh tháp Lò Lửa.",
+   tx:[{k:"cap",at:"top-left corner",vi:"Rất lâu trước khi tro phủ kín trời, Aldrenn là kinh đô của ánh sáng.",en:"Long before ash covered the sky, Aldrenn was the capital of light."}]},
+  {r:2,c:"full",shot:"MEDIUM-WIDE SHOT, low angle",d:"Throne hall. QUEEN ALDRENN stands on the LEFT side, facing right, one hand raised; ribbons of fire stream in through tall windows into her open palm.",vd:"Nữ hoàng giơ tay, những dải lửa từ khắp thành bay về lòng bàn tay.",
+   tx:[{k:"say",who:"queen",at:"upper right, beside the queen's head",vi:"Nếu ngọn lửa cần cả một kinh thành… thì ta trao cả kinh thành.",en:"If the flame needs a whole city… then I give it the whole city."}]},
+  {r:3,c:"full",shot:"MEDIUM SHOT",d:"An ordinary townswoman (adult, brown hair in a bun, plain grey wool dress) stands at a window on the LEFT, holding a candlestick; its flame is pulled out of the window like a glowing thread. Outside on the RIGHT, the streets go dark one by one.",vd:"Một người dân bên cửa sổ, ngọn nến bị hút ra ngoài; phố xá tắt dần.",
+   tx:[{k:"cap",at:"top-right corner",vi:"Từng ngọn đèn, từng bếp lửa… đều bị gọi về.",en:"Every lamp, every hearth… was called home."}]},
+  {r:4,c:"left",shot:"MEDIUM SHOT",d:"Young GWYNDRA kneels on one knee on the RIGHT, head bowed, her greatsword planted point-down beside her. QUEEN ALDRENN stands on the LEFT looking down at her.",vd:"Gwyndra quỳ trước nữ hoàng.",
+   tx:[{k:"say",who:"queen",at:"top-left, beside the queen's head",vi:"Gwyndra. Canh cổng. Đừng để ai bước vào — kể cả ta.",en:"Gwyndra. Guard the gate. Let no one enter — not even me."}]},
+  {r:4,c:"right",shot:"CLOSE-UP",d:"Young GWYNDRA's face, eyes closed, a tear on her cheek; the queen's hand rests gently on top of her blonde head.",vd:"Cận mặt Gwyndra nhắm mắt, tay nữ hoàng đặt trên đầu nàng.",
+   tx:[{k:"say",who:"gwyp",at:"lower right, beside Gwyndra's mouth",vi:"Theo lệnh người, thưa nữ hoàng.",en:"As you command, my queen."}]},
+  {r:5,c:"full",shot:"WIDE SHOT",d:"Silhouette of QUEEN ALDRENN walking away from the viewer into the blinding light of the furnace; the edges of her gown dissolve into embers and ash.",vd:"Nữ hoàng bước vào ánh sáng lò lửa, tan thành tàn tro.",tx:[]},
+  {r:6,c:"full",shot:"WIDE SHOT, eye level, present day, grey dawn",d:"The same city gate in ruins, buried in grey ash. Hollow GWYNDRA stands in the CENTER-LEFT guarding the gate, burning greatsword held across her body. In the RIGHT foreground, the player's gloved hand reaches toward her holding a small flame.",vd:"Hiện tại: Gwyndra Rỗng vẫn canh cổng đổ nát; bàn tay người chơi cầm đốm lửa.",
+   tx:[{k:"say",who:"gwyh",at:"top-left, directly beside Gwyndra's head",vi:"…Lùi lại. Nữ hoàng chưa cho phép.",en:"…Stand back. The queen has not given leave."},
+       {k:"cap",at:"top-right corner",vi:"Nàng vẫn canh. Chưa ai nói với nàng rằng nữ hoàng đã chết.",en:"She still stands guard. No one has told her the queen is dead."}]},
+ ]}]},
+{id:"e02",s:1,no:2,n:{vi:"Người Gác Cổng Bắc",en:"The Keeper of the North Gate"},kind:{vi:"Nàng từng là ai",en:"Who she was"},u:{seen:"gwyndra"},
+ sum:{vi:"Ba trăm năm canh một cánh cổng không còn ai cần vào.",en:"Three hundred years guarding a gate no one needs anymore."},
+ pages:[{rows:[19,17,15,19,30],cast:["gwyp","gwyh","kaede"],panels:[
+  {r:1,c:"full",shot:"WIDE SHOT",d:"The dark, empty north gate of Aldrenn just after the city went dark, first ash beginning to fall. Young GWYNDRA (armor still polished, sword not burning) stands alone in the CENTER, a small figure before the huge closed gate.",vd:"Năm đầu: Gwyndra (chưa Rỗng) một mình trước cổng bắc vừa tắt lửa.",
+   tx:[{k:"cap",at:"top-left corner",vi:"Năm đầu tiên, nàng đợi nữ hoàng trở về.",en:"The first year, she waited for the queen to return."}]},
+  {r:2,c:"full",shot:"MEDIUM-WIDE SHOT",d:"Decades later: a small group of ragged refugees with lanterns on the RIGHT approaches the gate. Hollow GWYNDRA (now with ash-dulled hair and glowing eyes) on the LEFT raises her burning greatsword horizontally to block them.",vd:"Đoàn người tị nạn cầm đèn tới cổng; Gwyndra giơ kiếm chặn.",
+   tx:[{k:"say",who:"gwyh",at:"top-left, beside Gwyndra's head",vi:"Lùi lại. Nữ hoàng chưa cho phép.",en:"Stand back. The queen has not given leave."}]},
+  {r:3,c:"full",shot:"MEDIUM SHOT",d:"The refugees walk away into the ash. An old woman (adult, hooded) bends to leave one small lit candle at the foot of the gate.",vd:"Họ bỏ đi; một bà lão để lại ngọn nến dưới chân cổng.",
+   tx:[{k:"cap",at:"top-right corner",vi:"Năm thứ năm mươi, không còn ai đến xin vào nữa.",en:"By the fiftieth year, no one came to ask anymore."}]},
+  {r:4,c:"left",shot:"CLOSE-UP",d:"Hollow GWYNDRA kneels and gently relights the small candle with the tip of her burning greatsword. Her face is soft.",vd:"Gwyndra quỳ xuống, dùng mũi kiếm lửa thắp lại ngọn nến.",
+   tx:[{k:"cap",at:"bottom-left corner",vi:"Nhưng ngọn nến ấy, nàng thắp lại mỗi đêm.",en:"But that candle — she relit it every night."}]},
+  {r:4,c:"right",shot:"MEDIUM SHOT",d:"KAEDE arrives on the road, standing on the RIGHT, one hand on her katana hilt with the red ribbon, looking determined.",vd:"Một nữ kiếm khách áo trắng lá phong xuất hiện, tay đặt trên chuôi kiếm.",
+   tx:[{k:"say",who:"kaede",at:"top-right, beside Kaede's head",vi:"Ta phải vào trong. Có người ta cần tìm.",en:"I must go in. There is someone I have to find."}]},
+  {r:5,c:"full",shot:"WIDE SHOT, low angle, moonlight through ash",d:"Hollow GWYNDRA on the LEFT and KAEDE on the RIGHT face each other in front of the gate, both swords drawn, embers swirling between them. Tense standoff, no blood.",vd:"Hai người đối mặt trước cổng, kiếm đã tuốt.",
+   tx:[{k:"say",who:"gwyh",at:"top-left, beside Gwyndra's head",vi:"Lùi lại.",en:"Stand back."},
+       {k:"cap",at:"bottom-right corner",vi:"Năm thứ hai trăm chín mươi mốt.",en:"The two hundred and ninety-first year."}]},
+ ]}]},
+{id:"e03",s:1,no:3,n:{vi:"Sói Mang Theo Một Cái Tên",en:"The Wolf Who Carried a Name"},kind:{vi:"Nguồn gốc: Brunhild",en:"Origin: Brunhild"},u:{met:"brun"},
+ sum:{vi:"Vì sao người cận vệ trung thành nhất lại là kẻ duy nhất bỏ chạy.",en:"Why the most loyal guard was the only one who ran."},
+ pages:[{rows:[18,18,16,16,32],cast:["queen","brun","dull","hollow"],panels:[
+  {r:1,c:"full",shot:"WIDE SHOT, inside the throne hall at night",d:"A row of female royal guards in black wolf armor stand around an empty throne; through the tall windows, the city lights are dying.",vd:"Đội Cận Vệ Sói đứng quanh ngai vàng; ngoài cửa sổ thành phố tắt dần.",
+   tx:[{k:"cap",at:"top-left corner",vi:"Đêm Tắt Lửa. Đội Cận Vệ Sói đứng quanh ngai vàng lần cuối.",en:"The Night of Ashes. The Wolf Guard stood around the throne one last time."}]},
+  {r:2,c:"left",shot:"MEDIUM SHOT",d:"QUEEN ALDRENN on the LEFT places a small sealed scroll into BRUNHILD's gauntleted hands; BRUNHILD stands on the RIGHT.",vd:"Nữ hoàng trao cho Brunhild một cuộn thư niêm phong.",
+   tx:[{k:"say",who:"queen",at:"top-left, beside the queen's head",vi:"Brunhild. Ngươi không ở lại.",en:"Brunhild. You will not stay."}]},
+  {r:2,c:"right",shot:"CLOSE-UP",d:"BRUNHILD's shocked face, red eyes wide, the scar across her nose clearly visible.",vd:"Cận mặt Brunhild sững sờ.",
+   tx:[{k:"say",who:"brun",at:"top-right, beside Brunhild's mouth",vi:"Thần là cận vệ của người. Thần chết ở đây.",en:"I am your guard. I die here."}]},
+  {r:3,c:"full",shot:"EXTREME CLOSE-UP",d:"QUEEN ALDRENN's lips and eyes, whispering, lit by orange firelight from below.",vd:"Nữ hoàng thì thầm.",
+   tx:[{k:"wh",who:"queen",at:"right side, beside the queen's mouth",vi:"Ai còn nhớ tên ta, ta chưa chết hẳn. Hãy nhớ hộ ta.",en:"While someone remembers my name, I am not wholly gone. Remember it for me."}]},
+  {r:4,c:"full",shot:"WIDE SHOT, dynamic diagonal",d:"BRUNHILD runs through dark streets clutching the scroll. Behind her, kneeling guards turn grey and hollow. High on the city wall in the far background, DULLAHAN on her black horse keeps her face turned away.",vd:"Brunhild chạy qua phố tối; sau lưng các chị em hoá Rỗng.",
+   tx:[{k:"cap",at:"top-right corner",vi:"Nàng chạy. Sau lưng, các chị em quay lại nhìn — rồi rỗng đi.",en:"She ran. Behind her, her sisters turned to look — and went hollow."}]},
+  {r:5,c:"full",shot:"MEDIUM-WIDE SHOT, present day, by a small bonfire in a ruined shrine",d:"BRUNHILD sits alone by the fire sharpening her black greatsword, her lips moving silently. Ash falls.",vd:"Hiện tại: Brunhild mài kiếm bên đống lửa, môi thì thầm một cái tên.",
+   tx:[{k:"wh",who:"brun",at:"top-left, beside Brunhild's mouth",vi:"…",en:"…"},
+       {k:"cap",at:"bottom-right corner",vi:"Ba trăm năm. Người ta gọi nàng là kẻ hèn. Nàng chưa từng cãi lại.",en:"Three hundred years. They call her a coward. She has never argued."}]},
+ ]}]},
+{id:"e04",s:1,no:4,n:{vi:"Kỵ Sĩ Không Nhìn Lại",en:"The Knight Who Never Looked Back"},kind:{vi:"Nàng từng là ai",en:"Who she was"},u:{seen:"dullahan"},
+ sum:{vi:"Đội trưởng Cận Vệ nhận lệnh cuối cùng: không được nhìn lại.",en:"The Guard Captain's last order: do not look back."},
+ pages:[{rows:[20,16,16,18,30],cast:["dull","dullh"],panels:[
+  {r:1,c:"full",shot:"WIDE SHOT, night",d:"DULLAHAN on a black warhorse leads a column of mounted female knights along the top of the city's huge outer wall; the glowing city is BELOW and BEHIND them, and they all face OUTWARD toward the dark plains.",vd:"Dullahan dẫn kỵ binh tuần trên tường thành ngoài, quay mặt ra đồng tối.",
+   tx:[{k:"cap",at:"top-left corner",vi:"Dullahan, đội trưởng Cận Vệ, nhận lệnh cuối: canh tường thành ngoài, mặt hướng ra đồng.",en:"Dullahan, Captain of the Guard, received her last order: hold the outer wall, facing the plains."}]},
+  {r:2,c:"full",shot:"MEDIUM SHOT from behind the riders",d:"Behind them, down inside the walls, the city lights die. The riders twist in their saddles to look back. DULLAHAN in front raises one arm without turning.",vd:"Phía sau, thành tắt lửa; các kỵ sĩ ngoái lại.",
+   tx:[{k:"say",who:"dull",at:"top-right, beside Dullahan's head",vi:"Không ai được nhìn lại.",en:"No one looks back."}]},
+  {r:3,c:"left",shot:"CLOSE-UP",d:"DULLAHAN's face, eyes shut tight, one tear.",vd:"Cận mặt Dullahan nhắm chặt mắt.",
+   tx:[{k:"cap",at:"bottom-left corner",vi:"Nhưng nàng biết vì sao mình bị gửi đi.",en:"But she knew why she had been sent away."}]},
+  {r:3,c:"right",shot:"MEDIUM SHOT",d:"DULLAHAN kneels alone on the wall walkway beside a glowing crack in the stones (a vein of fire), her sword across her knees.",vd:"Nàng quỳ bên khe đất phát sáng của Mạch Lửa.",
+   tx:[{k:"say",who:"dull",at:"top-right, beside Dullahan's head",vi:"Đã không được nhìn… thì ta không cần đôi mắt nữa.",en:"If I may not look… then I have no need of eyes."}]},
+  {r:4,c:"full",shot:"WIDE SHOT",d:"A burst of pale blue ghost-flame swallows DULLAHAN's kneeling silhouette. No blood, no wound visible — only blue fire and flying embers.",vd:"Lửa ma xanh nuốt lấy bóng nàng.",
+   tx:[{k:"cap",at:"top-right corner",vi:"Nàng giữ lời thề bằng cách duy nhất mình biết.",en:"She kept her oath the only way she knew."}]},
+  {r:5,c:"full",shot:"WIDE SHOT, present day, ash plains",d:"Headless DULLAHAN rides along the top of the RUINED outer wall of Aldrenn, carrying her own head under her arm; the head's eyes are closed and turned OUTWARD, away from the dead city below.",vd:"Hiện tại: Dullahan không đầu vẫn tuần trên tường thành đổ, đôi mắt nhắm quay ra ngoài.",
+   tx:[{k:"cap",at:"top-left corner",vi:"Đến giờ, nàng vẫn tuần trên tường ấy — đôi mắt nhắm chặt, không bao giờ nhìn vào thành.",en:"She still rides that wall — eyes shut tight, never once looking at the city."}]},
+ ]}]},
+{id:"e05",s:1,no:5,n:{vi:"Người Giữ Tên",en:"The Keeper of Names"},kind:{vi:"Nàng từng là ai",en:"Who she was"},u:{seen:"morrigan"},
+ sum:{vi:"Ở Tháp Quạ, không ai chết hẳn — chỉ bị quên.",en:"In the Crow Tower, no one truly dies — they are only forgotten."},
+ pages:[{rows:[20,17,15,20,28],cast:["morr","hollow"],panels:[
+  {r:1,c:"full",shot:"WIDE SHOT, low angle",d:"A ruined black tower under a full moon, hundreds of crows circling it.",vd:"Tháp Quạ dưới trăng tròn.",
+   tx:[{k:"cap",at:"top-left corner",vi:"Ở Tháp Quạ, không ai chết hẳn — chỉ bị quên.",en:"In the Crow Tower, no one truly dies — they are only forgotten."}]},
+  {r:2,c:"left",shot:"MEDIUM SHOT",d:"MORRIGAN on a broken balcony on the LEFT, a crow perched on her finger; the crow holds a thin glowing golden thread in its beak.",vd:"Morrigan với con quạ ngậm sợi chỉ sáng.",
+   tx:[{k:"say",who:"morr",at:"top-left, beside Morrigan's head",vi:"Tên ngươi là gì, hở người lính?",en:"What was your name, soldier?"}]},
+  {r:2,c:"right",shot:"MEDIUM SHOT",d:"A HOLLOW SOLDIER woman stands with an empty face while a crow gently pulls a faint golden light out of her chest.",vd:"Con quạ rút ánh sáng mờ khỏi ngực một binh Rỗng.",
+   tx:[{k:"cap",at:"bottom-right corner",vi:"Khi người Rỗng quên tên mình, quạ mang cái tên ấy về.",en:"When a Hollow forgets her name, the crows carry it home."}]},
+  {r:3,c:"full",shot:"WIDE SHOT, interior",d:"Inside the tower: tall walls covered with thousands of tiny hanging golden threads, each glowing softly like a library of light. MORRIGAN walks among them with a candle.",vd:"Bên trong tháp: hàng ngàn sợi chỉ vàng treo kín tường.",
+   tx:[{k:"say",who:"morr",at:"top-right, beside Morrigan's head",vi:"Mỗi sợi là một người. Ta giữ, để thế giới còn nợ họ.",en:"Each thread is a person. I keep them, so the world still owes them."}]},
+  {r:4,c:"full",shot:"CLOSE-UP",d:"At the center of the wall, one ornate golden hook hangs EMPTY. MORRIGAN's pale hand touches it.",vd:"Một móc vàng ở giữa tường trống trơn.",
+   tx:[{k:"say",who:"morr",at:"top-left, inside the panel near the top",vi:"Chỉ thiếu một cái tên. Tên của nữ hoàng.",en:"Only one name is missing. The queen's."}]},
+  {r:5,c:"full",shot:"WIDE SHOT from behind MORRIGAN",d:"MORRIGAN on the tower top looks at a tiny warm glow on the far horizon (a distant bonfire); crows fly off toward it.",vd:"Morrigan nhìn về đốm lửa xa; bầy quạ bay đi.",
+   tx:[{k:"say",who:"morr",at:"top-left, beside Morrigan's head",vi:"Có ai đó vẫn đang giữ nó… Ta sẽ tìm ra.",en:"Someone is still keeping it… I will find them."}]},
+ ]}]},
+{id:"e06",s:1,no:6,n:{vi:"Thanh Kiếm Không Rút",en:"The Sword Left Sheathed"},kind:{vi:"Nguồn gốc: Tsubaki",en:"Origin: Tsubaki"},u:{met:"tsub",seen:"gwyndra"},
+ sum:{vi:"Tsubaki vượt Biển Tro để chém kẻ đã giết sư tỷ.",en:"Tsubaki crosses the Ash Sea to avenge her sword-sister."},
+ pages:[{rows:[16,14,18,16,14,22],cast:["tsub","kaede","gwyh"],panels:[
+  {r:1,c:"full",shot:"WIDE SHOT",d:"A small wooden boat on a grey sea of ash under a dead sky; TSUBAKI stands at the prow, red scarf blowing.",vd:"Tsubaki đứng mũi thuyền trên Biển Tro.",
+   tx:[{k:"cap",at:"top-left corner",vi:"Tsubaki vượt Biển Tro với một lời thề: chém kẻ đã giết sư tỷ.",en:"Tsubaki crossed the Ash Sea with one vow: cut down the one who killed her sword-sister."}]},
+  {r:2,c:"full",shot:"MEDIUM SHOT, flashback, soft warm light, falling cherry petals",d:"KAEDE on the LEFT smiles at TSUBAKI on the RIGHT under a blossoming tree. Muted, faded colors to show it is a memory.",vd:"Hồi tưởng: Kaede mỉm cười với Tsubaki dưới tán anh đào.",
+   tx:[{k:"say",who:"kaede",at:"top-left, beside Kaede's head",vi:"Kiếm để bảo vệ, Tsubaki. Không phải để thắng.",en:"A sword is for protecting, Tsubaki. Not for winning."}]},
+  {r:3,c:"full",shot:"WIDE SHOT, present day",d:"TSUBAKI on the RIGHT arrives at the ruined north gate, gripping her katana. Hollow GWYNDRA stands on the LEFT before the gate.",vd:"Tsubaki tới cổng bắc, đối mặt Gwyndra.",
+   tx:[{k:"say",who:"tsub",at:"top-right, beside Tsubaki's head",vi:"Ngươi là kẻ gác cổng.",en:"You are the gatekeeper."},
+       {k:"say",who:"gwyh",at:"top-left, beside Gwyndra's head",vi:"Lùi lại. Nữ hoàng chưa cho phép.",en:"Stand back. The queen has not given leave."}]},
+  {r:4,c:"left",shot:"EXTREME CLOSE-UP",d:"TSUBAKI's red eyes widen as she notices something.",vd:"Mắt Tsubaki mở to.",tx:[]},
+  {r:4,c:"right",shot:"CLOSE-UP",d:"Beside the gate: a small grave of stacked stones; a katana with a white hilt is planted in it, a RED ribbon fluttering; a freshly lit candle burns at its foot.",vd:"Ngôi mộ đá nhỏ, cắm thanh kiếm buộc ruy băng đỏ, nến mới thắp.",tx:[]},
+  {r:5,c:"full",shot:"CLOSE-UP",d:"Hollow GWYNDRA looks down at the grave; her glowing eyes are sad.",vd:"Gwyndra nhìn ngôi mộ.",
+   tx:[{k:"say",who:"gwyh",at:"top-right, beside Gwyndra's head",vi:"Nàng ấy muốn vào. Ta bảo lùi lại. Nàng ấy không lùi.",en:"She wanted in. I told her to stand back. She did not."}]},
+  {r:6,c:"full",shot:"WIDE SHOT",d:"TSUBAKI turns away from the gate, her hand slowly leaving the katana hilt, a tear on her cheek. Ash falls softly between her and GWYNDRA.",vd:"Tsubaki quay đi, tay rời chuôi kiếm, rơi nước mắt.",
+   tx:[{k:"cap",at:"bottom-left corner",vi:"Kẻ giết sư tỷ vẫn thắp nến cho sư tỷ mỗi đêm. Tsubaki không rút kiếm.",en:"The one who killed her sword-sister still lit a candle for her every night. Tsubaki did not draw."}]},
+ ]}]},
+];
+// tập sắp tới (đã có dàn ý trong Kinh Thư — hiện "sắp ra mắt")
+const SOON=[
+ {no:7,n:{vi:"Bánh Mì Dưới Cống",en:"Bread Beneath the Sewers"}},{no:8,n:{vi:"Chiếc Khăn Của Kẻ Đi Đầu",en:"The First One's Scarf"}},
+ {no:9,n:{vi:"Chuông Câm",en:"The Silent Bell"}},{no:10,n:{vi:"“Đừng tin cổng bắc”",en:"“Don't trust the north gate”"}},
+ {no:11,n:{vi:"Ba Trăm Năm",en:"Three Hundred Years"}},{no:12,n:{vi:"Chiếc Nhẫn Cánh Đêm",en:"The Ring of Night Wings"}},
+];
+window.COMIC={CAST,EPS,SEASONS,SOON,STYLE};
+
+// ---------------- PROMPT ----------------
+const ROWW={full:"full width",left:"left half",right:"right half"};
+function comicPrompt(ep,pi){const pg=ep.pages[pi];const P=pg.panels;const lang="en";
+  const rows=pg.rows.map((h,i)=>{const ps=P.map((p,j)=>[p,j]).filter(([p])=>p.r===i+1);
+    return `Row ${i+1} (about ${h}% of the page height): `+ps.map(([p,j])=>`Panel ${j+1} = ${ROWW[p.c]}`).join(", ")+".";}).join("\n");
+  const castIds=pg.cast||[...new Set(P.flatMap(p=>(p.tx||[]).map(t=>t.who).filter(Boolean)))];
+  const cast=castIds.map(k=>"- "+CAST[k].d).join("\n");
+  const kindTxt={cap:"Narration caption",say:"Speech balloon",wh:"Whisper balloon (dashed outline)"};
+  const whoN=k=>k&&CAST[k]?CAST[k].d.split(" — ")[0].split(",")[0]:"";
+  const panels=P.map((p,j)=>{const tx=(p.tx||[]);
+    return `PANEL ${j+1} — ${p.shot}.\n${p.d}\n`+(tx.length?tx.map(t=>`TEXT: ${kindTxt[t.k]}${t.who?` from ${whoN(t.who)}`:""}, placed ${t.at}: "${t[lang]||t.vi}"`).join("\n"):"TEXT: none in this panel.");}).join("\n\n");
+  const refTxt=`CHARACTER CONSISTENCY — very important:
+- Every character below has a FIXED design used on every page of this comic. Draw her exactly as written: same face shape, eye color, hair color, hair length and style, outfit, colors and scar side. Never redesign, age, or restyle her.
+- If earlier pages of this comic were made in this conversation, keep every character identical to how she looked there.`;
+  return `Create ONE vertical comic page in manga layout. Size 1024x1536 (2:3 portrait). Read left-to-right, top-to-bottom.
+Episode: "${ep.n.en}"${ep.pages.length>1?` — page ${pi+1}/${ep.pages.length}`:""}.
+
+EXACT LAYOUT — exactly ${P.length} panels separated by thin black gutters, no panel outside this grid:
+${rows}
+
+${refTxt}
+
+${STYLE}
+
+${LETTER}
+
+CAST — draw ONLY these characters. CONSISTENCY RULE: each character must have the same face, hair, outfit and colors in every panel where she appears.
+${cast}
+
+PANELS:
+${panels}
+
+${DONT}`;}
+window.comicPrompt=comicPrompt;
+
+// ---------------- Ô ẢNH TRONG XƯỞNG ----------------
+const G=T("Truyện tranh","Comics");
+function slotId(ep,pi){return "comic_"+ep.id+"_p"+(pi+1);}
+const CSLOTS=[];
+for(const ep of EPS)ep.pages.forEach((pg,pi)=>{const s={id:slotId(ep,pi),g:G,n:`${T("Tập","Ep.")} ${ep.no} · ${L(ep.n)}${ep.pages.length>1?` · ${T("trang","page")} ${pi+1}`:""}`,
+  get pos(){return comicPrompt(ep,pi);},neg:"",rec:1,opt:true,nsfw:false,big:false,gpt:1,comic:1,
+  note:T("Tạo bằng ChatGPT: chỉ cần dán prompt. Nên tạo các trang trong CÙNG một cuộc trò chuyện ChatGPT để nhân vật giữ nguyên. Ảnh DỌC 1024×1536. Chữ trên tranh là tiếng Anh — soát chính tả trước khi lưu; game tự hiện phụ đề tiếng Việt.","Make it in ChatGPT: just paste the prompt. Make pages in the SAME ChatGPT conversation to keep characters consistent. PORTRAIT 1024×1536. Proofread the English lettering before saving."),
+  desc:L(ep.sum)};CSLOTS.push(s);});
+safe(()=>{SLOTS.push(...CSLOTS);for(const s of CSLOTS)SLOT_BY_ID[s.id]=s;});
+if(typeof slotSize==="function"){const _sz=slotSize;slotSize=function(s){if(s&&s.comic)return "1024×1536";return _sz.apply(this,arguments);};}
+// ô truyện: chỉ dùng ảnh mới nhất (vẽ lại trang = thay trang)
+function pageImgId(ep,pi){const ids=safe(()=>DB.ids(slotId(ep,pi)))||[];return ids.length?ids[ids.length-1]:null;}
+
+// ---------------- MỞ KHOÁ ----------------
+function cx(){return (M&&M.cx)||{en:{}};}
+function seen(id){const e=cx().en||{};return e[id]!==undefined;}
+function killed(id){const e=cx().en||{};return (e[id]||0)>=1;}
+function cond(u){if(!u||u.start)return true;
+  if(u.seen&&!seen(u.seen))return false;if(u.kill&&!killed(u.kill))return false;if(u.met&&!(M.heroes&&M.heroes[u.met]&&M.heroes[u.met].met))return false;
+  if(u.act&&!((cx().act||0)>=u.act))return false;if(u.wins&&!((M.wins||0)>=u.wins))return false;if(u.runs&&!((M.runs||0)>=u.runs))return false;return true;}
+const ENN=id=>{const e=typeof ENEMIES!=="undefined"&&ENEMIES[id];return e?String(e.n).split(" — ")[0]:id;};
+const HN=id=>{const h=typeof HEROES!=="undefined"&&HEROES[id];return h?h.n:id;};
+function condTxt(u){const a=[];if(!u)return "";if(u.seen)a.push(T("Gặp ","Meet ")+ENN(u.seen));if(u.kill)a.push(T("Hạ ","Defeat ")+ENN(u.kill));if(u.met)a.push(T("Gặp ","Meet ")+HN(u.met));
+  if(u.act)a.push(T("Tới Màn ","Reach Act ")+u.act);if(u.wins)a.push(T("Thắng ","Win ")+u.wins+T(" lần"," time(s)"));if(u.runs)a.push(T("Đi ","Complete ")+u.runs+T(" hành trình"," journeys"));return a.join(" · ");}
+// ---- tiến độ đọc: lưu RIÊNG, không nằm trong tiến trình game → "Xóa toàn bộ tiến trình" không ảnh hưởng ----
+const CK="cinderveil_comic";let CS=null;
+function cs(){if(CS)return CS;try{CS=JSON.parse(localStorage.getItem(CK)||"null");}catch(e){}CS=CS||{};CS.read=CS.read||{};CS.unl=CS.unl||{};return CS;}
+function csSave(){try{localStorage.setItem(CK,JSON.stringify(cs()));}catch(e){}}
+function isUnl(ep){const c=cs();if(c.unl[ep.id])return true;if(cond(ep.u)){c.unl[ep.id]=Date.now();csSave();return true;}return false;} // đã mở thì mở mãi
+function pagesRead(ep){return cs().read[ep.id]||[];}
+function markPage(ep,pi){const c=cs();const a=c.read[ep.id]||(c.read[ep.id]=[]);if(!a.includes(pi)){a.push(pi);csSave();}}
+function epState(ep){const n=pagesRead(ep).length;return n>=ep.pages.length?"done":n>0||(cs().pos&&cs().pos[ep.id])?"part":"new";}
+function setLast(ep,pi,k){const c=cs();c.last={e:ep.id,p:pi,k:k||0,t:Date.now()};c.pos=c.pos||{};c.pos[ep.id]={p:pi,k:k||0};csSave();}
+function unreadCount(){return EPS.filter(e=>isUnl(e)&&epState(e)==="new").length;}
+
+// ---------------- DÒ KHUNG TRUYỆN (theo rãnh đen giữa các khung) ----------------
+const PCACHE=new Map();
+async function detectPanels(url,pg){const ck=url+(pg?"|"+pg.rows.length:"");if(PCACHE.has(ck))return PCACHE.get(ck);let out=null;
+  try{const im=new Image();im.src=url;await im.decode();const W=512,H=Math.round(im.naturalHeight*W/im.naturalWidth);const c=document.createElement("canvas");c.width=W;c.height=H;
+    const g=c.getContext("2d",{willReadFrequently:true});g.drawImage(im,0,0,W,H);const d=g.getImageData(0,0,W,H).data;
+    const dk=new Uint8Array(W*H);for(let i=0,j=0;j<W*H;i+=4,j++)dk[j]=(d[i]*.3+d[i+1]*.59+d[i+2]*.11)<45?1:0;
+    // rãnh ngang: hàng gần như đen hết; rãnh dọc: cột đen suốt chiều cao hàng khung (≥97%) — tránh nhầm mảng tối trong tranh
+    const runs=(n,isG,minLen)=>{const out=[];let s=null;for(let i=0;i<n;i++){const gg=isG(i);if(!gg&&s===null)s=i;if(gg&&s!==null){if(i-s>minLen)out.push([s,i]);s=null;}}if(s!==null&&n-s>minLen)out.push([s,n]);return out;};
+    const bands=runs(H,y=>{let n=0;for(let x=3;x<W-3;x++)n+=dk[y*W+x];return n/(W-6)>.9;},H*.04);
+    const colFr=(x,a0,a1)=>{let n=0;for(let y=a0;y<a1;y++)n+=dk[y*W+x];return n/(a1-a0);};
+    // có kịch bản và số hàng khớp → chia khung đúng theo kịch bản (chính xác nhất)
+    if(pg&&bands.length===pg.rows.length){const PP=[];bands.forEach(([y0,y1],ri)=>{const inRow=pg.panels.filter(p=>p.r===ri+1);const a0=y0+2,a1=Math.max(a0+1,y1-2);
+        if(inRow.length===2){let best=W/2,bv=-1;for(let x=Math.round(W*.25);x<W*.75;x++){const v=colFr(x,a0,a1)-Math.abs(x-W/2)/W*.3;if(v>bv){bv=v;best=x;}}
+          let g0=best,g1=best+1;while(g0>0&&colFr(g0-1,a0,a1)>.9)g0--;while(g1<W&&colFr(g1,a0,a1)>.9)g1++;
+          PP.push({x:0,y:y0/H,w:g0/W,h:(y1-y0)/H},{x:g1/W,y:y0/H,w:(W-g1)/W,h:(y1-y0)/H});}
+        else PP.push({x:0,y:y0/H,w:1,h:(y1-y0)/H});});
+      if(PP.length===pg.panels.length){PCACHE.set(ck,PP);return PP;}}
+    const P=[];for(const [y0,y1] of bands){const a0=y0+2,a1=Math.max(a0+1,y1-2);
+      // rãnh dọc thật: cột đen ≥97% suốt chiều cao hàng, vệt mảnh (≤2.5% bề ngang), không sát mép — khung cửa/bóng tối trong tranh thường dày hơn
+      const isD=x=>{let n=0;for(let y=a0;y<a1;y++)n+=dk[y*W+x];return n/(a1-a0)>.97;};const cuts=[];let gs=null;
+      for(let x=0;x<=W;x++){const dd=x<W&&isD(x);if(dd&&gs===null)gs=x;if(!dd&&gs!==null){const w=x-gs,mid=(gs+x)/2;if(w<=W*.025&&mid>W*.08&&mid<W*.92)cuts.push([gs,x]);gs=null;}}
+      const cols=[];let cx0=0;for(const [g0,g1] of cuts){if(g0-cx0>W*.12)cols.push([cx0,g0]);cx0=g1;}if(cols.length&&W-cx0>W*.12)cols.push([cx0,W]);
+      for(const [x0,x1] of (cols.length?cols:[[0,W]]))P.push({x:x0/W,y:y0/H,w:(x1-x0)/W,h:(y1-y0)/H});}
+    if(P.length>=2&&P.length<=12)out=P;}catch(e){}
+  PCACHE.set(ck,out);return out;}
+window.cvDetectPanels=detectPanels;
+
+// ---------------- GIAO DIỆN (kiểu app đọc truyện) ----------------
+const css=document.createElement("style");css.textContent=`
+#cmx{position:fixed;inset:0;z-index:9500;background:#060508;color:#ece2d0;opacity:0;transition:opacity .25s;overflow:hidden}
+#cmx.on{opacity:1}
+#cmx .cx-scroll{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(env(safe-area-inset-bottom) + 24px)}
+/* thanh trên kiểu app: trong suốt, mờ nền */
+.cx-bar{position:absolute;left:0;right:0;z-index:5;display:flex;align-items:center;gap:8px;padding:8px 12px;background:linear-gradient(180deg,rgba(8,6,8,.92),rgba(8,6,8,.72));backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:transform .28s cubic-bezier(.2,.8,.25,1),opacity .28s}
+.cx-bar.top{top:0;padding-top:calc(env(safe-area-inset-top) + 8px);border-bottom:1px solid rgba(201,164,106,.18)}
+.cx-bar.bot{bottom:0;padding-bottom:calc(env(safe-area-inset-bottom) + 10px);border-top:1px solid rgba(201,164,106,.18);flex-direction:column;align-items:stretch;gap:8px;background:linear-gradient(0deg,rgba(8,6,8,.95),rgba(8,6,8,.75))}
+#cmx.hide .cx-bar.top{transform:translateY(-110%);opacity:0}#cmx.hide .cx-bar.bot{transform:translateY(110%);opacity:0}
+.cx-bar h3{flex:1;min-width:0;margin:0;font:700 17px/1.15 var(--fd,serif);color:#ecd09a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cx-bar h3 small{display:block;font:700 9.5px/1.4 var(--fb,sans-serif);letter-spacing:.2em;color:#a8957a;text-transform:uppercase}
+.cx-i{flex:none;width:38px;height:38px;border-radius:50%;border:1px solid rgba(201,164,106,.35);background:rgba(24,17,14,.7);color:#ecd09a;font-size:16px;display:grid;place-items:center;padding:0}
+.cx-i:active{transform:scale(.92)}
+.cx-row{display:flex;align-items:center;gap:8px}
+.cx-chip{height:32px;padding:0 12px;border-radius:16px;border:1px solid rgba(201,164,106,.35);background:rgba(24,17,14,.7);color:#e8d3ac;font:600 12px var(--fb,sans-serif)}
+.cx-chip.on{background:linear-gradient(180deg,#e8893b,#a8481a);color:#fff3e0;border-color:#ffb267}
+.cx-prog{position:relative;height:4px;border-radius:2px;background:rgba(255,255,255,.1);overflow:hidden;flex:1}
+.cx-prog i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#c9a46a,#ff9a50);border-radius:2px;transition:width .3s}
+.cx-pl{font:600 11px var(--fb,sans-serif);color:#b8ab98;letter-spacing:.06em;min-width:74px;text-align:right}
+.cx-thin{position:absolute;left:0;top:0;height:2px;z-index:6;background:linear-gradient(90deg,#c9a46a,#ff9a50);box-shadow:0 0 8px rgba(255,140,60,.7);transition:width .3s;padding-top:0;margin-top:env(safe-area-inset-top)}
+/* ---- thư viện ---- */
+.cx-hero{position:relative;height:min(62vh,520px);overflow:hidden}
+.cx-hero .cv{position:absolute;inset:0;background:#120c0c center 18%/cover no-repeat;transform:scale(1.04)}
+.cx-hero .cv.ph{background:radial-gradient(120% 70% at 50% 25%,#5a2a10,#140c0c 60%,#060508)}
+.cx-hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,5,8,.55) 0,transparent 22%,transparent 40%,rgba(6,5,8,.85) 72%,#060508 100%)}
+.cx-hero .in{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:0 18px 16px}
+.cx-hero .eyb{font:800 10px/1 var(--fb,sans-serif);letter-spacing:.28em;color:#ff9a50;text-transform:uppercase}
+.cx-hero h2{margin:6px 0 4px;font:700 30px/1.05 var(--fd,serif);color:#fff1d8;text-shadow:0 2px 12px rgba(0,0,0,.8)}
+.cx-hero p{margin:0 0 12px;font-size:13.5px;line-height:1.45;color:#d9c8a8;max-width:520px}
+.cx-cta{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:52px;border:none;border-radius:14px;font:800 15px var(--fb,sans-serif);letter-spacing:.06em;color:#2a0c02;
+ background:linear-gradient(180deg,#ffc27e,#e8893b 55%,#b4521a);box-shadow:0 0 0 1px rgba(255,210,150,.6) inset,0 8px 24px rgba(232,137,59,.45)}
+.cx-cta small{font-weight:600;opacity:.75;letter-spacing:0}
+.cx-cta:active{transform:scale(.98)}
+.cx-tabs{display:flex;gap:18px;padding:14px 18px 6px;border-bottom:1px solid rgba(201,164,106,.15);position:sticky;top:0;z-index:3;background:rgba(6,5,8,.94);backdrop-filter:blur(8px)}
+.cx-tabs b{font:700 15px var(--fd,serif);color:#ecd09a;padding-bottom:8px;border-bottom:2px solid #e8893b}
+.cx-tabs span{font-size:12px;color:#8f826f;align-self:center;margin-left:auto}
+.cx-sea{padding:14px 18px 4px;font:800 10px/1 var(--fb,sans-serif);letter-spacing:.24em;color:#a8957a;text-transform:uppercase}
+.cx-li{display:flex;gap:12px;width:100%;padding:10px 18px;background:none;border:none;color:inherit;text-align:left;align-items:center;position:relative}
+.cx-li:active{background:rgba(201,164,106,.06)}
+.cx-li+.cx-li::before{content:"";position:absolute;left:96px;right:18px;top:0;height:1px;background:rgba(201,164,106,.1)}
+.cx-th{flex:none;width:66px;height:92px;border-radius:9px;overflow:hidden;position:relative;background:radial-gradient(120% 80% at 50% 25%,#3a1c0c,#0b0809 70%);border:1px solid rgba(201,164,106,.3)}
+.cx-th img{width:100%;height:100%;object-fit:cover;object-position:top}
+.cx-th .no{position:absolute;left:0;right:0;bottom:0;padding:10px 0 3px;text-align:center;font:800 11px var(--fb,sans-serif);color:#fff1d8;background:linear-gradient(transparent,rgba(0,0,0,.85))}
+.cx-li .tx{flex:1;min-width:0}
+.cx-li .t1{font:700 16.5px/1.2 var(--fd,serif);color:#f3e3c4}
+.cx-li .t2{font-size:11.5px;color:#9f9280;margin-top:3px}
+.cx-li .t3{display:flex;align-items:center;gap:8px;margin-top:7px}
+.cx-tag{font:800 9.5px/1 var(--fb,sans-serif);letter-spacing:.08em;padding:4px 7px;border-radius:7px}
+.cx-tag.new{background:#e8893b;color:#2a0c02}.cx-tag.rd{background:rgba(201,164,106,.18);color:#ecd09a;border:1px solid rgba(201,164,106,.45)}
+.cx-tag.ok{color:#9fd59a;border:1px solid rgba(159,213,154,.4)}.cx-tag.noart{color:#a8957a;border:1px dashed rgba(201,164,106,.35)}
+.cx-li .bar{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.08);overflow:hidden}.cx-li .bar i{display:block;height:100%;background:#c9a46a}
+.cx-li.lock{opacity:.55}.cx-li.lock .t1{color:#9a8f80;letter-spacing:.2em}.cx-li .lk{font-size:11px;color:#e8c99a;margin-top:6px}
+.cx-li.soon{opacity:.35}
+.cx-li .go{flex:none;color:#c9a46a;font-size:18px}
+/* ---- trình đọc ---- */
+.cx-stage{position:absolute;inset:0;overflow:hidden;touch-action:pan-y}
+.cx-page{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-top:calc(env(safe-area-inset-top) + 58px);padding-bottom:calc(env(safe-area-inset-bottom) + 120px)}
+.cx-page img{display:block;width:100%;height:auto;transition:transform .25s;transform-origin:var(--zx,50%) var(--zy,50%)}
+.cx-page.zoom img{transform:scale(2)}
+.cx-pan{position:absolute;inset:0}
+.cx-pan .fr{position:absolute;overflow:hidden;border-radius:4px;box-shadow:0 0 0 1px rgba(201,164,106,.28),0 18px 50px rgba(0,0,0,.9);transition:all .45s cubic-bezier(.2,.8,.25,1)}
+.cx-pan .fr img{position:absolute;max-width:none;transition:all .45s cubic-bezier(.2,.8,.25,1)}
+.cx-pan .glow{position:absolute;inset:0;pointer-events:none;background:radial-gradient(60% 45% at 50% 50%,rgba(232,137,59,.08),transparent 70%)}
+.cx-sub{position:absolute;left:14px;right:14px;z-index:4;padding:10px 14px;border-radius:12px;background:rgba(10,7,6,.9);border:1px solid rgba(201,164,106,.35);font-size:14px;line-height:1.5;color:#f1e3c8;pointer-events:none;transition:bottom .28s,opacity .2s}
+.cx-sub i{color:#e8c99a}.cx-sub b{color:#ffb267}
+.cx-dots{display:flex;gap:4px;flex:1}.cx-dots i{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.12);transition:background .2s}.cx-dots i.on{background:linear-gradient(90deg,#c9a46a,#ff9a50)}
+.cx-end{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;background:radial-gradient(80% 60% at 50% 40%,rgba(90,40,14,.45),transparent 70%),#060508}
+.cx-end .e1{font:800 10px/1 var(--fb,sans-serif);letter-spacing:.3em;color:#ff9a50}
+.cx-end h2{font:700 30px/1.1 var(--fd,serif);color:#fff1d8;margin:10px 0 6px}
+.cx-end .orn{color:#c9a46a;margin:6px 0 18px;letter-spacing:.4em}
+.cx-end .nx{width:min(340px,92%);border:1px solid rgba(201,164,106,.35);border-radius:14px;padding:14px;background:rgba(20,14,12,.7);margin-bottom:14px}
+.cx-end .nx .k{font:800 9.5px/1 var(--fb,sans-serif);letter-spacing:.2em;color:#a8957a}
+.cx-end .nx .t{font:700 19px/1.2 var(--fd,serif);color:#f3e3c4;margin:6px 0 4px}.cx-end .nx .s{font-size:12.5px;color:#b8ab98}
+.cx-end .row2{display:flex;gap:10px;width:min(340px,92%)}.cx-end .row2 button{flex:1}
+/* kịch bản khi chưa có tranh */
+.cx-script{padding:calc(env(safe-area-inset-top) + 66px) 14px calc(env(safe-area-inset-bottom) + 130px)}
+.cx-script .note{font-size:12.5px;color:#b8ab98;padding:11px 13px;border:1px dashed rgba(201,164,106,.4);border-radius:12px;margin-bottom:12px;line-height:1.55}
+.cx-script .pn{margin:0 0 12px;padding:12px 14px;border-radius:12px;background:linear-gradient(180deg,rgba(30,22,18,.9),rgba(16,12,12,.9));border-left:3px solid #c9a46a}
+.cx-script .pn .h{font:800 10px/1 var(--fb,sans-serif);letter-spacing:.2em;color:#e8893b;margin-bottom:7px}
+.cx-script .pn .vd{font-style:italic;color:#b8ab98;font-size:13px;margin-bottom:6px}
+.cx-script .pn .c{font-family:var(--fd,serif);font-style:italic;color:#e8d3ac;font-size:16px;line-height:1.4;margin:4px 0}
+.cx-script .pn .s{font-size:14.5px;line-height:1.45;margin:4px 0}.cx-script .pn .s b{color:#ffb267}
+.cx-acts{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 14px}.cx-acts .btn{flex:1;min-width:140px}
+.cx-tip{font-size:12px;line-height:1.55;color:#cdbf9f;background:rgba(232,137,59,.08);border:1px solid rgba(232,137,59,.3);border-radius:12px;padding:10px 12px;margin-bottom:12px}
+.cx-tip b{color:#ffb267}
+/* nút Truyện nổi bật ở sảnh */
+.cxhub{position:absolute;z-index:6;left:14px;top:calc(var(--sat,0px) + 96px);display:flex;align-items:center;gap:10px;padding:8px 14px 8px 8px;border-radius:30px;border:1px solid rgba(255,190,120,.6);
+ background:linear-gradient(100deg,rgba(60,22,8,.92),rgba(24,12,10,.88));box-shadow:0 0 0 1px rgba(0,0,0,.5),0 0 22px rgba(232,137,59,.45),inset 0 1px 0 rgba(255,220,170,.25);color:#fff1d8;animation:cxhIn .6s cubic-bezier(.2,1.3,.4,1) both}
+@keyframes cxhIn{from{opacity:0;transform:translateX(-30px)}}
+.cxhub .bk{position:relative;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 50% 40%,#ffcf8a,#e8893b 55%,#7a2a08);box-shadow:0 0 14px rgba(255,150,60,.8)}
+.cxhub .bk svg{width:22px;height:22px;stroke:#2a0c02;fill:none;stroke-width:1.8}
+.cxhub .bk::after{content:"";position:absolute;inset:-5px;border-radius:50%;border:1px solid rgba(255,190,120,.6);animation:cxhRing 2.4s ease-out infinite}
+@keyframes cxhRing{from{transform:scale(.85);opacity:1}to{transform:scale(1.35);opacity:0}}
+.cxhub .tt{display:flex;flex-direction:column;line-height:1.1;text-align:left}
+.cxhub .tt b{font:700 17px var(--fd,serif);letter-spacing:.06em;color:#ffe2bd}
+.cxhub .tt small{font:700 9.5px var(--fb,sans-serif);letter-spacing:.14em;color:#ffb267;text-transform:uppercase;margin-top:3px;max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cxhub .n{position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:#e8893b;color:#2a0c02;font:800 11px/20px var(--fb,sans-serif);text-align:center;box-shadow:0 0 10px rgba(255,140,60,.9)}
+.cxhub:active{transform:scale(.96)}
+.cxhub.img{padding:0;border:none;background:none;box-shadow:none;width:168px;height:70px}
+.cxhub.img .im{position:absolute;inset:0;background:var(--cxhi) center/contain no-repeat;filter:drop-shadow(0 0 12px rgba(232,137,59,.5))}
+.cxhub.img .tt{position:absolute;left:34%;top:50%;transform:translateY(-50%)}
+.cxhub.img .bk{display:none}
+`;document.head.appendChild(css);
+
+const BOOK='<svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 016.5 3H20v15H6.5A2.5 2.5 0 004 20.5z"/><path d="M4 20.5A2.5 2.5 0 016.5 18H20v3H6.5"/><path d="M9 7.5h7M9 10.5h5"/></svg>';
+let V=null; // trạng thái trình đọc
+function closeCmx(){const o=q("#cmx");if(o){o.classList.remove("on");setTimeout(()=>o.remove(),250);}V=null;safe(()=>{if(q("#hub.on"))hubBtn();});}
+function root(){let o=q("#cmx");if(!o){o=document.createElement("div");o.id="cmx";document.body.appendChild(o);requestAnimationFrame(()=>o.classList.add("on"));}o.className="on";o.innerHTML="";return o;}
+async function urlOf(id){return id?await IMG.url(id):null;}
+function epProg(ep){return pagesRead(ep).length/ep.pages.length;}
+function heroEp(){const c=cs();const last=c.last&&EPS.find(e=>e.id===c.last.e);if(last&&isUnl(last)&&epState(last)!=="done")return {ep:last,resume:1};
+  const nw=EPS.find(e=>isUnl(e)&&epState(e)!=="done");if(nw)return {ep:nw,resume:epState(nw)==="part"};const all=EPS.filter(isUnl);return {ep:all[all.length-1]||EPS[0],resume:0,again:1};}
+function openAt(ep){const ps=epState(ep)==="part"&&cs().pos&&cs().pos[ep.id];openEp(ep,ps?ps.p:0,ps?ps.k:0);}
+
+// --- thư viện ---
+async function showComics(){const o=root();const H=heroEp();const ep=H.ep;
+  const sc=document.createElement("div");sc.className="cx-scroll";o.appendChild(sc);
+  const nU=EPS.filter(isUnl).length;
+  let h=`<div class="cx-hero"><div class="cv ph" id="cxcv"></div><div class="in"><div class="eyb">${T("Biên Niên Màn Tro","Chronicles of the Ash Veil")} · ${T("Tập","Ep.")} ${ep.no}</div>
+    <h2>${escH(L(ep.n))}</h2><p>${escH(L(ep.sum))}</p>
+    <button class="cx-cta" id="cxgo">${H.resume?`▶ ${T("Đọc tiếp","Continue")} <small>· ${T("trang","page")} ${(cs().pos&&cs().pos[ep.id]?cs().pos[ep.id].p:0)+1}/${ep.pages.length}</small>`:H.again?`↺ ${T("Đọc lại","Read again")}`:`▶ ${T("Đọc ngay","Start reading")}`}</button></div></div>
+    <div class="cx-tabs"><b>${T("Danh sách tập","Episodes")}</b><span>${nU}/${EPS.length+SOON.length} ${T("đã mở","unlocked")}</span></div>`;
+  for(const S of SEASONS){h+=`<div class="cx-sea">${escH(L(S.n))}</div>`;
+    for(const e of EPS.filter(x=>x.s===S.id)){const ok=isUnl(e),st=ok?epState(e):"",art=!!pageImgId(e,0);
+      h+=`<button class="cx-li ${ok?"":"lock"}" data-e="${e.id}"><div class="cx-th">${ok&&art?`<img data-cov="${e.id}" alt="">`:""}<div class="no">${e.no}</div></div>
+        <div class="tx"><div class="t1">${escH(ok?L(e.n):"? ? ? ?")}</div><div class="t2">${escH(L(e.kind))} · ${e.pages.length} ${T("trang","page(s)")}</div>
+        ${ok?`<div class="t3">${st==="new"?`<span class="cx-tag new">${T("MỚI","NEW")}</span>`:st==="done"?`<span class="cx-tag ok">✓ ${T("ĐÃ ĐỌC","READ")}</span>`:`<span class="cx-tag rd">${T("ĐANG ĐỌC","READING")}</span>`}
+          ${art?"":`<span class="cx-tag noart">${T("CHƯA CÓ TRANH","NO ART YET")}</span>`}${st==="part"?`<span class="bar"><i style="width:${Math.max(8,epProg(e)*100)}%"></i></span>`:""}</div>`
+          :`<div class="lk">🔒 ${escH(condTxt(e.u))}</div>`}</div><span class="go">›</span></button>`;}
+    for(const s2 of SOON)h+=`<div class="cx-li soon"><div class="cx-th"><div class="no">${s2.no}</div></div><div class="tx"><div class="t1">${escH(L(s2.n))}</div><div class="t2">${T("Sắp ra mắt","Coming soon")}</div></div></div>`;}
+  h+=`<div class="cx-sea" style="text-align:center;padding:22px 18px">${T("Tranh truyện vẽ bằng ChatGPT · Xưởng Ảnh → Truyện tranh","Comic art is made with ChatGPT · Studio → Comics")}</div>`;
+  sc.innerHTML=h;
+  const top=document.createElement("div");top.className="cx-bar top";top.style.background="linear-gradient(180deg,rgba(6,5,8,.75),transparent)";top.style.borderBottom="none";top.style.backdropFilter="none";
+  top.innerHTML=`<button class="cx-i" data-k="x">✕</button><h3>${T("Truyện","Comics")}<small>Cinderveil</small></h3>`;o.appendChild(top);
+  top.querySelector('[data-k="x"]').onclick=closeCmx;
+  sc.querySelector("#cxgo").onclick=()=>H.again?openEp(ep,0):openAt(ep);
+  sc.querySelectorAll("[data-e]").forEach(b=>b.onclick=()=>{const e=EPS.find(x=>x.id===b.dataset.e);if(!isUnl(e)){safe(()=>toast(T("Chưa mở: ","Locked: ")+condTxt(e.u),2200));return;}openAt(e);});
+  const cid=pageImgId(ep,0);if(cid){const u=await safe(()=>IMG.url(cid));const cv=sc.querySelector("#cxcv");if(u&&cv){cv.classList.remove("ph");cv.style.backgroundImage=`url(${u})`;}}
+  for(const e of EPS){if(!isUnl(e))continue;const id=pageImgId(e,0);const im=sc.querySelector(`[data-cov="${e.id}"]`);if(!id||!im)continue;const u=await safe(()=>IMG.url(id,true));if(u)im.src=u;}}
+window.showComics=showComics;window.cvComicUnread=()=>safe(unreadCount)||0;
+
+// --- trình đọc ---
+async function openEp(ep,pi,k0){const c=cs();
+  V={ep,pi,mode:c.mode||"panel",k:0,panels:null,url:null,sub:VI&&c.sub!==false,end:false};setLast(ep,pi,0);
+  const o=root();const stage=document.createElement("div");stage.className="cx-stage";o.appendChild(stage);
+  const thin=document.createElement("div");thin.className="cx-thin";o.appendChild(thin);
+  const top=document.createElement("div");top.className="cx-bar top";
+  top.innerHTML=`<button class="cx-i" data-k="back">‹</button><h3>${escH(L(ep.n))}<small>${T("Tập","Ep.")} ${ep.no} · ${escH(L(ep.kind))}</small></h3><button class="cx-i" data-k="x">✕</button>`;o.appendChild(top);
+  const bot=document.createElement("div");bot.className="cx-bar bot";o.appendChild(bot);
+  top.querySelector('[data-k="back"]').onclick=()=>showComics();top.querySelector('[data-k="x"]').onclick=closeCmx;
+  const id=pageImgId(ep,pi);V.url=await urlOf(id);
+  if(!V.url){markPage(ep,pi);renderScript(stage,bot);return;}
+  V.panels=V.mode==="panel"?await detectPanels(V.url,ep.pages[pi]):null;if(V.mode==="panel"&&!V.panels)V.mode="page";
+  if(V.panels&&k0)V.k=Math.min(k0,V.panels.length-1);if(V.mode==="page")markPage(ep,pi);
+  renderPage(stage,bot);}
+function toggleChrome(force){const o=q("#cmx");if(!o)return;o.classList.toggle("hide",force!==undefined?force:!o.classList.contains("hide"));placeSub();}
+function botBar(bot){const ep=V.ep;const hasArt=!!V.url;
+  const prog=V.mode==="panel"&&V.panels?`<div class="cx-dots">${V.panels.map((_,i)=>`<i class="${i<=V.k?"on":""}"></i>`).join("")}</div>`:`<div class="cx-prog"><i style="width:${(V.pi+1)/ep.pages.length*100}%"></i></div>`;
+  bot.innerHTML=`<div class="cx-row">${prog}<span class="cx-pl"></span></div>
+   <div class="cx-row"><button class="cx-i" data-k="prev">‹</button>
+    ${hasArt?`<button class="cx-chip ${V.mode==="panel"?"on":""}" data-k="mp">${T("Từng khung","Panels")}</button><button class="cx-chip ${V.mode==="page"?"on":""}" data-k="mg">${T("Cả trang","Page")}</button>${VI?`<button class="cx-chip ${V.sub?"on":""}" data-k="sub">${T("Phụ đề","Subs")}</button>`:""}`:`<span style="flex:1"></span>`}
+    <span style="flex:1"></span><button class="cx-i" data-k="next">›</button></div>`;
+  bot.querySelector('[data-k="prev"]').onclick=e=>{e.stopPropagation();step(-1);};bot.querySelector('[data-k="next"]').onclick=e=>{e.stopPropagation();step(1);};
+  const stage=q("#cmx .cx-stage");
+  const setMode=async m=>{if(V.mode===m)return;V.mode=m;cs().mode=m;csSave();if(m==="panel"){V.panels=await detectPanels(V.url,V.ep.pages[V.pi]);if(!V.panels){V.mode="page";safe(()=>toast(T("Không tự chia được khung ở trang này","Couldn't split this page into panels"),2000));}}else markPage(V.ep,V.pi);V.k=0;renderPage(stage,bot);};
+  const mp=bot.querySelector('[data-k="mp"]');if(mp)mp.onclick=()=>setMode("panel");const mg=bot.querySelector('[data-k="mg"]');if(mg)mg.onclick=()=>setMode("page");
+  const sb=bot.querySelector('[data-k="sub"]');if(sb)sb.onclick=()=>{V.sub=!V.sub;cs().sub=V.sub;csSave();renderPage(stage,bot);};
+  pgLabel();}
+function pgLabel(){const el=q("#cmx .cx-pl");if(!el||!V)return;const ep=V.ep;
+  el.textContent=V.mode==="panel"&&V.panels?`${V.k+1}/${V.panels.length} · ${T("tr.","p.")}${V.pi+1}/${ep.pages.length}`:`${T("Trang","Page")} ${V.pi+1}/${ep.pages.length}`;
+  const th=q("#cmx .cx-thin");if(th){const per=1/ep.pages.length;const inP=V.mode==="panel"&&V.panels?(V.k+1)/V.panels.length:1;th.style.width=((V.pi*per+inP*per)*100)+"%";}
+  q("#cmx .cx-dots")&&q("#cmx .cx-dots").querySelectorAll("i").forEach((d,i)=>d.classList.toggle("on",i<=V.k));}
+function renderPage(stage,bot){botBar(bot);stage.innerHTML="";
+  if(V.mode==="page"){const p=document.createElement("div");p.className="cx-page";p.innerHTML=`<img src="${V.url}" alt="">`;stage.appendChild(p);
+    if(V.sub){const s=document.createElement("div");s.className="cx-script";s.style.padding="14px";s.innerHTML=scriptHTML(V.ep.pages[V.pi],"vi");p.appendChild(s);}
+    // chạm 1 lần: ẩn/hiện thanh; chạm đúp: phóng to chỗ chạm
+    let lt=0;p.onclick=ev=>{const now=Date.now();if(now-lt<280){const im=p.querySelector("img"),r=im.getBoundingClientRect();im.style.setProperty("--zx",((ev.clientX-r.left)/r.width*100)+"%");im.style.setProperty("--zy",((ev.clientY-r.top)/r.height*100)+"%");p.classList.toggle("zoom");lt=0;return;}lt=now;setTimeout(()=>{if(lt===now)toggleChrome();},290);};
+    p.addEventListener("scroll",()=>{if(p.scrollTop+p.clientHeight>=p.scrollHeight-40)markPage(V.ep,V.pi);},{passive:true});}
+  else{const p=document.createElement("div");p.className="cx-pan";p.innerHTML=`<div class="glow"></div><div class="fr"><img src="${V.url}" alt=""></div>`;stage.appendChild(p);
+    const sub=document.createElement("div");sub.className="cx-sub";sub.style.opacity="0";stage.appendChild(sub);
+    p.onclick=ev=>{const r=p.getBoundingClientRect();const x=(ev.clientX-r.left)/r.width;if(x<.28)step(-1);else if(x>.72)step(1);else toggleChrome();};swipe(p);placePanel(true);}
+  pgLabel();}
+function swipe(el){let x0=0,y0=0;el.addEventListener("touchstart",e=>{x0=e.touches[0].clientX;y0=e.touches[0].clientY;},{passive:true});
+  el.addEventListener("touchend",e=>{const t=e.changedTouches[0];const dx=t.clientX-x0,dy=t.clientY-y0;if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)*1.3){e.preventDefault();step(dx<0?1:-1);}},{passive:false});}
+function chromeH(){const o=q("#cmx");const hid=o&&o.classList.contains("hide");const t=q("#cmx .cx-bar.top"),b=q("#cmx .cx-bar.bot");return {t:hid||!t?0:t.offsetHeight,b:hid||!b?0:b.offsetHeight};}
+function placeSub(){const sub=q("#cmx .cx-sub");if(!sub)return;sub.style.bottom=(chromeH().b+12)+"px";}
+function placePanel(first){const p=q("#cmx .cx-pan");if(!p||!V||!V.panels)return;const fr=p.querySelector(".fr"),im=fr.querySelector("img");const P=V.panels[V.k];
+  const ar=im.naturalWidth?im.naturalWidth/im.naturalHeight:2/3;const VW=p.clientWidth,VH=p.clientHeight;
+  const sub=q("#cmx .cx-sub");const pn=V.ep.pages[V.pi].panels[V.k];const tx=V.sub&&pn&&V.panels.length===V.ep.pages[V.pi].panels.length?(pn.tx||[]):[];
+  if(sub){sub.innerHTML=tx.map(t=>t.k==="cap"?`<i>${escH(t.vi)}</i>`:`<b>${escH(CAST[t.who]?CAST[t.who].n:"")}:</b> ${escH(t.vi)}`).join("<br>");sub.style.opacity=tx.length?"1":"0";placeSub();}
+  const ch=chromeH();const subH=tx.length&&sub?sub.offsetHeight+16:0;const top=Math.max(ch.t,40)+10,bottom=ch.b+subH+10;const AH=VH-top-bottom;
+  // khung phóng vừa khít vùng đọc, giữ đúng tỉ lệ
+  const pw=P.w*ar,ph=P.h;const s=Math.min((VW-16)/pw,AH/ph);const fw=pw*s,fh=ph*s;
+  Object.assign(fr.style,{width:fw+"px",height:fh+"px",left:(VW-fw)/2+"px",top:(top+(AH-fh)/2)+"px"});
+  Object.assign(im.style,{width:ar*s+"px",height:s+"px",left:(-P.x*ar*s)+"px",top:(-P.y*s)+"px"});
+  if(!im.naturalWidth&&first)im.onload=()=>placePanel(false);
+  setLast(V.ep,V.pi,V.k);if(V.k>=V.panels.length-1)markPage(V.ep,V.pi);pgLabel();}
+async function step(d){if(!V)return;const ep=V.ep;
+  if(V.end){if(d<0){V.end=false;return openEp(ep,ep.pages.length-1,99);}return;}
+  if(V.mode==="panel"&&V.panels){const k=V.k+d;if(k>=0&&k<V.panels.length){V.k=k;placePanel(false);safe(()=>{SFX.play("ui");haptic(5);});return;}}
+  const pi=V.pi+d;if(pi>=0&&pi<ep.pages.length){safe(()=>SFX.play("draw"));return openEp(ep,pi,d<0?99:0);}
+  if(d>0){markPage(ep,V.pi);return endCard();}}
+function endCard(){const ep=V.ep;V.end=true;const stage=q("#cmx .cx-stage");const i=EPS.indexOf(ep);const nx=EPS[i+1]||null;const sn=!nx&&SOON[0];
+  const ok=nx&&isUnl(nx);toggleChrome(false);
+  stage.innerHTML=`<div class="cx-end"><div class="e1">${T("HẾT TẬP","END OF EPISODE")} ${ep.no}</div><h2>${escH(L(ep.n))}</h2><div class="orn">✦ ✦ ✦</div>
+    ${nx?`<div class="nx"><div class="k">${T("TẬP TIẾP THEO","NEXT EPISODE")} · ${nx.no}</div><div class="t">${escH(ok?L(nx.n):"? ? ? ?")}</div><div class="s">${ok?escH(L(nx.sum)):"🔒 "+escH(condTxt(nx.u))}</div></div>`
+      :sn?`<div class="nx"><div class="k">${T("SẮP RA MẮT","COMING SOON")} · ${sn.no}</div><div class="t">${escH(L(sn.n))}</div></div>`:""}
+    <div class="row2"><button class="btn" data-k="lib">${T("Danh sách","Episodes")}</button>${ok?`<button class="btn main" data-k="nx">${T("Đọc tiếp","Next")} ›</button>`:""}</div></div>`;
+  stage.querySelector('[data-k="lib"]').onclick=()=>showComics();const b=stage.querySelector('[data-k="nx"]');if(b)b.onclick=()=>openEp(nx,0);
+  const bot=q("#cmx .cx-bar.bot");if(bot)bot.style.display="none";safe(()=>{SFX.play("buff",.8);});}
+function scriptHTML(pg,lang){return pg.panels.map((p,j)=>`<div class="pn"><div class="h">${T("KHUNG","PANEL")} ${j+1}</div><div class="vd">${escH(lang==="en"?p.d:p.vd)}</div>
+  ${(p.tx||[]).map(t=>t.k==="cap"?`<div class="c">${escH(t[lang]||t.vi)}</div>`:`<div class="s"><b>${escH(CAST[t.who]?CAST[t.who].n:"")}${t.k==="wh"?T(" (thì thầm)"," (whispers)"):""}:</b> ${escH(t[lang]||t.vi)}</div>`).join("")}</div>`).join("");}
+function renderScript(stage,bot){const ep=V.ep,pi=V.pi;V.mode="script";botBar(bot);
+  stage.innerHTML=`<div class="cx-page" style="padding:0"><div class="cx-script">
+   <div class="note">${T("Trang này chưa có tranh — đây là bản kịch bản. Bấm <b>Sao chép prompt</b>, dán vào ChatGPT (nên dùng cùng một cuộc trò chuyện cho mọi trang), rồi <b>Thêm tranh</b>.","This page has no art yet — here is the script. Tap <b>Copy prompt</b>, paste it into ChatGPT, then <b>Add art</b>.")}</div>
+   <div class="cx-acts"><button class="btn" data-k="cp">📋 ${T("Sao chép prompt","Copy prompt")}</button><button class="btn" data-k="add">＋ ${T("Thêm tranh","Add art")}</button></div>
+   ${scriptHTML(ep.pages[pi],VI?"vi":"en")}</div></div>`;
+  stage.querySelector('[data-k="cp"]').onclick=()=>copyTxt(comicPrompt(ep,pi));
+  stage.querySelector('[data-k="add"]').onclick=()=>addArt(ep,pi);
+  pgLabel();}
+async function copyTxt(t){try{await navigator.clipboard.writeText(t);toast(T("Đã sao chép prompt","Prompt copied"),1600);}catch(e){
+  const a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();try{document.execCommand("copy");toast(T("Đã sao chép prompt","Prompt copied"),1600);}catch(x){}a.remove();}}
+function addArt(ep,pi){pickFiles(false,async fs=>{try{await importFiles(slotId(ep,pi),fs,(a,t)=>toast(T("Đang xử lý…","Processing…"),3000));toast(T("Đã thêm tranh","Art added"),1600);openEp(ep,pi);}catch(e){toast(""+e);}});}
+addEventListener("resize",()=>{if(V&&V.mode==="panel")setTimeout(()=>placePanel(false),80);});
+
+// --- nút Truyện nổi bật ở sảnh (có ô ảnh ChatGPT tuỳ chọn: ui_comic_btn) ---
+safe(()=>{if(typeof UI_SLOTS==="undefined"||SLOT_BY_ID.ui_comic_btn)return;const b0=UI_SLOTS[0];
+  const s={id:"ui_comic_btn",g:b0.g,n:T("Nút Truyện ở sảnh","Lobby Comics button"),pos:(typeof uiPrompt==="function"?uiPrompt("[F] a horizontal ornate plaque button, about 2.4:1, shaped like an old leather-bound book lying sideways with gold corner guards, a glowing ember-orange bookmark ribbon and a small ember-orange flame emblem on the LEFT third; the RIGHT two-thirds is a smooth dark-brown leather area left EMPTY so the game can print text on it; soft warm rim light; transparent background"):""),
+   neg:b0.neg,rec:1,opt:true,nsfw:false,big:false,ui:1,note:b0.note,desc:T("Nút «Truyện» ở sảnh (góc trên bên trái). Ảnh ngang ~2.4:1, nền trong suốt, 2/3 bên phải để trống vì game in chữ lên.","The «Comics» button in the lobby. Landscape ~2.4:1, transparent background, keep the right two-thirds empty for text.")};
+  UI_SLOTS.push(s);SLOTS.push(s);SLOT_BY_ID[s.id]=s;});
+function hubBtn(){const hub=q("#hub");if(!hub||!hub.classList.contains("on"))return;let b=hub.querySelector(".cxhub");const lob=hub.querySelector(".lobby")||hub;
+  if(!b){b=document.createElement("button");b.className="cxhub";lob.appendChild(b);b.onclick=()=>{safe(()=>{SFX.play("ui");haptic(8);});showComics();};}
+  const n=safe(unreadCount)||0;const H=safe(heroEp);const img=typeof UIA!=="undefined"&&UIA.ui_comic_btn;
+  b.classList.toggle("img",!!img);if(img)b.style.setProperty("--cxhi",`url(${img})`);
+  const sub=n?T(`${n} tập mới`,`${n} new`):H&&H.resume?T("Đọc tiếp · Tập ","Continue · Ep. ")+H.ep.no:T("Biên Niên Màn Tro","Ash Veil Chronicles");
+  b.innerHTML=`${img?'<i class="im"></i>':""}<span class="bk">${BOOK}</span><span class="tt"><b>${T("TRUYỆN","COMICS")}</b><small>${escH(sub)}</small></span>${n?`<span class="n">${n}</span>`:""}`;}
+if(typeof showHub==="function"){const _sh=showHub;showHub=async function(){const r=await _sh.apply(this,arguments);safe(hubBtn);setTimeout(()=>safe(hubBtn),300);return r;};}
+
+// ---------------- SẢNH ----------------
+safe(()=>{if(typeof LOBBY_MENU!=="undefined"&&!LOBBY_MENU.some(m=>m[0]==="comic")){const i=LOBBY_MENU.findIndex(m=>m[0]==="codex");LOBBY_MENU.splice(i>=0?i+1:2,0,["comic","book",T("Truyện","Comics"),()=>showComics()]);}});
+if(typeof lobbyBadge==="function"){const _lb=lobbyBadge;lobbyBadge=function(k){if(k==="comic"){const n=safe(unreadCount)||0;return n?`<b class="lbg hot">${n}</b>`:"";}return _lb.apply(this,arguments);};}
+// ô truyện trong Xưởng: nút "Đọc" để xem ngay
+if(typeof promptView==="function"){const _pv=promptView;promptView=function(id){const r=_pv.apply(this,arguments);safe(()=>{const s=SLOT_BY_ID[id];if(!s||!s.comic)return;const b=q("#mbody");if(!b||b.querySelector(".cx-tip"))return;
+  b.insertAdjacentHTML("afterbegin",`<div class="cx-tip">${T("Chỉ cần <b>dán nguyên prompt</b> vào ChatGPT. Mẹo: tạo các trang trong <b>cùng một cuộc trò chuyện</b> để nhân vật giữ nguyên mặt và trang phục. Chữ sai thì bảo: “fix the spelling in the speech balloons, keep everything else the same”.","Just <b>paste the whole prompt</b> into ChatGPT. Tip: make pages in the <b>same conversation</b> so characters stay consistent.")}</div>`);});return r;};}
+})();
+</script></body></html>
