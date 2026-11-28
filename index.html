@@ -9341,6 +9341,15 @@ document.addEventListener("click",ev=>{const x=ev.target&&ev.target.closest&&ev.
   document.addEventListener("click",ev=>{if(ev.target&&ev.target.closest&&ev.target.closest("#vn .vch button"))document.querySelectorAll(".advcamp").forEach(p=>p.remove());},true);
   {const _sh=show;show=function(){document.querySelectorAll(".advcamp").forEach(p=>p.remove());return _sh.apply(this,arguments);};}})();
 
+// ===================== 5.29l — CUT-IN DÙNG ẢNH CỦA CHÍNH LÁ BÀI =====================
+// Trước: cut-in lấy ảnh cut-in → ảnh sảnh → CHÂN DUNG (ảnh dọc đứng yên, bị cắt thành 1 dải, không thể hiện chiêu).
+// Giờ: ưu tiên ảnh minh hoạ của lá bài vừa đánh (ảnh ngang, đúng cảnh nàng ra chiêu đó) → ảnh cut-in → ảnh sảnh → chân dung.
+// Bố cục ảnh ngang đã có sẵn (is-land: dải rộng, hiện trọn ảnh).
+let _ciCard=null;
+{const _ao=artOf;artOf=function(list,fb){try{if(_ciCard&&Array.isArray(list)&&/_cutin$/.test(list[0]||"")){const id=_ciCard;_ciCard=null;if(DB.ids("card_"+id).length)return _ao.call(this,["card_"+id].concat(list),fb);}}catch(e){}return _ao.apply(this,arguments);};}
+{const _ci=cutIn;cutIn=function(hid,title){try{const c=C&&C.hand&&C.hand.find(x=>{const d=cdef(x).d;return d&&d.hero===hid&&d.n===title;});_ciCard=c?c.id:null;}catch(e){_ciCard=null;}
+  try{return _ci.apply(this,arguments);}finally{_ciCard=null;}};}
+
 // ===================== 5.21 — XƯỞNG ẢNH: NHÃN CÔNG CỤ (WAI / ChatGPT) + KÍCH THƯỚC =====================
 function slotTool(s){return (s.gpt||s.ui)?"gpt":"wai";}
 function slotSize(s){if(slotTool(s)==="gpt")return s.gpt||s.land?"1536×1024":(/_anvil|banner|top_bar|hand_tray|hp_|textbox|nameplate|btn/.test(s.id)?"1536×1024":"1024×1024");return s.land?"1216×832":"832×1216";}
@@ -17336,6 +17345,15 @@ document.addEventListener("click",ev=>{const x=ev.target&&ev.target.closest&&ev.
   const ob=new MutationObserver(clean);const go=()=>{const v=$("#vn");if(v)ob.observe(v,{attributes:true,attributeFilter:["class"],childList:true,subtree:true});};if(document.readyState==="loading")addEventListener("DOMContentLoaded",go);else go();
   document.addEventListener("click",ev=>{if(ev.target&&ev.target.closest&&ev.target.closest("#vn .vch button"))document.querySelectorAll(".advcamp").forEach(p=>p.remove());},true);
   {const _sh=show;show=function(){document.querySelectorAll(".advcamp").forEach(p=>p.remove());return _sh.apply(this,arguments);};}})();
+
+// ===================== 5.29l — CUT-IN DÙNG ẢNH CỦA CHÍNH LÁ BÀI =====================
+// Trước: cut-in lấy ảnh cut-in → ảnh sảnh → CHÂN DUNG (ảnh dọc đứng yên, bị cắt thành 1 dải, không thể hiện chiêu).
+// Giờ: ưu tiên ảnh minh hoạ của lá bài vừa đánh (ảnh ngang, đúng cảnh nàng ra chiêu đó) → ảnh cut-in → ảnh sảnh → chân dung.
+// Bố cục ảnh ngang đã có sẵn (is-land: dải rộng, hiện trọn ảnh).
+let _ciCard=null;
+{const _ao=artOf;artOf=function(list,fb){try{if(_ciCard&&Array.isArray(list)&&/_cutin$/.test(list[0]||"")){const id=_ciCard;_ciCard=null;if(DB.ids("card_"+id).length)return _ao.call(this,["card_"+id].concat(list),fb);}}catch(e){}return _ao.apply(this,arguments);};}
+{const _ci=cutIn;cutIn=function(hid,title){try{const c=C&&C.hand&&C.hand.find(x=>{const d=cdef(x).d;return d&&d.hero===hid&&d.n===title;});_ciCard=c?c.id:null;}catch(e){_ciCard=null;}
+  try{return _ci.apply(this,arguments);}finally{_ciCard=null;}};}
 
 // ===================== 5.21 — XƯỞNG ẢNH: NHÃN CÔNG CỤ (WAI / ChatGPT) + KÍCH THƯỚC =====================
 function slotTool(s){return (s.gpt||s.ui)?"gpt":"wai";}
