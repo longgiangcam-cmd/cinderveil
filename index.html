@@ -8911,13 +8911,18 @@ async function enPhase2(e,fx){e._p2=1;const im=enImgEl(e);if(!im)return;if(!im.d
 {const _hE2=hitEnemy;hitEnemy=function(e,n){const r=_hE2.apply(this,arguments);try{if(e&&e.hp>0&&!e._p2&&p2Due(e))enPhase2(e,true);}catch(x){}return r;};}
 {const _rc2=renderCombat;renderCombat=function(){const r=_rc2.apply(this,arguments);try{if(C&&C.en)setTimeout(()=>{try{C&&C.en&&C.en.forEach(e=>{if(e.hp<=0)return;if(e._p2||p2Due(e))enPhase2(e,false);});}catch(x){}},420);}catch(x){}return r;};}
 
-const DFKEEP=1000;
-(function(){const st=document.createElement("style");st.textContent=`.en.dead.dfx{opacity:1!important;filter:none!important;transform:none!important;transition:none}`;document.head.appendChild(st);})();
+const DFKEEP=1900;
+(function(){const st=document.createElement("style");st.textContent=`.en.dead.dfx{opacity:1!important;filter:none!important;transform:none!important}.en.dead.dfx img,.en.dead.dfx .ef{opacity:1!important;filter:none!important}`;document.head.appendChild(st);})();
 {const _hE3=hitEnemy;hitEnemy=function(e,n){const h0=e?e.hp:0;const r=_hE3.apply(this,arguments);try{if(e&&h0>0&&e.hp<=0&&DB.ids("en_"+e.id+"_hurt").length){e._dead=1;
     e._dT=performance.now()+DFKEEP;const im=enImgEl(e);const el=im&&im.closest(".en");
-    hurtUrl(e).then(u=>{try{if(u&&im)im.src=u;if(el){el.classList.add("dfx");try{el.animate([{filter:"brightness(1.8)"},{filter:"brightness(1)"}],{duration:300});}catch(x){}
-      setTimeout(()=>{try{el.classList.remove("dfx");}catch(x){}},DFKEEP);}}catch(x){}});}}catch(x){}return r;};}
-{const _rc3=renderCombat;renderCombat=function(){const r=_rc3.apply(this,arguments);try{if(C&&C.en)for(const e of C.en){if(e._dead&&e._dT&&performance.now()<e._dT){const el=$(`#combat .en[data-u="${e.u}"]`);if(el)el.classList.add("dfx");}}}catch(x){}return r;};}
+    // hiệu ứng hạ gục cũ làm ảnh mờ/tối ngay → hủy để ảnh Bị hạ hiện rõ, cuối cùng mới mờ đi
+    const unfade=()=>{try{const E=$(`#combat .en[data-u="${e.u}"]`)||el;if(!E)return;E.querySelectorAll("img,.ef").forEach(x=>x.getAnimations().forEach(a=>{if(!a._dfx)a.cancel();}));}catch(x){}};
+    [0,30,120,300,600].forEach(t=>setTimeout(unfade,t));
+    e._dfxEnd=performance.now()+DFKEEP-600;hurtUrl(e).then(u=>{try{e._dfxU=u;const E=$(`#combat .en[data-u="${e.u}"]`)||el;const I=E&&E.querySelector("img")||im;if(u&&I)I.src=u;if(E){E.classList.add("dfx");unfade();try{const a=E.animate([{filter:"brightness(1.8)"},{filter:"brightness(1)"}],{duration:300});a._dfx=1;}catch(x){}
+      setTimeout(()=>{try{const E2=$(`#combat .en[data-u="${e.u}"]`);if(E2)E2.classList.remove("dfx");}catch(x){}},Math.max(0,e._dfxEnd-performance.now()));}}catch(x){}});}}catch(x){}return r;};}
+function dfxKeep(){try{if(C&&C.en)for(const e of C.en){if(e._dead&&e._dfxEnd&&performance.now()<e._dfxEnd){const el=$(`#combat .en[data-u="${e.u}"]`);if(!el)continue;el.classList.add("dfx");
+    const im=el.querySelector("img");if(im&&e._dfxU&&im.src!==e._dfxU)im.src=e._dfxU;}}}catch(x){}}
+{const _rc3=renderCombat;renderCombat=function(){const r=_rc3.apply(this,arguments);dfxKeep();setTimeout(dfxKeep,0);setTimeout(dfxKeep,80);return r;};}
 
 // trùm: cho ảnh "bị hạ" hiện đủ ~1 giây rồi mới sang màn HẠ GỤC
 {const _vic3=victory;victory=async function(){try{if(C&&C.en&&SLEEP_MUL){const t=Math.max(0,...C.en.filter(e=>e._dead&&e._dT).map(e=>e._dT-performance.now()));if(t>0)await new Promise(r=>setTimeout(r,Math.min(t,DFKEEP)));}}catch(e){}return _vic3.apply(this,arguments);};}
@@ -16522,13 +16527,18 @@ async function enPhase2(e,fx){e._p2=1;const im=enImgEl(e);if(!im)return;if(!im.d
 {const _hE2=hitEnemy;hitEnemy=function(e,n){const r=_hE2.apply(this,arguments);try{if(e&&e.hp>0&&!e._p2&&p2Due(e))enPhase2(e,true);}catch(x){}return r;};}
 {const _rc2=renderCombat;renderCombat=function(){const r=_rc2.apply(this,arguments);try{if(C&&C.en)setTimeout(()=>{try{C&&C.en&&C.en.forEach(e=>{if(e.hp<=0)return;if(e._p2||p2Due(e))enPhase2(e,false);});}catch(x){}},420);}catch(x){}return r;};}
 
-const DFKEEP=1000;
-(function(){const st=document.createElement("style");st.textContent=`.en.dead.dfx{opacity:1!important;filter:none!important;transform:none!important;transition:none}`;document.head.appendChild(st);})();
+const DFKEEP=1900;
+(function(){const st=document.createElement("style");st.textContent=`.en.dead.dfx{opacity:1!important;filter:none!important;transform:none!important}.en.dead.dfx img,.en.dead.dfx .ef{opacity:1!important;filter:none!important}`;document.head.appendChild(st);})();
 {const _hE3=hitEnemy;hitEnemy=function(e,n){const h0=e?e.hp:0;const r=_hE3.apply(this,arguments);try{if(e&&h0>0&&e.hp<=0&&DB.ids("en_"+e.id+"_hurt").length){e._dead=1;
     e._dT=performance.now()+DFKEEP;const im=enImgEl(e);const el=im&&im.closest(".en");
-    hurtUrl(e).then(u=>{try{if(u&&im)im.src=u;if(el){el.classList.add("dfx");try{el.animate([{filter:"brightness(1.8)"},{filter:"brightness(1)"}],{duration:300});}catch(x){}
-      setTimeout(()=>{try{el.classList.remove("dfx");}catch(x){}},DFKEEP);}}catch(x){}});}}catch(x){}return r;};}
-{const _rc3=renderCombat;renderCombat=function(){const r=_rc3.apply(this,arguments);try{if(C&&C.en)for(const e of C.en){if(e._dead&&e._dT&&performance.now()<e._dT){const el=$(`#combat .en[data-u="${e.u}"]`);if(el)el.classList.add("dfx");}}}catch(x){}return r;};}
+    // hiệu ứng hạ gục cũ làm ảnh mờ/tối ngay → hủy để ảnh Bị hạ hiện rõ, cuối cùng mới mờ đi
+    const unfade=()=>{try{const E=$(`#combat .en[data-u="${e.u}"]`)||el;if(!E)return;E.querySelectorAll("img,.ef").forEach(x=>x.getAnimations().forEach(a=>{if(!a._dfx)a.cancel();}));}catch(x){}};
+    [0,30,120,300,600].forEach(t=>setTimeout(unfade,t));
+    e._dfxEnd=performance.now()+DFKEEP-600;hurtUrl(e).then(u=>{try{e._dfxU=u;const E=$(`#combat .en[data-u="${e.u}"]`)||el;const I=E&&E.querySelector("img")||im;if(u&&I)I.src=u;if(E){E.classList.add("dfx");unfade();try{const a=E.animate([{filter:"brightness(1.8)"},{filter:"brightness(1)"}],{duration:300});a._dfx=1;}catch(x){}
+      setTimeout(()=>{try{const E2=$(`#combat .en[data-u="${e.u}"]`);if(E2)E2.classList.remove("dfx");}catch(x){}},Math.max(0,e._dfxEnd-performance.now()));}}catch(x){}});}}catch(x){}return r;};}
+function dfxKeep(){try{if(C&&C.en)for(const e of C.en){if(e._dead&&e._dfxEnd&&performance.now()<e._dfxEnd){const el=$(`#combat .en[data-u="${e.u}"]`);if(!el)continue;el.classList.add("dfx");
+    const im=el.querySelector("img");if(im&&e._dfxU&&im.src!==e._dfxU)im.src=e._dfxU;}}}catch(x){}}
+{const _rc3=renderCombat;renderCombat=function(){const r=_rc3.apply(this,arguments);dfxKeep();setTimeout(dfxKeep,0);setTimeout(dfxKeep,80);return r;};}
 
 // trùm: cho ảnh "bị hạ" hiện đủ ~1 giây rồi mới sang màn HẠ GỤC
 {const _vic3=victory;victory=async function(){try{if(C&&C.en&&SLEEP_MUL){const t=Math.max(0,...C.en.filter(e=>e._dead&&e._dT).map(e=>e._dT-performance.now()));if(t>0)await new Promise(r=>setTimeout(r,Math.min(t,DFKEEP)));}}catch(e){}return _vic3.apply(this,arguments);};}
