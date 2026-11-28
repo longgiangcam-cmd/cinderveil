@@ -17522,40 +17522,87 @@ addEventListener("pointerdown",ev=>{safe(()=>{if(!C||!C.busy)return;const el=ev.
 addEventListener("pointermove",ev=>{safe(()=>{const D=typeof DRAG!=="undefined"?DRAG:null;if(!D||D.on||ev.pointerId!==D.id)return;const d=Math.hypot(ev.clientX-D.x0,ev.clientY-D.y0);
   if(d>=10&&d<16&&ev.clientY-D.y0<-8&&canPlay(D.c)&&typeof dragStart==="function"){D.x0=ev.clientX;D.y0=ev.clientY;dragStart();}});},{passive:true,capture:true});
 
-// ---------------- 3) CHUYỂN ẢNH PHASE 2 / BỊ HẠ: rõ ràng, có nhịp ----------------
+// ---------------- 3) GIAI ĐOẠN 2 & BỊ HẠ: ĐIỆN ẢNH ----------------
+// Bị hạ: khựng hình → màn tối khoét lỗ quanh kẻ địch → vết nứt lửa lan trên chân dung → nổ tung thành tro (hoặc lộ ảnh "bị hạ") → dấu BỊ HẠ đóng sầm.
+// Giai đoạn 2: tụ lực (tim đập, run rẩy, hạt sáng hút vào) → lóe trắng → ảnh mới phóng ra → sóng xung kích + dấu GIAI ĐOẠN II.
 function enOfImg(im){const en=im.closest&&im.closest(".en");if(!en||!C||!C.en)return null;return C.en.find(e=>String(e.u)===en.dataset.u)||null;}
 function rectOf(el){if(!el)return null;const r=el.getBoundingClientRect();if(!r.width)return null;return {x:r.left+r.width/2,y:r.top+r.height/2,w:r.width,h:r.height,r};}
 function colOf(e){return safe(()=>ph2Col(e))||"255,90,60";}
-function stamp(x,y,col,big,small,ms){const s=document.createElement("div");s.className="cvx-stamp";s.style.setProperty("--xc",col);s.style.left=x+"px";s.style.top=y+"px";
-  s.innerHTML=`${small?`<small>${small}</small>`:""}<b>${big}</b><i></i>`;document.body.appendChild(s);
+const stc=document.createElement("style");stc.textContent=`
+.cvk-dim{position:fixed;inset:0;z-index:44;pointer-events:none;opacity:0;background:radial-gradient(circle at var(--kx) var(--ky),rgba(0,0,0,0) 0,rgba(0,0,0,0) var(--kr),rgba(4,2,4,.86) calc(var(--kr) * 1.9))}
+.cvk-crk{position:absolute;inset:0;z-index:9;pointer-events:none;overflow:visible}
+.cvk-crk path{fill:none;stroke:#fff3c8;stroke-width:2.4;stroke-linecap:round;filter:drop-shadow(0 0 3px rgba(255,190,90,1)) drop-shadow(0 0 8px rgba(255,120,40,.9))}
+.cvx-stamp.big b{font-size:clamp(26px,9.5vw,52px);letter-spacing:.1em}
+.cvx-stamp.boss b{font-size:clamp(26px,9vw,48px)}
+.cvx-stamp .sub2{display:block;margin-top:6px;font:italic 600 13px/1.3 var(--fd,serif);color:#f1dfc2;letter-spacing:.04em;text-shadow:0 1px 3px #000}
+.cvk-bar{position:fixed;left:0;right:0;height:11vh;background:#000;z-index:45;pointer-events:none;transform:scaleY(0)}
+.cvk-bar.t{top:0;transform-origin:top}.cvk-bar.b{bottom:0;transform-origin:bottom}`;document.head.appendChild(stc);
+function stamp(x,y,col,big,small,ms,o){o=o||{};const s=document.createElement("div");s.className="cvx-stamp"+(o.cls?" "+o.cls:"");s.style.setProperty("--xc",col);s.style.left=x+"px";s.style.top=y+"px";
+  s.innerHTML=`${small?`<small>${small}</small>`:""}<b>${big}</b><i></i>${o.sub?`<span class="sub2">${o.sub}</span>`:""}`;document.body.appendChild(s);
   const hw=Math.min(innerWidth/2,(s.querySelector("b").offsetWidth||200)/2+10);s.style.left=Math.max(hw,Math.min(innerWidth-hw,x))+"px";
-  s.animate([{opacity:0,transform:"translate(-50%,-50%) scale(1.9)",filter:"blur(6px)"},{opacity:1,transform:"translate(-50%,-50%) scale(1)",filter:"blur(0)",offset:.14,easing:"cubic-bezier(.2,1.4,.4,1)"},{opacity:1,offset:.78},{opacity:0,transform:"translate(-50%,-62%) scale(1.04)"}],{duration:ms||1500,fill:"forwards"}).onfinish=()=>s.remove();}
+  s.animate([{opacity:0,transform:"translate(-50%,-50%) scale(2.6)",filter:"blur(8px)"},{opacity:1,transform:"translate(-50%,-50%) scale(.94)",filter:"blur(0)",offset:.1,easing:"cubic-bezier(.2,1.5,.4,1)"},{opacity:1,transform:"translate(-50%,-50%) scale(1)",offset:.16},{opacity:1,offset:.8},{opacity:0,transform:"translate(-50%,-64%) scale(1.03)"}],{duration:ms||1600,fill:"forwards"}).onfinish=()=>s.remove();
+  return s;}
+function dimAt(p,hold,col){const d=document.createElement("div");d.className="cvk-dim";d.style.setProperty("--kx",p.x+"px");d.style.setProperty("--ky",p.y+"px");d.style.setProperty("--kr",Math.max(p.w,p.h)*.55+"px");document.body.appendChild(d);
+  d.animate([{opacity:0},{opacity:1,offset:.12},{opacity:1,offset:.75},{opacity:0}],{duration:hold,fill:"forwards"}).onfinish=()=>d.remove();return d;}
+function bars(ms){const t=document.createElement("i"),b=document.createElement("i");t.className="cvk-bar t";b.className="cvk-bar b";document.body.append(t,b);
+  for(const el of [t,b])el.animate([{transform:"scaleY(0)"},{transform:"scaleY(1)",offset:.15},{transform:"scaleY(1)",offset:.85},{transform:"scaleY(0)"}],{duration:ms,fill:"forwards",easing:"cubic-bezier(.2,.8,.3,1)"}).onfinish=()=>el.remove();}
+// vết nứt lửa: các đường gấp khúc toả ra từ điểm trúng đòn
+function cracks(ef,ms){const s=document.createElementNS("http://www.w3.org/2000/svg","svg");s.setAttribute("class","cvk-crk");s.setAttribute("viewBox","0 0 100 150");s.setAttribute("preserveAspectRatio","none");
+  const cx=40+Math.random()*20,cy=45+Math.random()*25;let h="";for(let i=0;i<9;i++){const a=i/9*Math.PI*2+Math.random()*.5;let x=cx,y=cy,d=`M${x.toFixed(1)},${y.toFixed(1)}`;const L=40+Math.random()*60;
+    for(let k=0;k<5;k++){const st=L/5;x+=Math.cos(a+(Math.random()-.5)*.9)*st;y+=Math.sin(a+(Math.random()-.5)*.9)*st*1.3;d+=` L${x.toFixed(1)},${y.toFixed(1)}`;}h+=`<path d="${d}" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/>`;}
+  s.innerHTML=h;ef.appendChild(s);s.querySelectorAll("path").forEach((p,i)=>p.animate([{strokeDashoffset:1},{strokeDashoffset:0}],{duration:ms,delay:i*18,fill:"forwards",easing:"cubic-bezier(.3,.7,.2,1)"}));
+  setTimeout(()=>s.remove(),2600);return s;}
+function quake(el,amp,ms){if(!el)return;const k=[];for(let i=0;i<10;i++){const a=amp*(1-i/10);k.push({transform:`translate(${(Math.random()-.5)*2*a}px,${(Math.random()-.5)*2*a}px)`});}k.push({transform:"translate(0,0)"});
+  try{el.animate(k,{duration:ms,easing:"linear"});}catch(x){}}
+const sleepFx=ms=>new Promise(r=>setTimeout(r,ms*Math.max(.6,(typeof SLEEP_MUL!=="undefined"&&SLEEP_MUL)||1)));
+const KILLED=new WeakSet();
+// ---- BỊ HẠ ----
+async function killCine(e,withArt){if(!e||KILLED.has(e))return;KILLED.add(e);const en=enEl(e);const ef=en&&en.querySelector(".ef");const p=rectOf(ef);if(!p)return;
+  const boss=!!(e.d&&(e.d.boss||e.d.elite));const nm=e.d&&e.d.n?String(e.d.n).split(" — ")[0]:"";
+  en.classList.add("cvx-up");setTimeout(()=>en.classList.remove("cvx-up"),2400);
+  // 1) khựng hình + tối màn + nứt
+  safe(()=>hitStop(boss?220:150));safe(()=>{SFX.play("killHit",1);haptic(boss?50:35);});
+  dimAt(p,boss?2600:1900);if(boss)bars(2600);
+  cracks(ef,boss?420:320);quake(ef,boss?10:7,boss?520:380);
+  safe(()=>{if(vxok()){vxFlash(p.x,p.y,p.w*1.6,"255,240,210",.18);vxRing(p.x,p.y,p.w*.7,"255,200,120",.35);}});
+  await sleepFx(boss?520:380);
+  // 2) nổ tung
+  safe(()=>SFX.play(boss?"killBoss":"killBlast",1));
+  const fl=document.createElement("i");fl.className="cvx-fl";ef.style.setProperty("--xc","255,230,190");ef.appendChild(fl);fl.animate([{opacity:0},{opacity:1,offset:.1},{opacity:0}],{duration:700,fill:"forwards"}).onfinish=()=>fl.remove();
+  safe(()=>{if(vxok()){vxShock(p.x,p.y,p.w*2.4,.6);vxFlash(p.x,p.y,innerWidth*1.1,"255,220,170",.3);vxRing(p.x,p.y,p.w*1.1,"255,170,90",.55);vxRing(p.x,p.y,p.w*1.9,"255,255,255",.7,.08);
+    if(typeof vxRays==="function")vxRays(p.x,p.y,p.w*1.6,"255,210,140",.7,16);vxEmbers(p.x,p.y+p.h*.1,boss?90:55,"255,160,80",p.w*.7,320,2.2);vxSparks(p.x,p.y,boss?60:36,"255,220,160",{speed:1000,grav:420});
+    if(!withArt&&typeof vxShatter==="function")vxShatter(ef);}
+    if(typeof hfxEdge==="function")hfxEdge("255,90,50",900,boss?1:.75);if(typeof vxShakeEl==="function")vxShakeEl(q("#combat"),boss?14:9,boss?420:300);});
+  if(!withArt)safe(()=>ef.animate([{opacity:1,filter:"brightness(3) saturate(0)"},{opacity:0,filter:"brightness(1) saturate(0)"}],{duration:500,fill:"forwards"}));
+  // 3) dấu BỊ HẠ
+  stamp(p.x,p.y+p.h*.12,boss?"255,170,60":"255,90,60",boss?T("KHUẤT PHỤC","VANQUISHED"):T("BỊ HẠ","DEFEATED"),nm.toUpperCase(),boss?2600:1800,{cls:boss?"boss big":"big",sub:boss&&e.d.boss?T("Ngọn lửa của nàng đã tắt.","Her flame has gone out."):""});
+  safe(()=>{if(boss)setTimeout(()=>SFX.play("bellToll",1),650);});}
+// ---- GIAI ĐOẠN 2 / ảnh bị hạ: ảnh cũ phủ lên, tụ lực, rồi lộ ảnh mới ----
 async function artSwap(im,oldSrc,kind,e){const ef=im.closest(".ef");const en=im.closest(".en");if(!ef||!en)return;const col=kind==="dead"?"255,235,210":colOf(e);ef.style.setProperty("--xc",col);
-  en.classList.add("cvx-up");setTimeout(()=>en.classList.remove("cvx-up"),1800);
-  // ảnh cũ phủ lên trên, nung trắng rồi vỡ ra để lộ ảnh mới
+  en.classList.add("cvx-up");setTimeout(()=>en.classList.remove("cvx-up"),2600);
   const o=document.createElement("img");o.className="cvx-old";o.src=oldSrc;o.style.objectFit=getComputedStyle(im).objectFit||"cover";o.style.objectPosition=getComputedStyle(im).objectPosition;
   const fl=document.createElement("i");fl.className="cvx-fl";const rg=document.createElement("i");rg.className="cvx-ring";ef.append(o,fl,rg);
-  const hold=kind==="dead"?260:380;
-  safe(()=>ef.animate([{transform:"translate(0,0)"},{transform:"translate(-4px,2px)"},{transform:"translate(4px,-2px)"},{transform:"translate(-3px,1px)"},{transform:"translate(2px,0)"},{transform:"translate(0,0)"}],{duration:hold,easing:"linear"}));
-  o.animate([{filter:"brightness(1) saturate(1)"},{filter:kind==="dead"?"brightness(.5) saturate(0) contrast(1.4)":"brightness(2.6) saturate(.2) contrast(1.2)",offset:.9},{filter:"brightness(4) saturate(0)"}],{duration:hold,fill:"forwards",easing:"ease-in"});
-  safe(()=>{SFX.play(kind==="dead"?"windup":"charge",kind==="dead"?.8:1.1);haptic(18);});
-  await sleep(hold);
-  // khoảnh khắc lộ ảnh: chớp sáng + vòng nổ + ảnh mới phóng vào
-  fl.animate([{opacity:0},{opacity:1,offset:.12},{opacity:0}],{duration:620,easing:"ease-out",fill:"forwards"});
-  rg.animate([{transform:"translate(-50%,-50%) scale(0)",opacity:1},{transform:"translate(-50%,-50%) scale(3.4)",opacity:0}],{duration:620,easing:"cubic-bezier(.1,.8,.3,1)",fill:"forwards"});
-  o.animate([{opacity:1,transform:"scale(1)",filter:"brightness(4) saturate(0)"},{opacity:0,transform:"scale(1.18)",filter:"brightness(5) saturate(0) blur(6px)"}],{duration:420,easing:"ease-out",fill:"forwards"});
-  im.animate(kind==="dead"
-    ?[{transform:"scale(1.16)",filter:"brightness(2.4) saturate(0)"},{transform:"scale(1.03)",filter:"brightness(1.1) saturate(.6)",offset:.35},{transform:"scale(1)",filter:"brightness(1) saturate(1)"}]
-    :[{transform:"scale(1.22)",filter:"brightness(2.6) contrast(1.2)"},{transform:"scale(.97)",filter:"brightness(1.2)",offset:.45},{transform:"scale(1)",filter:"brightness(1)"}],{duration:kind==="dead"?1300:760,easing:"cubic-bezier(.2,.9,.3,1)"});
   const p=rectOf(ef);
-  safe(()=>{SFX.play(kind==="dead"?"kill":"phaseRoar",kind==="dead"?1:.7);haptic(kind==="dead"?40:30);
-    if(p&&vxok()){vxFlash(p.x,p.y,p.w*2.2,col,.3);vxRing(p.x,p.y,p.w*.8,col,.5);vxRing(p.x,p.y,p.w*1.5,"255,255,255",.6,.06);vxShock(p.x,p.y,p.w*1.6,.5);
-      if(kind==="dead"){vxEmbers(p.x,p.y+p.h*.2,40,"255,170,90",p.w*.6,260,1.8);vxDebris(p.x,p.y,18);}else{vxPillar(p.x,p.y+p.h*.5,p.w*.8,col,.9);vxSparks(p.x,p.y,40,col,{speed:900,grav:260});}}
-    hfxEdge(col,700,kind==="dead"?.7:1);});
-  if(p){const nm=e&&e.d&&e.d.n?String(e.d.n).split(" — ")[0]:"";
-    if(kind==="dead")stamp(p.x,p.y+p.h*.18,"255,90,60",T("BỊ HẠ","DEFEATED"),nm.toUpperCase(),1500);
-    else if(!(e&&e.d&&e.d.boss))stamp(p.x,p.y+p.h*.18,col,T("GIAI ĐOẠN II","PHASE II"),nm.toUpperCase(),1400);}
-  setTimeout(()=>{o.remove();fl.remove();rg.remove();},900);}
+  if(kind==="dead"){killCine(e,true);await sleepFx(420);}
+  else{ // tụ lực
+    const boss=!!(e&&e.d&&e.d.boss);if(p&&!boss)dimAt(p,2300);
+    safe(()=>{SFX.play("heartThump",1);setTimeout(()=>SFX.play("heartThump",1.05),380);setTimeout(()=>SFX.play("phaseRise",1),300);haptic(25);});
+    safe(()=>{if(p&&vxok()){if(typeof vxCharge==="function")vxCharge(p.x,p.y,col,1,p.w*1.3);vxRing(p.x,p.y,p.w*1.4,col,.9,0,1);}});
+    o.animate([{transform:"scale(1)",filter:"brightness(1)"},{transform:"scale(1.03)",filter:"brightness(1.3) saturate(1.4)",offset:.5},{transform:"scale(.97)",filter:"brightness(2.2) saturate(.3)"}],{duration:1050,fill:"forwards",easing:"ease-in"});
+    quake(ef,3,400);setTimeout(()=>quake(ef,7,500),450);
+    await sleepFx(1050);}
+  // khoảnh khắc lộ ảnh
+  fl.animate([{opacity:0},{opacity:1,offset:.1},{opacity:0}],{duration:700,easing:"ease-out",fill:"forwards"});
+  rg.animate([{transform:"translate(-50%,-50%) scale(0)",opacity:1},{transform:"translate(-50%,-50%) scale(3.8)",opacity:0}],{duration:700,easing:"cubic-bezier(.1,.8,.3,1)",fill:"forwards"});
+  o.animate([{opacity:1,transform:"scale(1)",filter:"brightness(4) saturate(0)"},{opacity:0,transform:"scale(1.2)",filter:"brightness(5) saturate(0) blur(8px)"}],{duration:460,easing:"ease-out",fill:"forwards"});
+  im.animate(kind==="dead"
+    ?[{transform:"scale(1.18)",filter:"brightness(2.4) saturate(0)"},{transform:"scale(1.04)",filter:"brightness(1.1) saturate(.5)",offset:.35},{transform:"scale(1)",filter:"brightness(.95) saturate(.85)"}]
+    :[{transform:"scale(1.28)",filter:"brightness(2.8) contrast(1.25)"},{transform:"scale(.96)",filter:"brightness(1.25)",offset:.4},{transform:"scale(1)",filter:"brightness(1)"}],{duration:kind==="dead"?1500:820,easing:"cubic-bezier(.2,.9,.3,1)",fill:kind==="dead"?"forwards":"none"});
+  if(kind!=="dead")safe(()=>{SFX.play("phaseHit",1);haptic(40);if(p&&vxok()){vxShock(p.x,p.y,p.w*2.6,.6);vxFlash(p.x,p.y,innerWidth*1.2,col,.3);vxRing(p.x,p.y,p.w*.8,col,.5);vxRing(p.x,p.y,p.w*1.7,"255,255,255",.7,.06);
+      vxPillar(p.x,p.y+p.h*.5,p.w*.9,col,1.1);vxSparks(p.x,p.y,48,col,{speed:1000,grav:260});if(typeof vxRays==="function")vxRays(p.x,p.y,p.w*1.7,col,.8,18);}
+    if(typeof hfxEdge==="function")hfxEdge(col,900,1);if(typeof vxShakeEl==="function")vxShakeEl(q("#combat"),11,360);});
+  if(p&&kind!=="dead"&&!(e&&e.d&&e.d.boss)){const nm=e&&e.d&&e.d.n?String(e.d.n).split(" — ")[0]:"";stamp(p.x,p.y+p.h*.15,col,T("GIAI ĐOẠN II","PHASE II"),nm.toUpperCase(),1900,{cls:"big"});}
+  setTimeout(()=>{o.remove();fl.remove();rg.remove();},1000);}
 // theo dõi mọi lần đổi ảnh kẻ địch; chỉ diễn khi đúng là phase 2 (lần đầu) hoặc bị hạ (lần đầu)
 const MO=new MutationObserver(list=>{for(const m of list){const im=m.target;if(im.tagName!=="IMG"||!im.closest||!im.closest("#combat .en .ef"))continue;if(im.classList.contains("cvx-old"))continue;
   const old=m.oldValue;if(!old||old===im.src||/^data:image\/gif|^about:/.test(old))continue;const e=enOfImg(im);if(!e)continue;
@@ -17563,11 +17610,10 @@ const MO=new MutationObserver(list=>{for(const m of list){const im=m.target;if(i
   if(kind&&typeof SLEEP_MUL!=="undefined"&&SLEEP_MUL)artSwap(im,old,kind,e);}});
 function moOn(){const s=q("#combat");if(s&&!s._cvmo){s._cvmo=1;MO.observe(s,{subtree:true,attributes:true,attributeFilter:["src"],attributeOldValue:true});}}
 moOn();setTimeout(moOn,1000);
-// quái không có ảnh "bị hạ": vẫn có dấu "BỊ HẠ" rõ ràng + chớp trắng ở khung
+// kẻ địch không có ảnh "bị hạ": vẫn diễn trọn màn bị hạ (vỡ tan thành tro)
 if(has("hitEnemy")){const _h=hitEnemy;hitEnemy=function(e,n){const h0=e?e.hp:0;const r=_h.apply(this,arguments);
-  safe(()=>{if(e&&h0>0&&e.hp<=0&&!e._cvD&&typeof SLEEP_MUL!=="undefined"&&SLEEP_MUL){setTimeout(()=>{if(e._cvD)return;e._cvD=1;const ef=enEl(e)?.querySelector(".ef");const p=rectOf(ef);if(!p)return;
-      ef.style.setProperty("--xc","255,235,210");const fl=document.createElement("i");fl.className="cvx-fl";ef.appendChild(fl);fl.animate([{opacity:0},{opacity:1,offset:.1},{opacity:0}],{duration:520,fill:"forwards"}).onfinish=()=>fl.remove();
-      const nm=e.d&&e.d.n?String(e.d.n).split(" — ")[0]:"";stamp(p.x,p.y+p.h*.18,"255,90,60",T("BỊ HẠ","DEFEATED"),nm.toUpperCase(),1600);},320);}});return r;};}
+  safe(()=>{if(e&&h0>0&&e.hp<=0&&typeof SLEEP_MUL!=="undefined"&&SLEEP_MUL){setTimeout(()=>{if(e._cvD)return;e._cvD=1;killCine(e,false);},90);}});return r;};}
+// giữ kẻ địch vừa bị hạ hiện trên màn đủ lâu để thấy trọn màn diễn (trước khi game dọn khung)
 
 // ---------------- 4) CHUỖI NHIỀU LÁ: càng dồn càng nổ to ----------------
 let lastChain=0;
@@ -17610,10 +17656,10 @@ function sxBuild(cx){const c=cx||AU.ctx;if(!c)return null;if(!cx&&SX.ctx===c&&SX
 window.__sxb=sxBuild;
 function sxVol(){return safe(()=>M&&M.set&&M.set.sfxv!=null?M.set.sfxv:1)??1;}
 if(typeof AU!=="undefined"&&AU.play){const _pl=AU.play.bind(AU);
-  AU.play=function(type,mul){if(!this.init())return;const bus=safe(sxBuild);if(!bus)return _pl(type,mul);const o=this.out;this.out=bus;try{_pl(type,mul);punch(type,mul);}finally{this.out=o;}};
-  const S=AU.S;const tone=(f,d,o)=>AU.tone(f,d,o),nz=(d,o)=>AU.nz(d,o);
+  AU.play=function(type,mul){if(!this.init())return;if(mul>1.02&&IMPACT.has(type))mul=1+(mul-1)*.22;const bus=safe(sxBuild);if(!bus)return _pl(type,mul);const o=this.out;this.out=bus;try{_pl(type,mul);punch(type,mul);}finally{this.out=o;}};
+  const S=AU.S;const tone=(f,d,o)=>AU.tone(f,d,o),nz=(d,o)=>AU.nz(d,o);const IMPACT=new Set(["hit","slashV","tick","sweepV","stab","bash","fireV","bleedV","curseV","debuffV","thud","pierce","heavy"]);
   // lớp "punch" chung: tiếng tách đầu đòn + thân trầm-trung (120–220Hz) mà loa nhỏ phát được
-  const PUNCH={hit:[1,.9],heavy:[1.35,.8],crit:[1.6,.75],kill:[1.8,.7],pierce:[.8,1.1],thud:[1.1,.8],bash:[1.3,.8],stab:[.8,1.1],slashW:[.9,1],slashV:[.9,1],pactHit:[1.2,.85],fireV:[1,.95],bigHurt:[1.2,.7],hurt:[.9,.75]};
+  const PUNCH={hit:[1,.9],heavy:[1.35,.8],crit:[1.6,.75],pierce:[.8,1.1],thud:[1.1,.8],slashW:[.9,1],pactHit:[1.2,.85]};
   function punch(type,mul){const P=PUNCH[type];if(!P)return;const [k,pt]=P;const m=(mul||1)*pt;
     nz(.012,{f:"highpass",fr:3800,g:.5*k,a:.001});                                  // tách
     tone(220*m,.11,{to:70*m,g:.55*k,a:.001});                                       // thân
@@ -17621,8 +17667,56 @@ if(typeof AU!=="undefined"&&AU.play){const _pl=AU.play.bind(AU);
     nz(.09*k,{fr:1600*m,to:380,q:.8,g:.32*k,a:.002});                              // vỡ
     if(k>=1.3)nz(.45,{f:"lowpass",fr:900,to:120,g:.16*k,a:.004,rev:.45});}
   window.__punch=punch;          // vang đuôi
+
+  // ================= BỘ TIẾNG MỚI (5.32): rõ chất liệu, đúng ngữ cảnh =================
+  {const tn=(f,d,o)=>AU.tone(f,d,o||{}),z=(d,o)=>AU.nz(d,o||{});const J=()=>.95+Math.random()*.1;const rnd=Math.random;
+   const metal=(f,d,g,at=0,rev=.35)=>[[1,1],[2.76,.5],[5.4,.28],[8.93,.14],[13.3,.07]].forEach(([k,w])=>tn(f*k,d*(1.1-k/16),{g:g*w,a:.001,at,rev}));
+   const crackle=(n,dur,g,at=0)=>{for(let i=0;i<n;i++)z(.006+rnd()*.012,{f:"highpass",fr:1800+rnd()*5200,g:g*(.4+rnd()),a:.001,at:at+rnd()*dur});};
+   const whoosh=(d,f0,f1,g,at=0)=>z(d,{fr:f0,to:f1,q:1.3,g,a:d*.55,at});
+   const thump=(f,d,g,at=0)=>{tn(f,d,{to:f*.35,g,a:.002,at});tn(f*2,d*.45,{to:f*.7,type:"triangle",g:g*.28,a:.002,at});};
+   const crunch=(d,g,at=0)=>z(d,{f:"lowpass",fr:3600,to:260,g,a:.002,at});
+   const tick=(g,at=0)=>z(.018,{f:"highpass",fr:5200,g,a:.001,at});
+   const S=AU.S;
+   // --- đòn đánh ---
+   S.slashV=m=>{const j=(m||1)*J();whoosh(.09,500*j,5200*j,.3);tick(.3,.06);metal(2300*j,.16,.045,.06,.25);thump(150*j,.16,.55,.06);crunch(.12,.32,.06);};
+   S.tick=m=>{const j=(m||1)*J();whoosh(.05,900*j,6000*j,.22);tick(.25,.03);thump(190*j,.09,.38,.03);};
+   S.sweepV=m=>{const j=(m||1)*J();whoosh(.3,280*j,3600*j,.32);thump(100*j,.36,.65,.13);crunch(.3,.32,.13);tn(52,.7,{g:.35,type:"triangle",at:.13,a:.01});};
+   S.stab=m=>{const j=(m||1)*J();whoosh(.05,1500,7000,.18);tick(.36,.03);metal(3200*j,.12,.05,.03,.2);thump(230*j,.1,.45,.03);};
+   S.bash=m=>{const j=(m||1)*J();thump(92*j,.45,.9);crunch(.26,.5);metal(410*j,.42,.08,0,.3);crackle(7,.22,.09,.02);};
+   S.fireV=m=>{const j=(m||1)*J();z(.65,{f:"lowpass",fr:500,to:3200,g:.36,a:.1,rev:.4});crackle(16,.65,.12,.05);thump(78*j,.5,.6,.04);tn(110*j,.55,{type:"sawtooth",lp:900,g:.08,a:.06,rev:.3});};
+   S.bleedV=m=>{const j=(m||1)*J();z(.12,{fr:5200,to:1200,q:3,g:.32,a:.003});thump(170*j,.12,.42,.03);z(.16,{fr:700,to:240,q:5,g:.18,at:.05});};
+   S.curseV=m=>{const j=(m||1)*J();z(.5,{fr:300,to:1500,q:4,g:.2,a:.45});[146.8,174.6,207.7,233].forEach((f,i)=>tn(f*j,1.2,{type:"sawtooth",lp:900,g:.045,a:.25,at:.35,rev:.85,det:(i%2?7:-7)}));thump(58,.8,.45,.48);};
+   S.debuffV=m=>{const j=(m||1)*J();tn(523*j,.5,{to:261*j,type:"sawtooth",lp:1300,g:.09,rev:.5});tn(554*j,.5,{to:277*j,type:"sawtooth",lp:1300,g:.07,rev:.5});z(.45,{fr:2600,to:280,q:2.5,g:.22,a:.04});thump(90,.35,.35,.05);};
+   // --- kỹ năng ---
+   S.shieldV=m=>{const j=J();metal(560*j,.65,.16,0,.45);metal(845*j,.5,.07,.012,.45);thump(130,.22,.5);tick(.25);};
+   S.block=m=>{const j=J();metal(640*j,.5,.18,0,.4);thump(140,.18,.55);crunch(.08,.3);};
+   S.buffV=m=>{const j=J();[392,494,587,784,988].forEach((f,i)=>tn(f*j,.45,{type:"triangle",g:.07,at:i*.045,a:.004,rev:.6}));whoosh(.45,400,6500,.1);};
+   S.healV=m=>{const j=J();[784,988,1175,1568].forEach((f,i)=>tn(f*j,1.3,{g:.055,at:i*.06,a:.01,rev:.9}));z(1,{f:"highpass",fr:7000,g:.03,a:.35,rev:.8});};
+   // --- lá bài ---
+   S.card=m=>{z(.05,{f:"highpass",fr:2600,to:6500,g:.24,a:.004});whoosh(.15,600,3200,.15,.02);tn(1250,.04,{type:"triangle",g:.05,at:.01});};
+   S.draw=m=>{z(.07,{fr:3200,q:.8,g:.12,a:.012});};
+   // --- người chơi bị đánh ---
+   S.hurt=m=>{thump(88,.36,.85);crunch(.2,.45);tn(176,.14,{type:"square",lp:600,g:.08});};
+   S.bigHurt=m=>{thump(68,.6,1);crunch(.42,.55);metal(300,.5,.06,0,.4);tn(45,.9,{type:"triangle",g:.35,a:.01});};
+   // tiếng hạ gục cũ: chỉ giữ một nhịp nhỏ (màn bị hạ mới có tiếng riêng, tránh chồng tiếng)
+   S.kill=m=>{thump(110,.2,.5);};S.killV=m=>{};
+   // --- BỊ HẠ ---
+   S.killHit=m=>{thump(125,.26,.95);crunch(.26,.6);tick(.45);metal(1900,.38,.06,.01,.4);crackle(12,.3,.13,.02);};
+   S.killBlast=m=>{thump(72,1.1,1);tn(44,1.4,{g:.55,type:"triangle",a:.01});z(1.5,{f:"lowpass",fr:4200,to:80,g:.5,a:.005,rev:.75});crackle(34,1.3,.12,.05);
+     for(let i=0;i<9;i++)tn(2000+rnd()*4200,.28,{g:.03,at:.02+rnd()*.35,a:.001,rev:.6});whoosh(1.2,300,7000,.07,.1);};
+   S.killBoss=m=>{S.killBlast();[110,130.8,164.8,196].forEach((f,i)=>tn(f,2.6,{type:"sawtooth",lp:1400,g:.05,a:.35,at:.2,rev:.95,det:(i%2?6:-6)}));tn(36,2,{g:.5,type:"triangle",a:.05,at:.1});};
+   S.bellToll=m=>{metal(196,4.2,.22,0,.95);metal(98,4.5,.11,.005,.95);};
+   // --- GIAI ĐOẠN 2 ---
+   S.heartThump=m=>{const k=m||1;thump(66*k,.2,.95);thump(56*k,.22,.75,.13);};
+   S.phaseRise=m=>{z(1.15,{fr:200,to:7500,q:1.2,g:.22,a:1.05});tn(78,1.15,{to:330,type:"sawtooth",lp:1500,g:.1,a:.95});tn(79.6,1.15,{to:336,type:"sawtooth",lp:1500,g:.08,a:.95});};
+   S.phaseHit=m=>{thump(60,1,1);crunch(.6,.6);[55,82.4,110,164.8].forEach(f=>tn(f,1.5,{type:"sawtooth",lp:1100,g:.07,a:.01,rev:.7}));
+     [220,261.6,329.6,392].forEach((f,i)=>tn(f,2,{type:"sawtooth",lp:1700,g:.045,a:.06,at:.05,rev:.9,det:(i%2?5:-5)}));metal(880,1.1,.06,0,.6);};
+   // tiếng "bị hạ" khi trúng đòn cuối không lên giọng chát; chuỗi đòn chỉ cao lên nhẹ
+  }
+  // sửa ngữ cảnh: bản tiếng Việt đổi khoá hiệu ứng "fire" thành "lửa" → lá lửa trước đây kêu tiếng chém thường
+  safe(()=>{if(typeof VFX_SND!=="undefined"){VFX_SND["lửa"]="fireV";VFX_SND.fire="fireV";}});
   // chém/đánh lá: rõ tiếng vút trước đòn
-  const card0=S.card;S.card=m=>{card0&&card0(m);nz(.16,{fr:500*m,to:4200*m,q:1.1,g:.22,a:.03});tone(900*m,.05,{to:1800*m,type:"triangle",g:.05,at:.02});};
+  
   // tiếng chuỗi: mỗi lá thêm một nấc cao hơn (thang ngũ cung), từ lá thứ 4 có chũm choẹ + trống, lá 6+ thêm hợp âm bùng nổ
   const PENTA=[0,2,4,7,9,12,14,16,19,21,24];
   S.chainHit=n=>{n=Math.max(2,n|0);const i=Math.min(PENTA.length-1,n-2);const f=392*Math.pow(2,PENTA[i]/12);
@@ -17695,6 +17789,9 @@ const escH=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;"
 
 // ---------------- BẢNG NHÂN VẬT (khớp ảnh trong game) ----------------
 const CAST={
+ morrY:{n:"Morrigan (thư lại)",d:"MORRIGAN, young royal scribe (the past) — adult woman, tall and thin, sharp pale face, red eyes, long black hair in one neat braid, ink-stained fingers, dark-blue scholar robe with silver trim, carries a large ledger and a quill."},
+ ilsa:{n:"Ilsa",d:"ILSA — adult female knight of the Wolf Guard, short copper-red hair, freckles, cheerful grin, black plate armor with a silver wolf-head emblem."},
+ lia:{n:"Lia",d:"LIA — adult young baker woman, curly chestnut hair tied up with a cloth, flour on her cheeks, warm smile, apron over a simple brown dress."},
  brunY:{n:"Brunhild",d:"BRUNHILD, young (the past) — very tall muscular adult woman, sharp face, red eyes, long white hair in a high ponytail, black plate armor with a silver wolf-head emblem on the chest and a grey wolf-fur mantle, huge black two-handed greatsword. Her face has NO scar unless the panel says so."},
  keeper:{n:"Người Giữ Lửa",d:"THE FIRE KEEPER of that age — adult woman, gentle face, warm golden eyes, very long dark-violet hair loosely braided over one shoulder, simple dark hooded robe with an ember-orange lining, a silver ring shaped like two folded night wings on her LEFT hand."},
  queen:{n:"Nữ hoàng Aldrenn",d:"QUEEN ALDRENN — adult woman, tall and slender, oval face, calm pale-grey eyes, long straight silver-white hair down to her waist, very pale skin, crown of black iron with one small flame-shaped red gem in the center, long white gown with gold embroidery and wide flowing sleeves."},
@@ -17782,10 +17879,10 @@ const CH=[
   ["MEDIUM SHOT","An ordinary townswoman (brown hair, plain grey dress) at her window watches her candle flame pulled out like a glowing thread.","Một người dân nhìn ngọn nến bị hút đi.",[]],
   ["WIDE SHOT","Whole streets going dark one after another, like dominoes of light.","Từng con phố tắt dần như hàng domino.",["c","bottom-right corner","Every lamp. Every hearth. Every heartbeat of warmth.","Từng ngọn đèn. Từng bếp lửa. Từng nhịp hơi ấm."]],
   ["WIDE SHOT","QUEEN ALDRENN walks into the blinding white light of the furnace; the edges of her gown turn to embers.","Nữ hoàng bước vào ánh sáng lò lửa, tà áo hoá tàn lửa.",[]]]},
- {L:"F2 LR3 F3",c:"brunY gwyp dull hollow",p:[
+ {L:"F2 LR3 F3",c:"brunY gwyp dullh hollow",p:[
   ["WIDE SHOT, dark streets","Young BRUNHILD runs through dark streets clutching the scroll; behind her, kneeling guards in wolf armor slowly turn grey and empty-eyed.","Brunhild chạy qua phố tối; sau lưng, đồng đội hoá Rỗng.",["c","top-left corner","She ran. Her sisters turned to look at her — and went hollow.","Nàng chạy. Các chị em quay lại nhìn nàng — rồi rỗng đi."]],
   ["MEDIUM SHOT","At the north gate, GWYNDRA steps aside to let Brunhild run OUT of the city.","Ở cổng bắc, Gwyndra tránh sang cho Brunhild chạy ra ngoài.",["s","gwyp","top-left, beside Gwyndra's head","My order is to keep people out. Not in. Go.","Lệnh của ta là không cho ai vào. Không phải ra. Đi đi."]],
-  ["WIDE SHOT, far view","High on the outer wall, DULLAHAN on her black horse sees Brunhild fleeing — and deliberately turns her face away.","Trên tường thành, Dullahan thấy Brunhild chạy trốn — và cố tình quay mặt đi.",[]],
+  ["WIDE SHOT, far view","High on the outer wall, headless DULLAHAN on her black horse, her own head under her arm with eyes closed, hears Brunhild fleeing below — and deliberately turns her horse away.","Trên tường thành, Dullahan không đầu nghe tiếng Brunhild chạy trốn — và cố tình quay ngựa đi.",[]],
   ["WIDE SHOT, grey dawn","The city behind is completely dark. The first flakes of grey ash fall from the sky for the first time. Young BRUNHILD, small on a hill, looks back at the dead city.","Bình minh xám; tro rơi lần đầu tiên. Brunhild trên đồi ngoái nhìn kinh thành chết.",["c","top-right corner","At dawn, ash fell from the sky for the first time.","Lúc bình minh, tro rơi từ trời xuống lần đầu tiên."],["c","bottom-left corner","The world had bought three hundred years of light.","Thế giới đã mua được ba trăm năm ánh sáng."]]]},
  ]},
 {id:"c02",s:1,no:2,n:{vi:"Kẻ Hèn",en:"The Coward"},u:{met:"brun"},
@@ -18026,6 +18123,583 @@ const CH=[
   ["WIDE SHOT","BRUNHILD turns and walks toward a faint warm glow on the horizon; after a moment, Tsubaki follows.","Brunhild quay đi về phía ánh sáng ấm nơi chân trời; Tsubaki đi theo.",["s","brun","top-left, beside Brunhild's head","Someone who also failed to protect. Come. There's a fire.","Một kẻ cũng đã không bảo vệ được ai. Đi thôi. Có lửa đấy."],["c","bottom-right corner","End of Season 1.","Hết Mùa 1."]]]},
  ]},
 ];
+// ---- MỞ RỘNG CHƯƠNG: chèn trang mới vào giữa, giữ nguyên mã các trang đã có tranh ----
+// mã trang cũ = số thứ tự ban đầu ("1".."10"); trang chèn thêm có mã dạng "1b","1c"… (ô ảnh: comic_<chương>_p<mã>)
+for(const c of CH)c.pages.forEach((pg,i)=>{if(!pg.id)pg.id=String(i+1);});
+function INS(cid,after,pages){const c=CH.find(x=>x.id===cid);const i=c.pages.findIndex(p=>p.id===after);c.pages.splice(i+1,0,...pages);}
+
+// ===================== CHƯƠNG 1 — mở rộng lên 31 trang =====================
+INS("c01","1",[
+ {id:"1b",L:"F2 LR2 F3",c:"brun sera",p:[
+  ["MEDIUM SHOT","SERAPHINE pulls her cloak tighter, smiling toward the sound of the whetstone.","Seraphine kéo áo choàng, mỉm cười về phía tiếng mài kiếm.",["s","sera","top-left, beside Seraphine's head","Then tell me about the place it came from.","Vậy hãy kể cho ta về nơi cái tên ấy ra đời."]],
+  ["CLOSE-UP","BRUNHILD's hand touching an old sealed scroll tied at her belt; the wax seal shows a flame.","Tay Brunhild chạm cuộn thư niêm phong ở thắt lưng.",[]],
+  ["CLOSE-UP","BRUNHILD closes her eyes, remembering.","Brunhild nhắm mắt hồi tưởng.",["s","brun","top-right, beside Brunhild's head","I was nineteen. And I had never once been cold.","Năm ấy ta mười chín tuổi. Và chưa từng biết lạnh là gì."]],
+  ["WIDE SHOT, transition","The bonfire's flames stretch upward and turn into the golden spires of a great city, like a memory rising from the fire.","Ngọn lửa vươn lên hoá thành những ngọn tháp vàng của một kinh thành.",[]]]},
+]);
+INS("c01","2",[
+ {id:"2b",L:"F2 LR3 F2",c:"brunY lia",p:[
+  ["MEDIUM SHOT, morning street","Young BRUNHILD, off duty in a simple tunic with her wolf cloak, walks through a busy bakery street; warm ovens glow in every doorway.","Brunhild ngày nghỉ đi qua phố lò bánh, lò nào cũng đỏ lửa.",[]],
+  ["MEDIUM SHOT","LIA, a young baker woman with flour on her cheeks, leans out of her shop window holding a sweet bun.","Lia, cô thợ bánh má dính bột, ló ra cửa sổ cầm chiếc bánh ngọt.",["s","lia","top-left, beside Lia's head","Wolf pup! The usual? I saved the biggest one.","Sói con! Như mọi khi nhé? Chị để dành cái to nhất."]],
+  ["CLOSE-UP","BRUNHILD blushing, accepting the bun.","Brunhild đỏ mặt nhận bánh.",["s","brunY","top-right, beside Brunhild's head","I told you, I'm a royal guard now. Not a pup.","Đã bảo em là cận vệ hoàng gia rồi. Không phải sói con."]],
+  ["WIDE SHOT","LIA laughs; behind her the bakery oven's fire is fed by a glowing vein of light running under the street.","Lia cười; lò bánh sau lưng được nuôi bằng mạch sáng chạy dưới lòng phố.",["c","bottom-right corner","Every oven in Aldrenn drank from the same fire.","Mọi lò bánh ở Aldrenn đều uống chung một ngọn lửa."]]]},
+ {id:"2c",L:"F3 LR2 F2",c:"brunY gwyp",p:[
+  ["WIDE SHOT, training yard","Young GWYNDRA and young BRUNHILD spar with heavy greatswords; Gwyndra effortlessly knocks Brunhild's blade aside, sparks flying.","Gwyndra và Brunhild tập đại kiếm; Gwyndra gạt kiếm Brunhild dễ dàng.",[]],
+  ["CLOSE-UP","BRUNHILD on her back in the dust, panting.","Brunhild nằm ngửa trên cát thở dốc.",["s","brunY","top-left, beside Brunhild's head","Again!","Lần nữa!"]],
+  ["MEDIUM SHOT","GWYNDRA offers her hand with a warm grin.","Gwyndra chìa tay cười ấm áp.",["s","gwyp","top-right, beside Gwyndra's head","Your feet, Brunhild. A wall doesn't win by hitting. It wins by not moving.","Chân ngươi, Brunhild. Bức tường không thắng nhờ đánh. Nó thắng nhờ không lùi."]],
+  ["MEDIUM SHOT","BRUNHILD takes her hand and gets up, determined.","Brunhild nắm tay đứng dậy, quyết tâm.",[]]]},
+ {id:"2d",L:"F3 LR2",c:"brunY gwyp",p:[
+  ["WIDE SHOT, sunset on the city wall","GWYNDRA and BRUNHILD sit on the wall eating buns, legs dangling, the golden city glowing below and the north gate far away.","Hai người ngồi trên tường thành ăn bánh lúc hoàng hôn, nhìn về cổng bắc xa xa.",["c","top-left corner","Gwyndra was the closest thing she had to a sister.","Gwyndra là người gần nhất với một người chị của nàng."]],
+  ["CLOSE-UP","GWYNDRA pointing at the north gate with her bun, dreamy.","Gwyndra cầm bánh chỉ về cổng bắc, mơ màng.",["s","gwyp","top-left, beside Gwyndra's head","One day I'll guard the north gate. The queen rides through it every morning.","Một ngày ta sẽ được canh cổng bắc. Sáng nào nữ hoàng cũng đi qua đó."]],
+  ["CLOSE-UP","BRUNHILD laughing with her mouth full.","Brunhild cười, miệng đầy bánh.",["s","brunY","top-right, beside Brunhild's head","You just want her to say good morning to you.","Chị chỉ muốn được nữ hoàng chào buổi sáng thôi."]]]},
+]);
+INS("c01","3",[
+ {id:"3b",L:"F2 LR3 F2",c:"queen brunY morrY",p:[
+  ["WIDE SHOT","QUEEN ALDRENN descends the steps into the courtyard, the young royal scribe MORRIGAN following with a ledger. The guards straighten.","Nữ hoàng bước xuống sân, thư lại trẻ Morrigan theo sau với cuốn sổ.",[]],
+  ["MEDIUM SHOT","The queen stops in front of young BRUNHILD, the last in the line.","Nữ hoàng dừng trước Brunhild, người cuối hàng.",["s","queen","top-left, beside the queen's head","You are new. What is your name?","Ngươi là người mới. Tên ngươi là gì?"]],
+  ["CLOSE-UP","Young BRUNHILD, flustered, red-faced.","Brunhild bối rối đỏ mặt.",["s","brunY","top-right, beside Brunhild's head","B-Brunhild, Majesty!","B-Brunhild, thưa Bệ hạ!"]],
+  ["MEDIUM SHOT","The queen smiles warmly; behind her, MORRIGAN writes the name in her ledger.","Nữ hoàng mỉm cười; Morrigan ghi tên vào sổ.",["s","queen","top-left, beside the queen's head","A good name. Keep it well.","Một cái tên đẹp. Hãy giữ nó cho tốt."]]]},
+]);
+INS("c01","4",[
+ {id:"4b",L:"F3 LR2 F2",c:"lia",p:[
+  ["WIDE SHOT, night street","The glowing veins of light under the streets flicker and dim; people step out of their houses, puzzled, breath visible in the air for the first time.","Mạch sáng dưới phố chập chờn; dân chúng ra đường, hơi thở lần đầu thành khói.",["c","top-left corner","That winter, the people of Aldrenn learned a new word.","Mùa đông năm ấy, dân Aldrenn học thêm một từ mới."]],
+  ["CLOSE-UP","LIA rubbing her hands in front of a weak oven fire.","Lia xoa tay trước lò bánh yếu ớt.",["s","lia","top-left, beside Lia's head","Why won't it rise? The oven's never been this weak.","Sao bánh không nở? Lò chưa bao giờ yếu thế này."]],
+  ["CLOSE-UP","Frost forming on a window pane in delicate patterns.","Sương giá kết hoa trên ô cửa kính.",[]],
+  ["MEDIUM SHOT, night patrol","Young BRUNHILD and DULLAHAN on patrol, looking at the frost; Brunhild touches it, amazed.","Brunhild và Dullahan đi tuần, nhìn sương giá.",["s","dull","top-right, beside Dullahan's head","Cold. I've read that word in old books. I never thought I'd feel it.","Lạnh. Ta từng đọc chữ ấy trong sách cũ. Chưa từng nghĩ sẽ cảm thấy nó."]]]},
+]);
+INS("c01","5",[
+ {id:"5b",L:"F2 LR3 F2",c:"queen dull",p:[
+  ["WIDE SHOT","The empty throne hall after the council; QUEEN ALDRENN sits alone on the steps of the throne, crown in her lap.","Hội đồng giải tán; nữ hoàng ngồi một mình trên bậc ngai, vương miện trên đùi.",[]],
+  ["MEDIUM SHOT","DULLAHAN approaches and kneels.","Dullahan tiến tới quỳ xuống.",["s","dull","top-right, beside Dullahan's head","Majesty. What will you pay it with, if not the villages?","Bệ hạ. Không phải các làng, vậy người trả bằng gì?"]],
+  ["CLOSE-UP","The queen's tired, gentle face.","Gương mặt mệt mỏi, dịu dàng của nữ hoàng.",["s","queen","top-left, beside the queen's head","With what is mine. Not with what is theirs.","Bằng thứ của ta. Không phải thứ của họ."]],
+  ["CLOSE-UP","DULLAHAN's eyes widen as she understands.","Dullahan mở to mắt khi hiểu ra.",[]]]},
+ {id:"5c",L:"F3 LR2 F2",c:"queen morrY",p:[
+  ["WIDE SHOT, the royal archive","Endless shelves of ledgers lit by candles. Young MORRIGAN bows to QUEEN ALDRENN.","Kho lưu trữ hoàng gia; Morrigan trẻ cúi chào nữ hoàng.",["s","morrY","top-left, beside Morrigan's head","You called for me at this hour, Majesty?","Bệ hạ cho gọi thần giờ này sao?"]],
+  ["MEDIUM SHOT","The queen places a hand on the largest blank book.","Nữ hoàng đặt tay lên cuốn sổ trắng lớn nhất.",["s","queen","top-left, beside the queen's head","Tonight, write down every soul in Aldrenn.","Đêm nay, hãy ghi tên mọi linh hồn ở Aldrenn."]],
+  ["CLOSE-UP","MORRIGAN puzzled, ink-stained fingers holding a quill.","Morrigan bối rối, ngón tay dính mực cầm bút lông.",["s","morrY","top-right, beside Morrigan's head","Every soul? Why?","Mọi linh hồn? Vì sao ạ?"]],
+  ["CLOSE-UP","The queen, very serious.","Nữ hoàng rất nghiêm nghị.",["s","queen","top-left, beside the queen's head","So that no one is forgotten. No one.","Để không ai bị lãng quên. Không một ai."]]]},
+]);
+INS("c01","6",[
+ {id:"6b",L:"F3 LR2 F2",c:"queen lia",p:[
+  ["WIDE SHOT, night","QUEEN ALDRENN, hooded and disguised in a plain cloak, walks alone through the quiet streets, touching door frames as she passes.","Nữ hoàng trùm áo choàng giản dị, một mình đi qua phố đêm, chạm tay lên từng khung cửa.",["c","top-left corner","Before dawn, the queen walked her city one last time.","Trước bình minh, nữ hoàng dạo kinh thành lần cuối."]],
+  ["MEDIUM SHOT","Through a bakery window, LIA sleeps by the oven with flour on her face.","Qua cửa sổ lò bánh, Lia ngủ gục bên lò.",[]],
+  ["CLOSE-UP","The queen's hand pressed against the glass, a tear on her cheek.","Bàn tay nữ hoàng áp lên kính, má rơi nước mắt.",["w","queen","top-right, beside the queen's mouth","Forgive me. All of you.","Tha thứ cho ta. Tất cả các ngươi."]],
+  ["WIDE SHOT","The hooded queen walks away up the long road toward the glowing furnace-tower.","Nữ hoàng trùm mũ bước lên con đường dài hướng về tháp Lò Lửa.",[]]]},
+]);
+INS("c01","7",[
+ {id:"7b",L:"F3 LR2 F2",c:"dull",p:[
+  ["WIDE SHOT, top of the outer wall at night","DULLAHAN on her black horse faces a line of mounted female knights on the wall.","Trên tường thành, Dullahan đối mặt hàng kỵ sĩ.",["s","dull","top-left, beside Dullahan's head","Tonight we ride the wall. Eyes on the plains. Whatever you hear behind you — do not turn.","Đêm nay ta tuần tường. Mắt nhìn ra đồng. Nghe gì sau lưng — cũng không được quay lại."]],
+  ["CLOSE-UP","A young rider, nervous.","Một kỵ sĩ trẻ lo lắng.",["s","none","top-left, beside the young rider's head","Captain… what will we hear?","Đội trưởng… chúng ta sẽ nghe thấy gì?"]],
+  ["CLOSE-UP","DULLAHAN's face hardening, eyes shining.","Gương mặt Dullahan cứng lại, mắt long lanh.",["s","dull","top-right, beside Dullahan's head","Our home, saying goodbye.","Quê nhà chúng ta, đang nói lời từ biệt."]],
+  ["WIDE SHOT","The riders turn their horses to face the dark plains, backs to the glowing city.","Các kỵ sĩ quay ngựa nhìn ra đồng tối, lưng hướng về kinh thành rực sáng.",[]]]},
+ {id:"7c",L:"F2 LR3 F2",c:"gwyp brunY",p:[
+  ["MEDIUM SHOT, the north gate","Young GWYNDRA proudly polishing her greatsword at the north gate, beaming. Young BRUNHILD hurries past on an errand.","Gwyndra hãnh diện lau kiếm ở cổng bắc; Brunhild vội đi ngang.",["s","gwyp","top-left, beside Gwyndra's head","Brunhild! Look! The north gate! She gave it to me!","Brunhild! Nhìn này! Cổng bắc! Người giao cho ta rồi!"]],
+  ["CLOSE-UP","BRUNHILD smiles despite her worry.","Brunhild mỉm cười dù đang lo.",["s","brunY","top-right, beside Brunhild's head","You got your wish.","Chị được như ước nguyện rồi."]],
+  ["CLOSE-UP","GWYNDRA, puzzled for a second.","Gwyndra thoáng bối rối.",["s","gwyp","top-left, beside Gwyndra's head","Strange order though. \"Not even me.\" Why would she say that?","Lệnh hơi lạ. “Kể cả ta.” Sao người lại nói vậy nhỉ?"]],
+  ["WIDE SHOT","BRUNHILD runs on toward the palace; Gwyndra waves behind her, alone in front of the huge gate.","Brunhild chạy về hoàng cung; Gwyndra vẫy tay sau lưng, một mình trước cánh cổng lớn.",[]]]},
+]);
+INS("c01","8",[
+ {id:"8b",L:"F2 LR3 F2",c:"queen brunY",p:[
+  ["MEDIUM SHOT","Young BRUNHILD grips the queen's sleeve, desperate.","Brunhild níu tay áo nữ hoàng.",["s","brunY","top-left, beside Brunhild's head","Then let me carry you out! We can still run, both of us!","Vậy để thần cõng người đi! Ta vẫn chạy kịp, cả hai!"]],
+  ["CLOSE-UP","The queen shakes her head softly.","Nữ hoàng khẽ lắc đầu.",["s","queen","top-right, beside the queen's head","If I leave, the fire takes the villages instead.","Nếu ta đi, ngọn lửa sẽ lấy các làng thay ta."]],
+  ["MEDIUM SHOT","The queen pulls Brunhild into a gentle embrace, like a mother.","Nữ hoàng ôm Brunhild như một người mẹ.",[]],
+  ["CLOSE-UP","BRUNHILD's face over the queen's shoulder, eyes squeezed shut, tears falling.","Mặt Brunhild trên vai nữ hoàng, mắt nhắm chặt, nước mắt rơi.",["w","queen","top-left, beside the queen's mouth","You were always the one who listened. That's why it's you.","Ngươi luôn là người biết lắng nghe. Vì thế mới là ngươi."]]]},
+ {id:"8c",L:"F3 LR2 F2",c:"brunY ilsa",p:[
+  ["WIDE SHOT, the Wolf Guard barracks","Young BRUNHILD bursts into the barracks; her sisters in wolf armor are playing dice by a brazier.","Brunhild xông vào doanh trại; các chị em đang chơi xúc xắc bên lò than.",["s","brunY","top-left, beside Brunhild's head","Listen to me! Something terrible is going to happen tonight!","Nghe em! Đêm nay sẽ có chuyện khủng khiếp!"]],
+  ["MEDIUM SHOT","ILSA laughs and ruffles Brunhild's hair.","Ilsa cười, xoa đầu Brunhild.",["s","ilsa","top-right, beside Ilsa's head","The pup had a nightmare again. Here — for courage.","Sói con lại gặp ác mộng rồi. Này — cho can đảm."]],
+  ["CLOSE-UP","ILSA presses a small carved wolf charm into Brunhild's palm.","Ilsa đặt chiếc bùa sói chạm khắc vào tay Brunhild.",[]],
+  ["MEDIUM SHOT","BRUNHILD stares at the charm; behind her, the sisters return to their game, laughing in the warm light — the last warm light.","Brunhild nhìn chiếc bùa; sau lưng, các chị em cười đùa trong ánh lửa ấm — ánh lửa ấm cuối cùng.",["c","bottom-right corner","It was the last time she heard them laugh.","Đó là lần cuối nàng nghe họ cười."]]]},
+]);
+INS("c01","9",[
+ {id:"9b",L:"F3 LR2 F2",c:"morrY",p:[
+  ["MEDIUM SHOT, the archive","Young MORRIGAN writes frantically in the giant ledger as, outside the window, lights go out street by street.","Morrigan viết như điên vào cuốn sổ khi ngoài cửa sổ từng con phố tắt đèn.",["c","top-left corner","In the archive, the scribe wrote as fast as the lights went out.","Trong kho lưu trữ, thư lại viết nhanh bằng tốc độ ánh sáng tắt."]],
+  ["CLOSE-UP","Pages filling with names in tiny handwriting; her ink-stained hand trembling.","Trang sổ đầy tên chữ nhỏ; bàn tay dính mực run rẩy.",[]],
+  ["CLOSE-UP","MORRIGAN stops at a line marked only with a crown symbol, quill hovering.","Morrigan dừng ở dòng chỉ có hình vương miện, ngòi bút lơ lửng.",["w","morrY","top-right, beside Morrigan's mouth","Her name… I never learned her name.","Tên người… ta chưa từng được biết tên người."]],
+  ["WIDE SHOT","Her candle flame is pulled away out the window; darkness swallows the archive.","Ngọn nến của nàng bị hút ra cửa sổ; bóng tối nuốt kho lưu trữ.",[]]]},
+ {id:"9c",L:"F2 LR3 F2",c:"lia",p:[
+  ["MEDIUM SHOT, the bakery","LIA wakes as the oven fire is pulled out in a glowing ribbon through the chimney.","Lia giật mình khi lửa lò bị hút thành dải sáng qua ống khói.",[]],
+  ["CLOSE-UP","LIA's terrified face in sudden darkness, breath steaming.","Mặt Lia hoảng sợ trong bóng tối, hơi thở bốc khói.",["s","lia","top-left, beside Lia's mouth","No, no, no — come back!","Không, không — quay lại đi!"]],
+  ["CLOSE-UP","LIA lighting a match that dies instantly.","Lia quẹt diêm nhưng que tắt ngay.",[]],
+  ["WIDE SHOT","LIA wraps herself in a blanket and climbs down a cellar hatch toward the sewers, where a faint orange glow still remains.","Lia quấn chăn, trèo xuống hầm về phía cống ngầm, nơi còn le lói ánh cam.",["c","bottom-right corner","Some went down, where the last warmth pooled.","Có người đi xuống, nơi hơi ấm cuối cùng còn đọng lại."]]]},
+ {id:"9d",L:"F3 LR2 F2",c:"dull",p:[
+  ["WIDE SHOT, the wall","On the outer wall, the riders hear the city behind them going silent; several turn in their saddles to look back.","Trên tường thành, các kỵ sĩ nghe kinh thành lặng đi; vài người ngoái lại.",[]],
+  ["CLOSE-UP","A rider who looked back turns grey and empty-eyed, slumping in the saddle.","Kỵ sĩ ngoái lại hoá xám, mắt trống rỗng.",[]],
+  ["CLOSE-UP","DULLAHAN, trembling, kneels on the wall walkway beside a glowing crack of the fire vein, her sword across her knees.","Dullahan run rẩy quỳ bên khe Mạch Lửa trên lối đi tường thành.",["s","dull","top-right, beside Dullahan's head","If I may not look… then I have no need of eyes.","Đã không được nhìn… thì ta không cần đôi mắt nữa."]],
+  ["WIDE SHOT","A burst of pale blue ghost-flame swallows DULLAHAN's kneeling silhouette. No blood — only blue fire and embers.","Lửa ma xanh nuốt bóng Dullahan.",["c","bottom-right corner","She kept her oath the only way she knew.","Nàng giữ lời thề bằng cách duy nhất mình biết."]]]},
+]);
+INS("c01","10",[
+ {id:"10b",L:"F2 LR3 F2",c:"brunY",p:[
+  ["MEDIUM SHOT, grey dawn","On the hill, young BRUNHILD opens her fist: Ilsa's wolf charm, now cold and grey.","Trên đồi, Brunhild mở nắm tay: chiếc bùa sói của Ilsa đã nguội và xám.",[]],
+  ["CLOSE-UP","BRUNHILD's face crumpling.","Mặt Brunhild vỡ oà.",[]],
+  ["CLOSE-UP","BRUNHILD screaming at the ash-filled sky, no sound but the falling ash.","Brunhild gào lên với bầu trời đầy tro.",[]],
+  ["WIDE SHOT","BRUNHILD kneeling alone on the hill, the dead city far behind, ash covering her shoulders like snow.","Brunhild quỳ một mình trên đồi, tro phủ vai như tuyết.",["c","bottom-right corner","She said the name for the first time that morning. To keep from breaking.","Sáng hôm ấy, nàng nói cái tên lần đầu tiên. Để không vỡ vụn."]]]},
+ {id:"10c",L:"F2 LR2 F3",c:"brun sera",p:[
+  ["MEDIUM SHOT, present day","Back at the bonfire. SERAPHINE has stopped smiling; she sits very still.","Trở lại đống lửa. Seraphine lặng người.",["s","sera","top-left, beside Seraphine's head","And the letter? Did you ever open it?","Còn lá thư? Ngươi đã từng mở nó chưa?"]],
+  ["CLOSE-UP","BRUNHILD's scarred hand resting on the sealed scroll; the flame seal unbroken after three hundred years.","Bàn tay sẹo của Brunhild đặt trên cuộn thư; dấu niêm nguyên vẹn sau ba trăm năm.",[]],
+  ["CLOSE-UP","BRUNHILD looking into the fire, eyes old and tired.","Brunhild nhìn vào lửa, đôi mắt già nua mệt mỏi.",["s","brun","top-right, beside Brunhild's head","Not yet.","Chưa."]],
+  ["WIDE SHOT","The bonfire crackles; outside the ruined shrine, a single black crow watches from a broken arch.","Đống lửa tí tách; ngoài đền, một con quạ đen đậu trên vòm vỡ dõi theo.",["c","bottom-right corner","End of Chapter 1.","Hết Chương 1."]]]},
+]);
+
+// ===================== CHƯƠNG 2 — mở rộng lên 24 trang =====================
+INS("c02","1",[
+ {id:"1b",L:"F3 LR2 F2",c:"brunY",p:[
+  ["CLOSE-UP","Young BRUNHILD smears mud over the silver wolf emblem on her chest plate.","Brunhild trát bùn che huy hiệu sói trên ngực giáp.",["c","top-left corner","She learned to hide the wolf.","Nàng học cách giấu con sói đi."]],
+  ["MEDIUM SHOT","She wraps her armor in a ragged grey cloak.","Nàng quấn giáp trong tấm áo choàng xám rách.",[]],
+  ["CLOSE-UP","Her reflection in a broken shield: a stranger.","Bóng nàng trong mảnh khiên vỡ: một người lạ.",[]],
+  ["WIDE SHOT","A line of refugees walking through ash; Brunhild walks at the very end, head down.","Đoàn người tị nạn đi trong tro; Brunhild lẽo đẽo cuối hàng, cúi đầu.",[]]]},
+ {id:"1c",L:"F4 LR2",c:"brunY hollow",p:[
+  ["SPLASH PANEL, night","Hollow soldiers lurch out of the ash toward the refugee camp; BRUNHILD throws off her cloak and swings her greatsword, standing between them and the refugees. Sparks, no blood.","Binh Rỗng tấn công trại; Brunhild hất áo choàng, vung kiếm chắn trước dân tị nạn.",[]],
+  ["CLOSE-UP","BRUNHILD's feet planted firmly in the ash.","Đôi chân Brunhild trụ vững trong tro.",["c","top-left corner","A wall doesn't win by hitting.","Bức tường không thắng nhờ đánh."]],
+  ["CLOSE-UP","BRUNHILD's eyes, fierce, not stepping back.","Mắt Brunhild dữ dội, không lùi bước.",["c","bottom-right corner","It wins by not moving.","Nó thắng nhờ không lùi."]]]},
+ {id:"1d",L:"F2 LR3 F2",c:"brunY",p:[
+  ["MEDIUM SHOT, dawn","The hollows are gone. An old man in the camp sees the mud-free wolf emblem on her chest.","Binh Rỗng tan; một ông lão thấy huy hiệu sói trên ngực nàng.",["s","none","top-left, beside the old man's head","A Wolf Guard… you saved us?","Cận Vệ Sói… ngươi cứu chúng ta?"]],
+  ["CLOSE-UP","BRUNHILD, expecting hatred, braces herself.","Brunhild chuẩn bị nghe lời căm ghét.",[]],
+  ["CLOSE-UP","The old man silently hands her a piece of bread and bows.","Ông lão lặng lẽ đưa nàng miếng bánh và cúi đầu.",[]],
+  ["WIDE SHOT","BRUNHILD leaves the camp eating the bread, tears on her cheeks; the refugees watch her go.","Brunhild rời trại, vừa ăn bánh vừa khóc; dân tị nạn nhìn theo.",["c","bottom-right corner","Not everyone hated the wolf.","Không phải ai cũng căm ghét con sói."]]]},
+]);
+INS("c02","2",[
+ {id:"2b",L:"F3 LR2 F2",c:"brunY",p:[
+  ["MEDIUM SHOT, morning","BRUNHILD wakes up by a cold campfire, confused, her whole arm grey to the elbow.","Brunhild tỉnh dậy bên lửa tắt, cả cánh tay đã xám tới khuỷu.",["c","top-left corner","Year six. One night, exhausted, she forgot.","Năm thứ sáu. Một đêm kiệt sức, nàng quên."]],
+  ["CLOSE-UP","BRUNHILD staring at her grey arm in horror.","Brunhild kinh hoàng nhìn cánh tay xám.",[]],
+  ["CLOSE-UP","She clutches the scroll and whispers the name over and over, sweating.","Nàng ôm cuộn thư thì thầm cái tên liên hồi, mồ hôi túa ra.",["w","brunY","top-right, beside Brunhild's mouth","——. ——. ——. ——.","——. ——. ——. ——."]],
+  ["WIDE SHOT","The grey slowly retreats to her fingertips. BRUNHILD collapses on her back, breathing hard.","Màu xám rút dần về đầu ngón tay; Brunhild ngã ngửa thở dốc.",["c","bottom-right corner","She never forgot again.","Nàng không bao giờ quên nữa."]]]},
+]);
+INS("c02","4",[
+ {id:"4b",L:"F3 LR2 F2",c:"brunY",p:[
+  ["WIDE SHOT, montage","Brunhild as a mercenary over the years: guarding caravans in storms of ash, fighting beasts, sleeping in ruins with the little ember lantern.","Những năm làm lính đánh thuê: hộ tống đoàn buôn, đánh quái, ngủ trong phế tích bên chiếc đèn than.",["c","top-left corner","Ten years. Twenty. She sold her sword, never her armor.","Mười năm. Hai mươi năm. Nàng bán thanh kiếm, không bao giờ bán bộ giáp."]],
+  ["CLOSE-UP","A merchant offering a heavy pouch of gold for her wolf armor.","Một thương nhân trả túi vàng nặng để mua bộ giáp sói.",[]],
+  ["CLOSE-UP","BRUNHILD's cold stare.","Ánh mắt lạnh của Brunhild.",["s","brunY","top-right, beside Brunhild's head","It isn't for sale. It belongs to the dead.","Không bán. Nó thuộc về người đã chết."]],
+  ["MEDIUM SHOT","She walks away; her hair longer now, her face harder.","Nàng bỏ đi; tóc dài hơn, gương mặt rắn rỏi hơn.",[]]]},
+ {id:"4c",L:"F3 LR2 F2",c:"brunY ilsa",p:[
+  ["WIDE SHOT, ash plains, year thirty","A lone hollow figure in black wolf armor wanders the plains — short copper-red hair, grey skin, empty eyes: ILSA, hollowed.","Một bóng Rỗng mặc giáp sói lang thang — Ilsa, tóc đỏ đồng, mắt trống rỗng.",["c","top-left corner","Year thirty.","Năm thứ ba mươi."]],
+  ["CLOSE-UP","BRUNHILD freezing, recognizing her.","Brunhild đứng sững, nhận ra.",["s","brunY","top-right, beside Brunhild's head","Ilsa…?","Ilsa…?"]],
+  ["CLOSE-UP","Hollow ILSA turning with a rusty sword raised, no recognition in her eyes.","Ilsa Rỗng quay lại, giơ kiếm gỉ, không nhận ra.",[]],
+  ["MEDIUM SHOT","BRUNHILD lowers her greatsword and holds out the wolf charm.","Brunhild hạ kiếm, chìa chiếc bùa sói ra.",["s","brunY","top-left, beside Brunhild's head","It's me. The pup. You gave me this, remember?","Là em đây. Sói con. Chị cho em cái này, nhớ không?"]]]},
+ {id:"4d",L:"F2 LR3 F2",c:"brunY ilsa",p:[
+  ["CLOSE-UP","For a heartbeat, a flicker of warmth crosses Ilsa's empty face.","Trong một khoảnh khắc, gương mặt trống rỗng của Ilsa thoáng ấm lại.",["w","ilsa","top-left, beside Ilsa's mouth","…pup…","…sói con…"]],
+  ["MEDIUM SHOT","ILSA lowers her sword and slowly kneels, as if very tired.","Ilsa hạ kiếm, chậm rãi quỳ xuống như rất mệt.",[]],
+  ["CLOSE-UP","BRUNHILD holding Ilsa as she grows still, turning into grey ash that drifts away in the wind.","Brunhild ôm Ilsa khi nàng lặng đi, tan thành tro bay theo gió.",[]],
+  ["WIDE SHOT","BRUNHILD kneels alone with Ilsa's empty helmet, the wolf charm placed on top.","Brunhild quỳ một mình bên chiếc mũ giáp trống của Ilsa, đặt bùa sói lên trên.",["c","bottom-right corner","She buried the charm with her. The name she kept.","Nàng chôn chiếc bùa cùng chị. Còn cái tên thì nàng giữ."]]]},
+]);
+INS("c02","6",[
+ {id:"6b",L:"F3 LR2 F2",c:"brunY gwyh",p:[
+  ["WIDE SHOT, night","From a ruin across the road, BRUNHILD watches GWYNDRA kneel and relight the little candle at the foot of the gate.","Từ phế tích bên kia đường, Brunhild nhìn Gwyndra thắp lại ngọn nến.",["c","top-left corner","She stayed nearby for a season. Just to watch.","Nàng ở gần đó một mùa. Chỉ để nhìn."]],
+  ["CLOSE-UP","BRUNHILD leaving a sweet bun wrapped in cloth beside the candle.","Brunhild để một chiếc bánh ngọt gói vải cạnh ngọn nến.",[]],
+  ["CLOSE-UP","Next morning: the bun lies untouched under fresh ash; Gwyndra stands guard, unmoving.","Sáng hôm sau: chiếc bánh còn nguyên dưới lớp tro mới; Gwyndra vẫn đứng gác.",[]],
+  ["MEDIUM SHOT","BRUNHILD smiles sadly and leaves another one.","Brunhild mỉm cười buồn và để thêm một chiếc.",["w","brunY","top-right, beside Brunhild's mouth","You always ate mine anyway.","Ngày xưa chị toàn ăn phần của em mà."]]]},
+]);
+INS("c02","7",[
+ {id:"7b",L:"F3 LR2 F2",c:"brunY dullh",p:[
+  ["WIDE SHOT","BRUNHILD climbs the ruined outer wall; skeletal riders in black armor (former Wolf Guard riders) block her path with lances.","Brunhild leo tường thành; kỵ sĩ xương giáp đen chặn đường bằng kích.",[]],
+  ["MEDIUM SHOT","Headless DULLAHAN rides up on her black horse; the head under her arm keeps its eyes closed and faces away.","Dullahan không đầu cưỡi ngựa tới; cái đầu vẫn nhắm mắt, quay đi.",["s","dullh","top-left, beside the carried head","Pup. You should not come back here.","Sói con. Ngươi không nên quay lại đây."]],
+  ["CLOSE-UP","BRUNHILD's eyes widen with hope.","Mắt Brunhild sáng lên hy vọng.",["s","brunY","top-right, beside Brunhild's head","Captain! You remember me!","Đội trưởng! Người nhớ em!"]],
+  ["CLOSE-UP","The closed eyes of Dullahan's head; a faint smile.","Đôi mắt nhắm của cái đầu Dullahan; thoáng nụ cười.",["s","dullh","top-left, beside the carried head","I gave up my eyes. Not my memory.","Ta từ bỏ đôi mắt. Không phải trí nhớ."]]]},
+ {id:"7c",L:"F3 F2 F3",c:"brunY dullh",p:[
+  ["MEDIUM SHOT","BRUNHILD kneels on the wall before Dullahan.","Brunhild quỳ trước Dullahan.",["s","brunY","top-left, beside Brunhild's head","Captain… do you know her name? The queen's true name?","Đội trưởng… người có biết tên bà ấy không? Tên thật của nữ hoàng?"]],
+  ["CLOSE-UP","Dullahan's head, calm.","Cái đầu Dullahan bình thản.",["s","dullh","top-right, beside the carried head","I was never told. Only you were.","Ta chưa từng được biết. Chỉ mình ngươi."]],
+  ["WIDE SHOT","DULLAHAN turns her horse away along the wall.","Dullahan quay ngựa đi dọc tường thành.",["s","dullh","top-left, beside the carried head","Carry it well, pup. And don't you dare look back either.","Mang nó cho tốt, sói con. Và ngươi cũng đừng có mà nhìn lại."]]]},
+]);
+INS("c02","8",[
+ {id:"8b",L:"F3 LR2 F2",c:"brunY",p:[
+  ["WIDE SHOT, montage","Years passing: Brunhild walking through dead forests, crossing frozen rivers of ash, older and stronger, the ember lantern dimmer each year.","Năm tháng trôi: Brunhild băng rừng chết, vượt sông tro đóng băng; chiếc đèn than mờ dần.",["c","top-left corner","Sixty years. Seventy. Eighty.","Sáu mươi năm. Bảy mươi. Tám mươi."]],
+  ["CLOSE-UP","A crow following high above her, day after day.","Một con quạ bay theo trên cao, ngày qua ngày.",[]],
+  ["CLOSE-UP","BRUNHILD glancing up at the crow, suspicious.","Brunhild ngước nhìn con quạ, nghi ngờ.",[]],
+  ["MEDIUM SHOT","The crow lands on a dead branch nearby and tilts its head, red eyes gleaming.","Con quạ đậu cành khô gần đó, nghiêng đầu, mắt đỏ lóe sáng.",["c","bottom-right corner","She thought it was only a bird.","Nàng tưởng đó chỉ là một con chim."]]]},
+]);
+
+INS("c02","1d",[
+ {id:"1e",L:"F3 LR2 F2",c:"brunY",p:[
+  ["WIDE SHOT, night, refugee camp","Refugees huddle around a tiny fire; an old woman softly sings to them. BRUNHILD sits apart in the shadows, listening.","Dân tị nạn quây quanh đống lửa nhỏ; một bà lão hát ru. Brunhild ngồi riêng trong bóng tối lắng nghe.",["c","top-left corner","That night, someone sang an old song.","Đêm ấy, có người hát một bài ca cũ."]],
+  ["CLOSE-UP","The old woman's lips singing, eyes closed.","Môi bà lão cất tiếng hát.",["s","none","top-left, beside the old woman's mouth","♪ Sleep, little ember, the night is long… someone is keeping the fire for you… ♪","♪ Ngủ đi đốm lửa nhỏ, đêm còn dài… có người đang giữ lửa cho con… ♪"]],
+  ["CLOSE-UP","BRUNHILD's face in shadow, a tear rolling down silently.","Mặt Brunhild trong bóng tối, giọt nước mắt lặng lẽ lăn.",[]],
+  ["MEDIUM SHOT","BRUNHILD mouths the words along with the song.","Brunhild mấp máy hát theo.",["c","bottom-right corner","Every child of Aldrenn knew that song. No one knew who wrote it.","Đứa trẻ nào ở Aldrenn cũng thuộc bài ấy. Không ai biết ai viết ra nó."]]]},
+]);
+INS("c02","3",[
+ {id:"3b",L:"F2 LR3 F2",c:"brunY mira",p:[
+  ["CLOSE-UP","The little iron lantern in Brunhild's hands; inside, the ember glows with a soft bread-oven orange.","Chiếc đèn sắt trong tay Brunhild; hòn than bên trong cháy màu cam như lò bánh.",[]],
+  ["MEDIUM SHOT","MIRA tapping the lantern with a sly smile.","Mira gõ lên chiếc đèn, cười tinh quái.",["s","mira","top-left, beside Mira's head","That ember came out of Aldrenn. The last oven in the city, they say.","Hòn than đó từ Aldrenn ra đấy. Người ta bảo là từ lò bánh cuối cùng trong thành."]],
+  ["CLOSE-UP","BRUNHILD's eyes widen.","Brunhild mở to mắt.",["s","brunY","top-right, beside Brunhild's head","Who sold it to you?","Ai bán nó cho ngươi?"]],
+  ["CLOSE-UP","MIRA puts a finger to her lips, eyes glinting.","Mira đặt ngón tay lên môi, mắt lấp lánh.",["s","mira","top-left, beside Mira's head","Someone who lives where it's still warm. Down below. That's all you get for free.","Một người sống ở chỗ còn ấm. Dưới kia. Miễn phí thì chỉ đến thế thôi."]]]},
+]);
+INS("c02","6b",[
+ {id:"6c",L:"F3 LR2 F2",c:"brunY gwyh",p:[
+  ["WIDE SHOT, deep night","GWYNDRA kneels to relight the candle; this time she notices the cloth-wrapped bun beside it.","Gwyndra quỳ thắp nến; lần này nàng để ý chiếc bánh gói vải bên cạnh.",[]],
+  ["CLOSE-UP","GWYNDRA lifting the bun with her gauntlet, staring at it.","Gwyndra cầm chiếc bánh lên, nhìn chằm chằm.",[]],
+  ["CLOSE-UP","For a moment, the orange glow in her eyes softens into something human.","Trong khoảnh khắc, ánh cam trong mắt nàng dịu lại thành ánh mắt con người.",["w","gwyh","top-right, beside Gwyndra's mouth","…pup…?","…sói con…?"]],
+  ["WIDE SHOT","Hidden behind the ruins, BRUNHILD covers her mouth with both hands, shaking. Gwyndra stands up again, empty, and the moment is gone.","Nấp sau phế tích, Brunhild bịt miệng run rẩy. Gwyndra đứng dậy, trống rỗng trở lại.",["c","bottom-right corner","It never happened again.","Chuyện ấy không bao giờ lặp lại."]]]},
+]);
+INS("c02","7c",[
+ {id:"7d",L:"F3 LR2 F2",c:"brunY",p:[
+  ["WIDE SHOT from the top of the wall","Below, the dead city of Aldrenn lies dark and silent under ash. BRUNHILD stands at the edge, about to look down at it.","Từ trên tường thành, kinh thành chết nằm im lìm dưới tro. Brunhild đứng ở mép, sắp nhìn xuống.",[]],
+  ["CLOSE-UP","BRUNHILD hesitating, remembering Dullahan's words.","Brunhild do dự, nhớ lời Dullahan.",["w","brunY","top-left, beside Brunhild's mouth","Don't look back…","Đừng nhìn lại…"]],
+  ["CLOSE-UP","From the corner of her eye: deep in the dark city, a faint orange glow flickers out of a sewer grate.","Khoé mắt nàng thấy: sâu trong thành tối, ánh cam le lói từ một miệng cống.",[]],
+  ["MEDIUM SHOT","BRUNHILD turns away and climbs down the wall, but glances back once at the glow.","Brunhild quay đi trèo xuống tường, nhưng vẫn ngoái nhìn ánh sáng ấy một lần.",["c","bottom-right corner","Someone down there was still keeping a fire.","Có ai đó dưới kia vẫn đang giữ một ngọn lửa."]]]},
+]);
+INS("c02","8b",[
+ {id:"8c",L:"F2 LR3 F2",c:"brunY",p:[
+  ["WIDE SHOT, a caravan camp at night","A small merchant caravan around a fire; BRUNHILD, hired as their guard, sits at the edge.","Đoàn buôn quây quanh lửa; Brunhild ngồi ở rìa, làm hộ vệ thuê.",[]],
+  ["MEDIUM SHOT","A nervous merchant gossips, glancing at the crows on the wagons.","Một thương nhân thì thầm chuyện ma, liếc lũ quạ trên xe.",["s","none","top-left, beside the merchant's head","They say a witch lives in the Crow Tower. She collects the names of the dead.","Nghe nói có mụ phù thủy ở Tháp Quạ. Mụ sưu tầm tên của người chết."]],
+  ["CLOSE-UP","BRUNHILD's hand instinctively covering the scroll at her belt.","Tay Brunhild theo phản xạ che cuộn thư ở thắt lưng.",[]],
+  ["MEDIUM SHOT","The merchant leans in, voice lower.","Thương nhân ghé sát, hạ giọng.",["s","none","top-left, beside the merchant's head","And if one name is missing, she never stops hunting for it.","Và nếu thiếu một cái tên, mụ sẽ săn nó mãi không thôi."]]]},
+]);
+
+// ===================== CHƯƠNG 3 — mở rộng lên 25 trang =====================
+INS("c03","1",[
+ {id:"1b",L:"F3 LR2 F2",c:"brunY",p:[
+  ["MEDIUM SHOT, night, small campfire","BRUNHILD whispers the name as always; a crow swoops down out of the dark, beak snapping right at her lips.","Brunhild thì thầm cái tên; một con quạ lao xuống mổ ngay sát môi nàng.",[]],
+  ["CLOSE-UP","BRUNHILD swatting the crow away, startled.","Brunhild giật mình xua con quạ.",["s","brunY","top-left, beside Brunhild's head","Get away!","Cút đi!"]],
+  ["CLOSE-UP","Several crows on branches above, heads tilted, listening intently.","Lũ quạ trên cành nghiêng đầu chăm chú lắng nghe.",[]],
+  ["MEDIUM SHOT","BRUNHILD realizes, covering her mouth with her gauntlet.","Brunhild hiểu ra, lấy tay giáp che miệng.",["c","bottom-right corner","They didn't want her flesh. They wanted the sound.","Chúng không muốn thịt nàng. Chúng muốn âm thanh."]]]},
+ {id:"1c",L:"F2 LR3 F2",c:"brunY",p:[
+  ["MEDIUM SHOT, next night","BRUNHILD sits in silence, lips pressed shut; grey veins creep up her neck.","Đêm sau, Brunhild ngậm chặt môi; vân xám bò lên cổ.",["c","top-left corner","If she spoke the name, they would steal it. If she didn't, she would go hollow.","Nói ra thì bị đánh cắp. Không nói thì sẽ hoá Rỗng."]],
+  ["CLOSE-UP","Her trembling grey fingers.","Những ngón tay xám run rẩy.",[]],
+  ["CLOSE-UP","BRUNHILD presses the sealed scroll against her lips and whispers into it, completely hidden.","Brunhild áp cuộn thư lên môi, thì thầm vào đó, che kín hoàn toàn.",["w","brunY","top-right, beside the scroll","——…","——…"]],
+  ["WIDE SHOT","The crows above shift restlessly, unable to hear.","Lũ quạ trên cao bồn chồn, không nghe được gì.",[]]]},
+]);
+INS("c03","2",[
+ {id:"2b",L:"F3 LR2 F2",c:"morrY",p:[
+  ["WIDE SHOT, flashback, the dark archive after the Night of Ashes","Young MORRIGAN alone in the frozen, dark archive, wrapped in a blanket, still writing names by the light of a single dying coal.","Hồi tưởng: Morrigan một mình trong kho lưu trữ tối và lạnh, vẫn viết tên dưới ánh một hòn than sắp tắt.",["c","top-left corner","When the city died, the scribe did not stop writing.","Khi kinh thành chết, thư lại không ngừng viết."]],
+  ["CLOSE-UP","Crows gathering on the broken window, drawn by the last warmth.","Quạ tụ lại bên cửa sổ vỡ, bị hơi ấm cuối cùng hút tới.",[]],
+  ["CLOSE-UP","MORRIGAN feeding a crow ink from her fingertip; it drops a faint golden thread into her palm.","Morrigan cho quạ ăn mực từ đầu ngón tay; nó thả sợi chỉ vàng mờ vào tay nàng.",[]],
+  ["MEDIUM SHOT","Black feathers beginning to grow among MORRIGAN's hair; her eyes glow red.","Lông vũ đen mọc lẫn trong tóc Morrigan; mắt nàng ánh đỏ.",["c","bottom-right corner","The crows brought her names. She gave them herself in return.","Bầy quạ mang tên về cho nàng. Nàng trả bằng chính mình."]]]},
+ {id:"2c",L:"F2 F2 F3",c:"brunY morr",p:[
+  ["MEDIUM SHOT, present of the chapter","MORRIGAN circles Brunhild slowly, smiling.","Morrigan chậm rãi đi vòng quanh Brunhild, mỉm cười.",["s","morr","top-left, beside Morrigan's head","I kept everyone, wolf. Every guard. Every baker. Every child.","Ta giữ tất cả, con sói. Mọi cận vệ. Mọi thợ bánh. Mọi đứa trẻ."]],
+  ["CLOSE-UP","BRUNHILD's jaw tight.","Brunhild nghiến răng.",[]],
+  ["MEDIUM SHOT","MORRIGAN opens her hand: a glowing golden thread floats above her palm.","Morrigan xoè tay: một sợi chỉ vàng lơ lửng trên lòng bàn tay.",["s","morr","top-right, beside Morrigan's head","Even her. Ilsa. Would you like to hold her again?","Kể cả cô ấy. Ilsa. Ngươi muốn được ôm cô ấy lần nữa không?"]]]},
+]);
+INS("c03","3",[
+ {id:"3b",L:"F3 LR2 F2",c:"brunY morr",p:[
+  ["CLOSE-UP","The golden thread glowing; in its light, the faint smiling face of ILSA (short copper-red hair, freckles) appears like a reflection.","Trong ánh sợi chỉ, hiện mờ gương mặt tươi cười của Ilsa.",[]],
+  ["CLOSE-UP","BRUNHILD's eyes filling with tears.","Mắt Brunhild ngấn lệ.",[]],
+  ["MEDIUM SHOT","MORRIGAN leaning close to Brunhild's ear.","Morrigan ghé sát tai Brunhild.",["w","morr","top-left, beside Morrigan's mouth","A fair trade. Her name for the queen's. One forgotten soul for another.","Một cuộc trao đổi công bằng. Tên cô ấy đổi lấy tên nữ hoàng."]],
+  ["CLOSE-UP","BRUNHILD's trembling hand reaching toward the thread.","Bàn tay run rẩy của Brunhild vươn về sợi chỉ.",[]]]},
+ {id:"3c",L:"F2 LR3 F2",c:"brunY queen",p:[
+  ["CLOSE-UP, flashback in warm faded colors","QUEEN ALDRENN smiling down at young Brunhild in the courtyard.","Hồi tưởng: nữ hoàng mỉm cười với Brunhild trong sân.",["s","queen","top-left, beside the queen's head","A good name. Keep it well.","Một cái tên đẹp. Hãy giữ nó cho tốt."]],
+  ["CLOSE-UP, present","BRUNHILD's hand stopping an inch from the thread.","Tay Brunhild dừng lại cách sợi chỉ một gang.",[]],
+  ["CLOSE-UP","BRUNHILD's hand closing into a fist.","Bàn tay Brunhild nắm chặt lại.",[]],
+  ["MEDIUM SHOT","BRUNHILD steps back and raises her greatsword between them.","Brunhild lùi lại, giơ đại kiếm chắn giữa hai người.",["s","brunY","top-right, beside Brunhild's head","Ilsa would hit me for even thinking about it.","Ilsa mà biết em vừa nghĩ thế thì đã đấm em rồi."]]]},
+]);
+INS("c03","4",[
+ {id:"4b",L:"F3 LR2 F2",c:"brunY morr",p:[
+  ["WIDE SHOT, dynamic","Bleeding light from the new scar across her nose, BRUNHILD charges through the crows and reaches MORRIGAN, greatsword stopping at the witch's throat.","Mặt mang vết sẹo mới, Brunhild xông qua bầy quạ, kiếm dừng ở cổ Morrigan.",[]],
+  ["CLOSE-UP","MORRIGAN's calm smile above the blade.","Morrigan mỉm cười bình thản trên lưỡi kiếm.",["s","morr","top-left, beside Morrigan's head","You won't. You are a wall, wolf. Not a blade.","Ngươi không làm đâu. Ngươi là bức tường, con sói. Không phải lưỡi kiếm."]],
+  ["CLOSE-UP","BRUNHILD hesitating, sweat on her brow.","Brunhild do dự, mồ hôi trên trán.",[]],
+  ["WIDE SHOT","In that heartbeat, a storm of crows slams into Brunhild from all sides and drags her to the ground.","Ngay khoảnh khắc ấy, bão quạ đâm vào Brunhild từ mọi phía, kéo nàng ngã xuống.",[]]]},
+]);
+INS("c03","5",[
+ {id:"5b",L:"F2 LR3 F2",c:"brunY",p:[
+  ["MEDIUM SHOT","Where Morrigan stood, a single golden thread drifts down onto the ash.","Nơi Morrigan vừa đứng, một sợi chỉ vàng rơi xuống tro.",["c","top-left corner","She left one thing behind.","Mụ để lại một thứ."]],
+  ["CLOSE-UP","BRUNHILD crawling to it, cupping it in her grey hands.","Brunhild bò tới, khum tay xám nâng lấy nó.",[]],
+  ["CLOSE-UP","The thread fading in her palm like a dying spark.","Sợi chỉ mờ dần trong lòng bàn tay như tia lửa sắp tắt.",["w","brunY","top-right, beside Brunhild's mouth","Ilsa… no, no…","Ilsa… không, không…"]],
+  ["WIDE SHOT","Nothing remains in her hands. Morrigan's laughter echoes through the dead forest.","Lòng tay trống trơn. Tiếng cười của Morrigan vang khắp rừng chết.",["c","bottom-right corner","Something to forget, the witch called it.","Mụ phù thủy gọi nó là: một thứ để quên."]]]},
+]);
+INS("c03","6",[
+ {id:"6b",L:"F3 LR2 F2",c:"brunY",p:[
+  ["WIDE SHOT, falling ash","Brunhild walking, her figure smaller each panel, half her armor grey.","Brunhild bước đi, nửa bộ giáp đã xám.",["c","top-left corner","The baker's face went first.","Khuôn mặt cô thợ bánh mất đi trước tiên."]],
+  ["CLOSE-UP","A blurred memory: a woman with flour on her cheeks holding a bun, her face a featureless smear.","Ký ức nhoè: người phụ nữ má dính bột cầm bánh, khuôn mặt mờ trắng.",[]],
+  ["CLOSE-UP","A blurred memory of a training yard; the words of the lesson dissolve into ash.","Ký ức nhoè về sân tập; lời dạy tan thành tro.",["c","bottom-left corner","Then Gwyndra's lesson.","Rồi đến lời dạy của Gwyndra."]],
+  ["MEDIUM SHOT","BRUNHILD gripping the scroll to her chest, whispering into it.","Brunhild ôm cuộn thư vào ngực, thì thầm vào đó.",["w","brunY","top-right, beside the scroll","Not yours. Never yours.","Không phải tên của người. Không bao giờ."]]]},
+ {id:"6c",L:"F3 F2 F2",c:"brunY keeper",p:[
+  ["CLOSE-UP","Mira's little iron lantern in the ash: its ember finally goes out with a last wisp of smoke.","Chiếc đèn sắt của Mira trên tro: hòn than cuối cùng tắt, một sợi khói bay lên.",["c","top-left corner","The last warmth she carried went out.","Hơi ấm cuối cùng nàng mang theo đã tắt."]],
+  ["CLOSE-UP","BRUNHILD lying face-down, lips barely moving.","Brunhild nằm úp mặt, môi chỉ còn mấp máy.",["w","brunY","right side, beside Brunhild's mouth","——…","——…"]],
+  ["CLOSE-UP","A slender warm hand with a silver night-wing ring gently touches Brunhild's grey cheek.","Một bàn tay ấm, đeo nhẫn bạc cánh đêm, nhẹ chạm vào má xám của Brunhild.",["s","keeper","top-left, beside the hand","There you are. You held on a long time.","Ngươi đây rồi. Ngươi đã cố được lâu lắm."]]]},
+]);
+INS("c03","7",[
+ {id:"7b",L:"F2 LR3 F2",c:"brunY keeper",p:[
+  ["MEDIUM SHOT","BRUNHILD sits up; her armor has been cleaned and laid beside her. The Keeper hums softly while stirring the pot.","Brunhild ngồi dậy; giáp đã được lau sạch đặt bên cạnh. Người Giữ Lửa ngân nga khi khuấy nồi.",["s","keeper","top-left, beside the Keeper's head","♪ Sleep, little ember, the night is long… ♪","♪ Ngủ đi đốm lửa nhỏ, đêm còn dài… ♪"]],
+  ["CLOSE-UP","BRUNHILD freezing, recognizing the song.","Brunhild sững người nhận ra bài hát.",["s","brunY","top-right, beside Brunhild's head","That song… who taught it to you?","Bài hát đó… ai dạy cho ngươi?"]],
+  ["CLOSE-UP","The Keeper, surprised, then smiling.","Người Giữ Lửa ngạc nhiên rồi mỉm cười.",["s","keeper","top-left, beside the Keeper's head","No one. It came with the fire. Every Keeper wakes up knowing it.","Không ai cả. Nó đến cùng ngọn lửa. Người Giữ Lửa nào tỉnh dậy cũng biết nó."]],
+  ["WIDE SHOT","The two women by the fire; the song's notes drift up like embers.","Hai người bên lửa; nốt nhạc bay lên như tàn lửa.",[]]]},
+ {id:"7c",L:"F3 LR2 F2",c:"brunY keeper",p:[
+  ["WIDE SHOT","The Keeper stands beside the great bonfire and the coiled sword planted in it, explaining.","Người Giữ Lửa đứng cạnh đống lửa và thanh kiếm cắm giữa, giảng giải.",["s","keeper","top-left, beside the Keeper's head","When this fire fades, an Ashen One comes. They walk into it, and the world is warm again.","Khi ngọn lửa này tàn, một Kẻ Tro Tàn sẽ đến. Họ bước vào lửa, và thế giới lại ấm."]],
+  ["CLOSE-UP","BRUNHILD horrified.","Brunhild kinh hãi.",["s","brunY","top-right, beside Brunhild's head","That's monstrous.","Thật quái ác."]],
+  ["CLOSE-UP","The Keeper's gentle, accepting smile.","Nụ cười dịu dàng, cam chịu của Người Giữ Lửa.",["s","keeper","top-left, beside the Keeper's head","Is it? Your queen did the same. She just did it for a whole city.","Vậy sao? Nữ hoàng của ngươi cũng làm thế. Chỉ là bà làm cho cả một kinh thành."]],
+  ["MEDIUM SHOT","BRUNHILD looks down, silent, hand on the scroll.","Brunhild cúi đầu im lặng, tay đặt lên cuộn thư.",[]]]},
+]);
+INS("c03","8",[
+ {id:"8b",L:"F3 LR2 F2",c:"brunY keeper",p:[
+  ["WIDE SHOT, montage of days","BRUNHILD chopping dead wood, carrying stones to repair the shrine wall, the Keeper laughing at her clumsy masonry.","Những ngày sau: Brunhild chặt củi, khuân đá sửa tường đền; Người Giữ Lửa cười vì nàng xây vụng.",["c","top-left corner","The wolf learned to tend a fire.","Con sói học cách giữ lửa."]],
+  ["CLOSE-UP","The Keeper guiding Brunhild's hands to place a log just right.","Người Giữ Lửa cầm tay Brunhild đặt khúc củi đúng chỗ.",["s","keeper","top-left, beside the Keeper's head","Gently. A fire is fed, not fought.","Nhẹ thôi. Lửa là để nuôi, không phải để đánh."]],
+  ["CLOSE-UP","The grey veins on Brunhild's arm slowly fading in the warmth.","Vân xám trên tay Brunhild nhạt dần trong hơi ấm.",[]],
+  ["MEDIUM SHOT","BRUNHILD smiling for the first time in a hundred years, a little awkwardly.","Brunhild mỉm cười lần đầu sau cả trăm năm, hơi vụng về.",[]]]},
+ {id:"8c",L:"F2 LR3 F2",c:"brunY keeper",p:[
+  ["WIDE SHOT, night","A crow lands at the edge of the firelight outside the shrine entrance, red eyes glinting.","Một con quạ đáp xuống rìa vùng sáng ngoài cửa đền, mắt đỏ lóe lên.",[]],
+  ["MEDIUM SHOT","BRUNHILD leaps up, greatsword ready.","Brunhild bật dậy, kiếm sẵn sàng.",[]],
+  ["CLOSE-UP","The crow hops forward, but the firelight makes it shriek and recoil.","Con quạ nhảy tới nhưng ánh lửa khiến nó rít lên lùi lại.",[]],
+  ["MEDIUM SHOT","The Keeper, calm, keeps stirring her pot.","Người Giữ Lửa bình thản khuấy nồi.",["s","keeper","top-left, beside the Keeper's head","Sit, wolf. Nothing from the dark crosses this fire. Not her crows. Not anything.","Ngồi xuống đi, sói. Không thứ gì từ bóng tối vượt được ngọn lửa này. Kể cả quạ của mụ."]]]},
+]);
+INS("c03","9",[
+ {id:"9b",L:"F2 LR3 F2",c:"brun sera",p:[
+  ["MEDIUM SHOT, present day","Back at the bonfire now. SERAPHINE has been listening, her head tilted.","Hiện tại. Seraphine nghiêng đầu lắng nghe.",["s","sera","top-left, beside Seraphine's head","The Keeper who saved you… was she kind?","Người Giữ Lửa đã cứu ngươi… nàng ấy có dịu dàng không?"]],
+  ["CLOSE-UP","BRUNHILD looking at Seraphine with a complicated expression.","Brunhild nhìn Seraphine với ánh mắt phức tạp.",["s","brun","top-right, beside Brunhild's head","Kinder than the fire ever deserved.","Dịu dàng hơn mức ngọn lửa xứng đáng."]],
+  ["CLOSE-UP","SERAPHINE's hand unconsciously touching an old iron key on a cord around her neck.","Tay Seraphine vô thức chạm chiếc chìa khoá sắt đeo trên cổ.",[]],
+  ["WIDE SHOT","BRUNHILD looks away into the fire, saying nothing more.","Brunhild nhìn vào lửa, không nói gì thêm.",["c","bottom-right corner","End of Chapter 3.","Hết Chương 3."]]]},
+]);
+// sửa lời trang 9 cho khớp mốc thời gian (Kẻ Tro Tàn chỉ đến năm 297)
+(()=>{const pg=CH.find(c=>c.id==="c03").pages.find(p=>p.id==="9");
+ pg.p[2]=["MEDIUM SHOT","The Keeper looks toward the dark entrance of the shrine, her golden eyes soft and lonely.","Người Giữ Lửa nhìn về cửa đền tối, đôi mắt vàng dịu dàng và cô đơn.",["s","keeper","top-right, beside the Keeper's head","It came with the fire. A Keeper gives it to the one she will wait for.","Nó đến cùng ngọn lửa. Người Giữ Lửa sẽ trao nó cho người mà nàng sẽ chờ."]];
+ pg.p[2]=pg.p[2];pg.p[2][3]=pg.p[2][3];pg.p[2].length=4;
+ // bỏ dòng "Hết Mùa 1 — Phần Một" vì giờ chương 3 có trang kết riêng
+})();
+
+// ===================== CHƯƠNG 4 — mở rộng lên 25 trang =====================
+INS("c04","1",[
+ {id:"1b",L:"F3 LR2 F2",c:"gwyp queen",p:[
+  ["WIDE SHOT, first night","GWYNDRA alone at the gate in total darkness, only the faint glow of the fire-vein crack at her feet. Utter silence.","Đêm đầu tiên: Gwyndra một mình trong bóng tối tuyệt đối.",["c","top-left corner","The first night, the silence was the loudest thing she had ever heard.","Đêm đầu, sự im lặng là thứ ồn ào nhất nàng từng nghe."]],
+  ["CLOSE-UP, warm flashback","QUEEN ALDRENN on a white horse passing through the open north gate at sunrise, waving.","Hồi tưởng: nữ hoàng cưỡi ngựa trắng qua cổng bắc lúc bình minh, vẫy tay.",["s","queen","top-left, beside the queen's head","Good morning, Gwyndra.","Chào buổi sáng, Gwyndra."]],
+  ["CLOSE-UP, present","GWYNDRA's lips trembling into a small smile.","Môi Gwyndra run run nở nụ cười nhỏ.",["w","gwyp","top-right, beside Gwyndra's mouth","Good morning, my queen.","Chào buổi sáng, thưa nữ hoàng."]],
+  ["WIDE SHOT","She says it to the empty road. Ash falls.","Nàng nói với con đường trống. Tro rơi.",[]]]},
+ {id:"1c",L:"F2 LR3 F2",c:"gwyp",p:[
+  ["MEDIUM SHOT","Year three: GWYNDRA's cheeks hollow, armor dull; she still polishes it every morning.","Năm thứ ba: má Gwyndra hóp, giáp xỉn; sáng nào nàng vẫn lau.",["c","top-left corner","Year three. There was nothing left to eat.","Năm thứ ba. Không còn gì để ăn."]],
+  ["CLOSE-UP","Her stomach growling; she ignores it.","Bụng nàng sôi; nàng mặc kệ.",[]],
+  ["CLOSE-UP","Faint grey spreading at her fingertips.","Màu xám mờ lan ở đầu ngón tay.",[]],
+  ["MEDIUM SHOT","GWYNDRA straightens her back and plants her sword again.","Gwyndra đứng thẳng lưng, cắm kiếm xuống lần nữa.",["s","gwyp","top-left, beside Gwyndra's head","A guard who leaves her post to eat is not a guard.","Lính gác bỏ vị trí đi kiếm ăn thì không còn là lính gác."]]]},
+]);
+INS("c04","2",[
+ {id:"2b",L:"F3 LR2 F2",c:"gwyp",p:[
+  ["MEDIUM SHOT","Warmed by her burning sword, GWYNDRA sits against the gate trying to remember something, eyes closed.","Được kiếm lửa sưởi ấm, Gwyndra tựa cổng cố nhớ điều gì, mắt nhắm.",["c","top-left corner","The fire kept her body warm. It could not keep her memories.","Ngọn lửa giữ ấm thân thể nàng. Nhưng không giữ được ký ức."]],
+  ["CLOSE-UP","A blurred memory: a woman's silhouette at a cottage door, face completely blank.","Ký ức nhoè: bóng một người phụ nữ ở cửa nhà tranh, khuôn mặt trống trơn.",[]],
+  ["CLOSE-UP","GWYNDRA frowning, distressed.","Gwyndra cau mày, khổ sở.",["w","gwyp","top-right, beside Gwyndra's mouth","Mother…? What did your face look like…?","Mẹ…? Mặt mẹ trông thế nào nhỉ…?"]],
+  ["MEDIUM SHOT","She gives up and repeats the order aloud, like a prayer.","Nàng bỏ cuộc và đọc to mệnh lệnh như cầu nguyện.",["s","gwyp","bottom-left, beside Gwyndra's head","Guard the gate. Let no one enter. Not even her.","Canh cổng. Không ai được vào. Kể cả người."]]]},
+]);
+INS("c04","3",[
+ {id:"3b",L:"F3 LR2",c:"gwyh dullh",p:[
+  ["WIDE SHOT, dusk","High on the outer wall above the gate, headless DULLAHAN rides past with her skeletal riders. Below, GWYNDRA stands at her post.","Trên tường thành cao, Dullahan không đầu dẫn kỵ sĩ xương đi qua. Bên dưới, Gwyndra đứng gác.",["c","top-left corner","Two guards. Two oaths. Neither ever broken.","Hai người gác. Hai lời thề. Chưa từng bị phá."]],
+  ["CLOSE-UP","GWYNDRA raises her burning sword in a silent salute toward the wall.","Gwyndra giơ kiếm lửa chào lặng lẽ về phía tường thành.",[]],
+  ["CLOSE-UP","DULLAHAN, without turning her closed-eyed head, raises her lance in return.","Dullahan, không quay cái đầu nhắm mắt, giơ thương đáp lễ.",[]]]},
+]);
+INS("c04","4",[
+ {id:"4b",L:"F3 LR2 F2",c:"gwyh",p:[
+  ["MEDIUM SHOT, year forty","Gwyndra's point of view: a tall white-haired woman in wolf armor pleading in front of the gate, her words muffled like underwater.","Góc nhìn Gwyndra năm 40: người phụ nữ tóc trắng mặc giáp sói van nài trước cổng, lời nói nghe như dưới nước.",["c","top-left corner","Year forty. A stranger came, and spoke as if she knew her.","Năm thứ bốn mươi. Một người lạ đến, nói như thể quen nàng."]],
+  ["CLOSE-UP","GWYNDRA's empty glowing eyes; inside her chest, a tiny flicker of warmth she doesn't understand.","Mắt rỗng của Gwyndra; trong ngực, một đốm ấm nhỏ nàng không hiểu.",[]],
+  ["WIDE SHOT","Night after night, wrapped sweet buns appear beside the candle. GWYNDRA lines them up neatly in a row against the gate, untouched.","Đêm nối đêm, những chiếc bánh gói vải xuất hiện cạnh ngọn nến. Gwyndra xếp chúng ngay ngắn thành hàng dựa cổng.",[]],
+  ["CLOSE-UP","A long row of old buns slowly covered by ash.","Hàng bánh cũ dần bị tro phủ kín.",["c","bottom-right corner","She did not eat them. She did not throw them away either.","Nàng không ăn. Nhưng cũng không vứt đi."]]]},
+]);
+INS("c04","5",[
+ {id:"5b",L:"F2 LR3 F2",c:"gwyh",p:[
+  ["WIDE SHOT, night, year one hundred and twelve","Three hooded thieves creep along the wall toward a gap near the gate.","Năm 112: ba tên trộm trùm mũ lẻn dọc tường về phía khe hở gần cổng.",["c","top-left corner","Year one hundred and twelve.","Năm thứ một trăm mười hai."]],
+  ["MEDIUM SHOT","GWYNDRA appears in front of them, burning sword lowered, blocking the gap.","Gwyndra hiện ra chắn khe hở, kiếm lửa hạ thấp.",["s","gwyh","top-right, beside Gwyndra's head","Stand back.","Lùi lại."]],
+  ["CLOSE-UP","The thieves panicking and running the OTHER way, away from the city.","Bọn trộm hoảng loạn bỏ chạy ngược ra xa thành.",[]],
+  ["MEDIUM SHOT","GWYNDRA watches them go and does not pursue.","Gwyndra nhìn chúng đi, không đuổi theo.",["c","bottom-right corner","Her order was only ever about going in.","Lệnh của nàng chỉ nói về việc đi vào."]]]},
+ {id:"5c",L:"F3 LR2 F2",c:"gwyh",p:[
+  ["MEDIUM SHOT, year one hundred and sixty","An old wandering scholar with a lantern and a satchel of books stands before Gwyndra, studying her sadly.","Năm 160: một học giả già cầm đèn đứng trước Gwyndra, buồn bã nhìn nàng.",["s","none","top-left, beside the scholar's head","Gatekeeper… do you know what happened to your queen?","Người gác cổng… ngươi có biết chuyện gì đã xảy ra với nữ hoàng của ngươi không?"]],
+  ["CLOSE-UP","GWYNDRA's glowing eyes.","Mắt Gwyndra.",["s","gwyh","top-right, beside Gwyndra's head","The queen has not given leave. Stand back.","Nữ hoàng chưa cho phép. Lùi lại."]],
+  ["CLOSE-UP","The scholar opens his mouth, then closes it, unable to say it.","Học giả mở miệng, rồi ngậm lại, không nỡ nói.",[]],
+  ["WIDE SHOT","The scholar bows deeply and walks away; Gwyndra remains.","Học giả cúi chào thật sâu rồi bỏ đi; Gwyndra ở lại.",["c","bottom-right corner","No one ever had the heart to tell her.","Chưa ai đủ nhẫn tâm để nói với nàng."]]]},
+ {id:"5d",L:"F4 F2",c:"gwyh",p:[
+  ["SPLASH PANEL, year two hundred and fifty, a violent ash-storm with red lightning","GWYNDRA kneels over the tiny candle, wrapping her body and her torn red cape around it, shielding it from the howling storm.","Năm 250: bão tro sấm đỏ; Gwyndra quỳ ôm trọn ngọn nến, dùng thân và áo choàng che chắn.",["c","top-left corner","Year two hundred and fifty. The worst storm in living memory.","Năm thứ hai trăm năm mươi. Trận bão tồi tệ nhất từng có."]],
+  ["CLOSE-UP, dawn","The storm has passed; Gwyndra's cape is scorched and shredded — and the candle is still burning.","Bão qua; áo choàng Gwyndra cháy sém rách nát — ngọn nến vẫn còn cháy.",[]]]},
+]);
+INS("c04","6",[
+ {id:"6b",L:"F3 LR2 F2",c:"gwyh kaede",p:[
+  ["WIDE SHOT","KAEDE sits down on a stone a respectful distance from Gwyndra and unties a small gourd.","Kaede ngồi xuống tảng đá cách Gwyndra một khoảng lễ độ, mở bầu rượu.",["s","kaede","top-left, beside Kaede's head","Then I'll wait. I have patience.","Vậy ta sẽ đợi. Ta có thừa kiên nhẫn."]],
+  ["MEDIUM SHOT, montage","Day two: Kaede practicing sword forms in the ash. Gwyndra watching silently.","Ngày thứ hai: Kaede luyện kiếm trong tro; Gwyndra lặng lẽ nhìn.",["c","top-left corner","She waited three days.","Nàng đợi ba ngày."]],
+  ["MEDIUM SHOT","Day three: Kaede offers the gourd toward Gwyndra; Gwyndra doesn't move.","Ngày thứ ba: Kaede chìa bầu rượu về phía Gwyndra; Gwyndra không nhúc nhích.",[]],
+  ["CLOSE-UP","KAEDE smiling kindly at the silent knight.","Kaede mỉm cười hiền hậu với hiệp sĩ im lặng.",["s","kaede","top-left, beside Kaede's head","You remind me of my little sister. She doesn't listen either.","Ngươi làm ta nhớ em gái ta. Nó cũng chẳng chịu nghe ai."]]]},
+ {id:"6c",L:"F2 LR3 F2",c:"gwyh kaede",p:[
+  ["MEDIUM SHOT","KAEDE stands and faces Gwyndra seriously.","Kaede đứng dậy, nghiêm nghị đối mặt Gwyndra.",["s","kaede","top-left, beside Kaede's head","In my land we say: a promise kept too long becomes a curse.","Ở quê ta có câu: lời hứa giữ quá lâu sẽ thành lời nguyền."]],
+  ["CLOSE-UP","GWYNDRA's glowing eyes, unblinking.","Mắt Gwyndra không chớp.",["s","gwyh","top-right, beside Gwyndra's head","Then I am cursed.","Vậy ta bị nguyền."]],
+  ["CLOSE-UP","KAEDE bows deeply.","Kaede cúi chào thật sâu.",["s","kaede","top-left, beside Kaede's head","Then forgive me. I will go in by the sword.","Vậy thứ lỗi cho ta. Ta sẽ vào bằng kiếm."]],
+  ["WIDE SHOT","Both draw: katana with red ribbon versus burning greatsword, embers rising between them.","Cả hai rút kiếm: katana buộc ruy băng đỏ và đại kiếm lửa, tàn lửa bay giữa họ.",[]]]},
+ {id:"6d",L:"F3 LR2 F2",c:"gwyh kaede",p:[
+  ["WIDE SHOT, dynamic","KAEDE dashes in a blur; GWYNDRA plants her feet like a wall and blocks; a shockwave of ash bursts outward.","Kaede lao tới như cơn gió; Gwyndra trụ chân như bức tường chặn đỡ; sóng tro bung ra.",[]],
+  ["CLOSE-UP","Their blades locked, sparks spraying.","Hai lưỡi kiếm khoá nhau, tia lửa bắn tung.",[]],
+  ["CLOSE-UP","KAEDE grinning, delighted by a worthy opponent.","Kaede cười, thích thú vì gặp đối thủ xứng tầm.",["s","kaede","top-left, beside Kaede's head","You don't move at all! Like a mountain!","Ngươi không hề nhúc nhích! Như núi vậy!"]],
+  ["WIDE SHOT","They break apart and circle each other in the ash, both breathing hard.","Họ tách ra, vờn quanh nhau trong tro, thở dốc.",[]]]},
+]);
+INS("c04","8",[
+ {id:"8b",L:"F3 LR2 F2",c:"gwyh",p:[
+  ["WIDE SHOT, gentle ash falling like snow","GWYNDRA sits in the ash holding Kaede's still body, rocking slightly.","Gwyndra ngồi trong tro ôm thân thể bất động của Kaede, khẽ đung đưa.",[]],
+  ["CLOSE-UP","A tear of light runs from one glowing eye — the first in two hundred and ninety-one years.","Một giọt lệ sáng lăn từ mắt nàng — giọt đầu tiên sau 291 năm.",[]],
+  ["CLOSE-UP","GWYNDRA's lips moving; for an instant her eyes look human.","Môi Gwyndra mấp máy; trong một thoáng, mắt nàng như mắt người.",["w","gwyh","top-right, beside Gwyndra's mouth","My name… my name was Gwyndra.","Tên ta… tên ta là Gwyndra."]],
+  ["MEDIUM SHOT","Then the glow returns, empty; she gently lays Kaede down.","Rồi ánh sáng rỗng quay lại; nàng nhẹ nhàng đặt Kaede xuống.",[]]]},
+]);
+INS("c04","9",[
+ {id:"9b",L:"F3 LR2 F2",c:"gwyh",p:[
+  ["WIDE SHOT, night","GWYNDRA kneels between the grave and the candle, speaking quietly to the grave.","Gwyndra quỳ giữa ngôi mộ và ngọn nến, khẽ nói với nấm mộ.",["s","gwyh","top-left, beside Gwyndra's head","Nothing entered today.","Hôm nay không ai vào cả."]],
+  ["CLOSE-UP","The red ribbon on Kaede's katana fluttering in the wind.","Dải ruy băng đỏ trên kiếm Kaede bay trong gió.",[]],
+  ["CLOSE-UP","GWYNDRA's face softened.","Gương mặt Gwyndra dịu lại.",["s","gwyh","top-right, beside Gwyndra's head","Tsubaki. A sword is for protecting. I am keeping it for you.","Tsubaki. Kiếm là để bảo vệ. Ta đang giữ câu ấy cho ngươi."]],
+  ["WIDE SHOT","The lonely gate, the grave, the candle, and the knight — four small lights in an endless grey world.","Cánh cổng cô độc, ngôi mộ, ngọn nến và người hiệp sĩ — bốn đốm sáng nhỏ giữa thế giới xám vô tận.",["c","bottom-right corner","End of Chapter 4.","Hết Chương 4."]]]},
+]);
+
+// ===================== CHƯƠNG 5 — mở rộng lên 25 trang =====================
+INS("c05","__start",[
+ {id:"0a",L:"F3 LR2 F2",c:"keeper brun",p:[
+  ["WIDE SHOT, night, the shrine steps","THE FIRE KEEPER and BRUNHILD sit side by side on the shrine steps, the big bonfire behind them, sharing a blanket.","Người Giữ Lửa và Brunhild ngồi cạnh nhau trên bậc đền, chung một tấm chăn.",["c","top-left corner","Year one hundred and fifty.","Năm thứ một trăm năm mươi."]],
+  ["CLOSE-UP","The Keeper, curious, chin on her knees.","Người Giữ Lửa tò mò, cằm tựa lên gối.",["s","keeper","top-left, beside the Keeper's head","Brunhild. Have you ever loved someone?","Brunhild. Ngươi đã từng yêu ai chưa?"]],
+  ["CLOSE-UP","BRUNHILD looking up at the ash sky, thinking.","Brunhild ngước nhìn bầu trời tro, ngẫm nghĩ.",["s","brun","top-right, beside Brunhild's head","My queen. Not like that. Like you love the sun.","Nữ hoàng của ta. Không phải kiểu đó. Như người ta yêu mặt trời."]],
+  ["MEDIUM SHOT","The Keeper smiles a little sadly at the fire.","Người Giữ Lửa mỉm cười hơi buồn nhìn ngọn lửa.",["s","keeper","top-left, beside the Keeper's head","I've never been anyone's sun. Only the fire's.","Ta chưa từng là mặt trời của ai. Chỉ là của ngọn lửa."]]]},
+ {id:"0b",L:"F2 LR3 F2",c:"keeper brun",p:[
+  ["MEDIUM SHOT","The Keeper scratches a new tally mark on the shrine wall; the wall is covered with thousands of marks.","Người Giữ Lửa khắc thêm một vạch lên tường đền; cả bức tường phủ hàng nghìn vạch.",["c","top-left corner","Year two hundred and twenty.","Năm thứ hai trăm hai mươi."]],
+  ["CLOSE-UP","BRUNHILD looking at the wall in awe.","Brunhild sững sờ nhìn bức tường.",["s","brun","top-right, beside Brunhild's head","You don't age either.","Ngươi cũng không già đi."]],
+  ["CLOSE-UP","The Keeper touching her own face as if unsure it belongs to her.","Người Giữ Lửa chạm vào mặt mình như không chắc nó là của mình.",["s","keeper","top-left, beside the Keeper's head","Not while the fire lives. I don't remember who I was before it.","Không, khi ngọn lửa còn sống. Ta không nhớ mình là ai trước nó."]],
+  ["WIDE SHOT","The two of them small before the wall of countless marks.","Hai người nhỏ bé trước bức tường vô số vạch khắc.",["c","bottom-right corner","Keepers forget. That is part of the price.","Người Giữ Lửa sẽ quên. Đó là một phần cái giá."]]]},
+]);
+INS("c05","1",[
+ {id:"1b",L:"F3 LR2 F2",c:"ashen brun",p:[
+  ["MEDIUM SHOT","The hooded Ashen One staggers into the firelight; grey ash flakes fall from his cloak with every step.","Kẻ Tro Tàn loạng choạng vào vùng sáng; tro rơi khỏi áo choàng mỗi bước.",[]],
+  ["CLOSE-UP","He coughs, and tiny glowing embers come out instead of breath.","Hắn ho, và những đốm than nhỏ bay ra thay cho hơi thở.",[]],
+  ["CLOSE-UP","BRUNHILD's eyes narrowing.","Brunhild nheo mắt.",["w","brun","top-right, beside Brunhild's mouth","An Ashen One. Walking fuel.","Một Kẻ Tro Tàn. Củi biết đi."]],
+  ["MEDIUM SHOT","She grips her greatsword tighter.","Nàng siết chặt đại kiếm.",[]]]},
+]);
+INS("c05","2",[
+ {id:"2b",L:"F2 LR3 F2",c:"keeper ashen",p:[
+  ["WIDE SHOT, night","The Ashen One sleeps by the fire under the Keeper's blanket; the Keeper sits beside him, looking at his face (which the reader never sees: his hood is turned away from us).","Kẻ Tro Tàn ngủ bên lửa dưới chăn của nàng; Người Giữ Lửa ngồi cạnh nhìn mặt hắn (người đọc không thấy).",[]],
+  ["CLOSE-UP","The Keeper's soft expression.","Nét mặt dịu dàng của Người Giữ Lửa.",["w","keeper","top-left, beside the Keeper's mouth","You look so tired.","Trông chàng mệt mỏi quá."]],
+  ["CLOSE-UP","She brushes ash off his gloved hand with her fingers.","Nàng phủi tro khỏi bàn tay đeo găng của hắn.",[]],
+  ["WIDE SHOT","From the doorway, BRUNHILD watches with a frown.","Từ cửa đền, Brunhild nhíu mày nhìn.",[]]]},
+ {id:"2c",L:"F3 LR2",c:"keeper brun",p:[
+  ["MEDIUM SHOT","BRUNHILD pulls the Keeper aside by the wall of tally marks.","Brunhild kéo Người Giữ Lửa ra góc tường vạch khắc.",["s","brun","top-left, beside Brunhild's head","They come to burn. You know that. Don't get attached.","Bọn họ đến để cháy. Ngươi biết mà. Đừng gắn bó."]],
+  ["CLOSE-UP","The Keeper, eyes lowered.","Người Giữ Lửa cụp mắt.",["s","keeper","top-left, beside the Keeper's head","I know.","Ta biết."]],
+  ["CLOSE-UP","She glances back at the sleeping figure anyway.","Dù vậy nàng vẫn ngoái nhìn bóng người đang ngủ.",[]]]},
+]);
+INS("c05","3",[
+ {id:"3b",L:"F3 LR2 F2",c:"keeper ashen",p:[
+  ["WIDE SHOT","The Ashen One on the broken roof of the shrine, patching it with planks; the Keeper handing him tools from below, laughing.","Kẻ Tro Tàn trên mái đền vá ván; Người Giữ Lửa đưa dụng cụ từ dưới, cười vang.",[]],
+  ["CLOSE-UP","His gloved hands carving a small wooden bird with a knife by the fire.","Bàn tay đeo găng của hắn khắc một chú chim gỗ nhỏ bên lửa.",[]],
+  ["CLOSE-UP","He holds the little wooden bird out to the Keeper.","Hắn chìa chú chim gỗ cho nàng.",["s","ashen","top-right, beside the hooded figure","It can't fly. Neither can I. But it keeps you company.","Nó không bay được. Ta cũng vậy. Nhưng nó sẽ ở cạnh nàng."]],
+  ["MEDIUM SHOT","The Keeper holding the bird to her chest with both hands, beaming.","Người Giữ Lửa áp chú chim vào ngực bằng cả hai tay, rạng rỡ.",[]]]},
+ {id:"3c",L:"F2 LR3 F2",c:"brun ashen",p:[
+  ["WIDE SHOT","BRUNHILD spars with the Ashen One in front of the shrine; he is hopeless and lands on his back in the ash.","Brunhild đấu tập với Kẻ Tro Tàn; hắn kém cỏi, ngã ngửa ra tro.",[]],
+  ["MEDIUM SHOT","BRUNHILD, almost laughing, offers her hand.","Brunhild suýt bật cười, chìa tay.",["s","brun","top-left, beside Brunhild's head","Your feet. A wall wins by not moving.","Chân ngươi. Bức tường thắng nhờ không lùi."]],
+  ["MEDIUM SHOT","Sitting together afterward, he nods at the scroll on her belt.","Ngồi nghỉ, hắn hất đầu về cuộn thư ở thắt lưng nàng.",["s","ashen","top-right, beside the hooded figure","She says you guard a name. Whose?","Nàng ấy bảo ngươi giữ một cái tên. Của ai?"]],
+  ["CLOSE-UP","BRUNHILD silent; he simply nods.","Brunhild im lặng; hắn chỉ gật đầu.",["s","ashen","top-right, beside the hooded figure","Then keep it. Some things should belong to only one person.","Vậy cứ giữ đi. Có những thứ chỉ nên thuộc về một người."]]]},
+]);
+INS("c05","4",[
+ {id:"4b",L:"F3 LR2 F2",c:"keeper brun",p:[
+  ["WIDE SHOT, morning","The Keeper humming the old lullaby while sweeping the shrine, the wooden bird on a shelf above the fire.","Sáng ra, Người Giữ Lửa vừa quét đền vừa ngân nga bài hát ru; chú chim gỗ trên kệ.",[]],
+  ["MEDIUM SHOT","BRUNHILD leaning on her sword at the door, smirking.","Brunhild tựa kiếm ở cửa, cười nhếch mép.",["s","brun","top-left, beside Brunhild's head","You're singing.","Ngươi đang hát kìa."]],
+  ["CLOSE-UP","The Keeper blushing bright red.","Người Giữ Lửa đỏ bừng mặt.",["s","keeper","top-right, beside the Keeper's head","I always sing!","Ta lúc nào chẳng hát!"]],
+  ["MEDIUM SHOT","BRUNHILD turns away, smiling to herself.","Brunhild quay đi, mỉm cười một mình.",["c","bottom-right corner","In a hundred and eighty years, she had never heard her sing like that.","Một trăm tám mươi năm, nàng chưa từng nghe cô ấy hát như thế."]]]},
+]);
+INS("c05","5",[
+ {id:"5b",L:"F2 LR3 F2",c:"keeper brun",p:[
+  ["MEDIUM SHOT","The Keeper grips Brunhild's arm desperately.","Người Giữ Lửa níu chặt tay Brunhild.",["s","keeper","top-left, beside the Keeper's head","Stop him! You're the strongest one here! Please!","Ngăn chàng lại! Ngươi mạnh nhất ở đây mà! Xin ngươi!"]],
+  ["CLOSE-UP","BRUNHILD looking past her at frost creeping across the stones and the last embers.","Brunhild nhìn qua vai nàng: sương giá bò trên đá, mấy hòn than cuối cùng.",[]],
+  ["CLOSE-UP","BRUNHILD closing her eyes, torn.","Brunhild nhắm mắt, giằng xé.",["w","brun","top-right, beside Brunhild's mouth","…I'm sorry.","…Ta xin lỗi."]],
+  ["WIDE SHOT","The Keeper lets go of her arm, staring at her in disbelief.","Người Giữ Lửa buông tay, nhìn nàng không tin nổi.",[]]]},
+ {id:"5c",L:"F3 F2 F2",c:"brun ashen",p:[
+  ["MEDIUM SHOT","The Ashen One places a hand on Brunhild's shoulder.","Kẻ Tro Tàn đặt tay lên vai Brunhild.",["s","ashen","top-right, beside the hooded figure","Keep her warm while I'm gone, wall.","Giữ ấm cho nàng khi ta đi vắng nhé, bức tường."]],
+  ["CLOSE-UP","BRUNHILD's jaw trembling.","Hàm Brunhild run lên.",["s","brun","top-left, beside Brunhild's head","Come back and do it yourself.","Tự quay về mà làm."]],
+  ["CLOSE-UP","A small nod from under the hood.","Cái gật đầu nhẹ dưới mũ trùm.",[]]]},
+]);
+INS("c05","6",[
+ {id:"6b",L:"F3 LR2 F2",c:"keeper brun ashen",p:[
+  ["WIDE SHOT","The Ashen One steps into the dying bonfire; the coiled sword flares under his hands.","Kẻ Tro Tàn bước vào đống lửa tàn; thanh kiếm xoắn bừng sáng dưới tay hắn.",[]],
+  ["MEDIUM SHOT","The Keeper lunges forward screaming; BRUNHILD catches her from behind and holds her back.","Người Giữ Lửa lao tới gào thét; Brunhild ôm giữ nàng từ phía sau.",["s","keeper","top-left, beside the Keeper's head","NO—!","KHÔNG—!"]],
+  ["CLOSE-UP","The Keeper's outstretched hand, reaching.","Bàn tay vươn ra của nàng.",[]],
+  ["CLOSE-UP","BRUNHILD's face pressed against the Keeper's shoulder, tears streaming, holding on.","Mặt Brunhild áp vào vai nàng, nước mắt giàn giụa, vẫn giữ chặt.",[]]]},
+]);
+INS("c05","7",[
+ {id:"7b",L:"F3 LR2 F2",c:"keeper",p:[
+  ["WIDE SHOT, a grey morning","Outside, survivors emerge from ruins far away, looking up at the dim sun behind the ash for the first time.","Xa xa, người sống sót bước ra khỏi phế tích, lần đầu ngước nhìn mặt trời mờ sau lớp tro.",[]],
+  ["MEDIUM SHOT","Inside, the bonfire burns tall and strong; the Keeper kneels at its edge, searching the ashes with bare hands.","Trong đền, đống lửa cháy cao mạnh; Người Giữ Lửa quỳ bên rìa, bới tro bằng tay trần.",[]],
+  ["CLOSE-UP","Her fingers finding something in the grey ash: the silver night-wing ring, untouched by the fire.","Ngón tay nàng chạm vào thứ gì trong tro: chiếc nhẫn bạc cánh đêm, lửa không làm tổn hại.",[]],
+  ["CLOSE-UP","The Keeper pressing the ring to her lips, eyes closed.","Người Giữ Lửa áp chiếc nhẫn lên môi, nhắm mắt.",["w","keeper","top-left, beside the Keeper's mouth","You'll need it to find your way back. I'll keep it until then.","Chàng sẽ cần nó để tìm đường về. Em giữ đến lúc ấy."]]]},
+]);
+INS("c05","8",[
+ {id:"8b",L:"F3 LR2 F2",c:"keeper brun",p:[
+  ["WIDE SHOT, montage","Years pass: the bonfire strong, but the Keeper no longer tends it. BRUNHILD feeds it alone while the Keeper sits at the entrance.","Năm tháng qua: đống lửa mạnh, nhưng nàng không còn chăm nó. Brunhild một mình thêm củi.",["c","top-left corner","She stopped singing.","Nàng thôi không hát nữa."]],
+  ["CLOSE-UP","The wooden bird on the shelf, covered in dust.","Chú chim gỗ trên kệ phủ bụi.",[]],
+  ["CLOSE-UP","BRUNHILD looking at the Keeper's back with worry.","Brunhild lo lắng nhìn tấm lưng nàng.",[]],
+  ["MEDIUM SHOT","The Keeper staring at the bonfire with dull eyes.","Người Giữ Lửa nhìn đống lửa bằng ánh mắt vô hồn.",[]]]},
+ {id:"8c",L:"F2 LR3 F2",c:"keeper brun",p:[
+  ["MEDIUM SHOT, night","The Keeper asleep by the wall, murmuring; a faint violet glow seeps up through cracks in the shrine floor near her.","Đêm, nàng ngủ bên tường, nói mê; ánh tím mờ rỉ lên từ khe sàn gần nàng.",[]],
+  ["CLOSE-UP","The Keeper talking in her sleep, smiling faintly.","Nàng nói mê, khẽ mỉm cười.",["w","keeper","top-left, beside the Keeper's mouth","…a place below… where no one burns… you're there, aren't you…?","…một nơi bên dưới… nơi không ai phải cháy… chàng ở đó phải không…?"]],
+  ["CLOSE-UP","BRUNHILD awake, watching the violet light in the cracks with alarm.","Brunhild thức, hoảng hốt nhìn ánh tím trong khe nứt.",[]],
+  ["WIDE SHOT","BRUNHILD pushes a heavy stone over the glowing crack.","Brunhild đẩy tảng đá nặng che khe sáng tím.",["c","bottom-right corner","Something below had started calling her.","Có thứ gì bên dưới đã bắt đầu gọi nàng."]]]},
+]);
+INS("c05","10",[
+ {id:"10b",L:"F2 LR3 F2",c:"brun sera",p:[
+  ["WIDE SHOT, present day, night","At the bonfire now: SERAPHINE has fallen asleep sitting up, wrapped in her cloak.","Hiện tại: Seraphine ngủ gật trong áo choàng.",[]],
+  ["CLOSE-UP","The old iron key hanging at Seraphine's neck, glinting in the firelight.","Chiếc chìa khoá sắt trên cổ Seraphine lấp lánh trong ánh lửa.",[]],
+  ["CLOSE-UP","BRUNHILD gently tucking the cloak around Seraphine.","Brunhild nhẹ nhàng kéo áo choàng đắp cho Seraphine.",["w","brun","top-right, beside Brunhild's mouth","I'll tell you one day. When you're strong enough to hate it.","Một ngày ta sẽ kể cho ngươi. Khi ngươi đủ mạnh để căm ghét nó."]],
+  ["WIDE SHOT","Far below the shrine floor, faint violet light pulses once, like a heartbeat.","Sâu dưới sàn đền, ánh tím khẽ đập một nhịp như tim.",["c","bottom-right corner","End of Chapter 5.","Hết Chương 5."]]]},
+]);
+// ===================== CHƯƠNG 6 — mở rộng lên 23 trang =====================
+INS("c06","1",[
+ {id:"1b",L:"F3 LR2 F2",c:"tsub kaede",p:[
+  ["WIDE SHOT, night, the dojo roof","KAEDE and TSUBAKI sit on the tiled roof under blossoming trees, sharing sake and looking at the stars.","Kaede và Tsubaki ngồi trên mái ngói dưới tán hoa, chia rượu ngắm sao.",[]],
+  ["CLOSE-UP","KAEDE pointing west, toward a grey haze on the horizon.","Kaede chỉ về phía tây, nơi chân trời mờ xám.",["s","kaede","top-left, beside Kaede's head","They say in the West, a queen once gave her whole city to the fire.","Người ta kể ở phương Tây, có một nữ hoàng từng hiến cả kinh thành cho ngọn lửa."]],
+  ["CLOSE-UP","TSUBAKI sipping, unimpressed.","Tsubaki nhấp rượu, không mấy ấn tượng.",["s","tsub","top-right, beside Tsubaki's head","Sounds like a stupid queen.","Nghe như một nữ hoàng ngốc."]],
+  ["MEDIUM SHOT","KAEDE laughs and flicks Tsubaki's forehead.","Kaede cười, búng trán Tsubaki.",["s","kaede","top-left, beside Kaede's head","Sounds like someone who knew what a sword is for.","Nghe như một người hiểu kiếm dùng để làm gì."]]]},
+]);
+INS("c06","2",[
+ {id:"2b",L:"F3 LR2 F2",c:"tsub",p:[
+  ["WIDE SHOT, dawn, a grey harbor","TSUBAKI runs barefoot down the stone pier, the ribbon on her wrist; a small boat is already far out on the grey water.","Tsubaki chạy chân trần ra bến đá; con thuyền đã xa ngoài mặt nước xám.",[]],
+  ["CLOSE-UP","TSUBAKI at the end of the pier, screaming.","Tsubaki ở cuối bến, gào lên.",["s","tsub","top-left, beside Tsubaki's head","KAEDE!!","TỶ TỶ!!"]],
+  ["CLOSE-UP","On the distant boat, a tiny figure raises a hand without turning around.","Trên con thuyền xa, một bóng nhỏ giơ tay mà không quay lại.",[]],
+  ["WIDE SHOT","TSUBAKI kneels on the pier, the boat vanishing into ash fog.","Tsubaki quỳ trên bến, con thuyền tan vào sương tro.",[]]]},
+ {id:"2c",L:"F2 LR3 F2",c:"tsub",p:[
+  ["WIDE SHOT, montage","Tsubaki training alone through the years: cutting falling petals that are greyer each season.","Tsubaki tập một mình qua năm tháng, chém những cánh hoa ngày càng xám.",["c","top-left corner","She trained alone. The blossoms turned grey.","Nàng tập một mình. Hoa dần chuyển xám."]],
+  ["CLOSE-UP","A grey petal cut perfectly in half.","Cánh hoa xám bị chém đôi hoàn hảo.",[]],
+  ["CLOSE-UP","TSUBAKI's face, older and colder.","Gương mặt Tsubaki già dặn và lạnh lùng hơn.",[]],
+  ["MEDIUM SHOT","Younger students bowing nervously to her; she ignores them.","Các học trò trẻ run rẩy cúi chào; nàng phớt lờ.",["c","bottom-right corner","She became the strongest in the school. And the loneliest.","Nàng trở thành người mạnh nhất võ đường. Và cô độc nhất."]]]},
+]);
+INS("c06","3",[
+ {id:"3b",L:"F3 LR2 F2",c:"tsub",p:[
+  ["MEDIUM SHOT","An old swordmaster woman with white hair and a cane blocks the dojo gate as Tsubaki leaves with a travel pack.","Bà sư phụ tóc bạc chống gậy chắn cổng võ đường khi Tsubaki đeo hành lý ra đi.",["s","none","top-left, beside the old master's head","Revenge is a blade with no handle, child. It cuts the one who holds it.","Báo thù là lưỡi kiếm không chuôi, con à. Nó cắt chính kẻ cầm nó."]],
+  ["CLOSE-UP","TSUBAKI's cold eyes.","Ánh mắt lạnh của Tsubaki.",["s","tsub","top-right, beside Tsubaki's head","Then I'll bleed.","Vậy con sẽ đổ máu."]],
+  ["CLOSE-UP","The master stepping aside with a sigh.","Sư phụ thở dài nép sang một bên.",[]],
+  ["WIDE SHOT","TSUBAKI walks down the mountain path under grey blossoms.","Tsubaki đi xuống đường núi dưới tán hoa xám.",[]]]},
+ {id:"3c",L:"F2 LR3 F2",c:"tsub",p:[
+  ["MEDIUM SHOT, the harbor","An old ferryman shaking his head.","Ông lái đò già lắc đầu.",["s","none","top-left, beside the ferryman's head","No one crosses the Ash Sea and comes back. No one.","Không ai vượt Biển Tro mà quay về. Không một ai."]],
+  ["CLOSE-UP","TSUBAKI dropping her purse and her sake gourd into his hands.","Tsubaki đặt túi tiền và bầu rượu vào tay ông.",["s","tsub","top-right, beside Tsubaki's head","I'm not coming back. Sell me the boat.","Tôi không định quay về. Bán thuyền cho tôi."]],
+  ["CLOSE-UP","The ferryman staring at her, then pushing the gourd back.","Ông lái đò nhìn nàng rồi đẩy bầu rượu trả lại.",["s","none","top-left, beside the ferryman's head","Keep the sake. You'll need it more than me.","Giữ rượu lại. Cô cần nó hơn tôi."]],
+  ["WIDE SHOT","TSUBAKI rowing out into the grey fog alone.","Tsubaki một mình chèo ra màn sương xám.",[]]]},
+]);
+INS("c06","4",[
+ {id:"4b",L:"F3 LR2 F2",c:"tsub hollow",p:[
+  ["WIDE SHOT, night on the Ash Sea","Half-sunken ghost ships drift close; hollow sailors lean over the rails, grey hands reaching for Tsubaki's boat.","Tàu ma trôi sát; thuỷ thủ Rỗng chồm qua lan can, tay xám vươn về thuyền Tsubaki.",[]],
+  ["CLOSE-UP","TSUBAKI calmly placing her hand on her katana hilt.","Tsubaki bình thản đặt tay lên chuôi kiếm.",[]],
+  ["WIDE SHOT, dynamic","A single bright arc of steel slices across the darkness; the reaching hands dissolve into ash. No blood.","Một đường kiếm sáng xé bóng tối; những bàn tay tan thành tro.",[]],
+  ["MEDIUM SHOT","TSUBAKI sheathing her sword, rowing on without looking back.","Tsubaki tra kiếm, chèo tiếp không ngoái lại.",[]]]},
+ {id:"4c",L:"F2 LR3 F2",c:"tsub kaede",p:[
+  ["MEDIUM SHOT, day thirty","TSUBAKI, gaunt and exhausted, shakes the last drops from her sake gourd.","Ngày thứ ba mươi: Tsubaki gầy rộc, dốc giọt rượu cuối.",["c","top-left corner","Day thirty.","Ngày thứ ba mươi."]],
+  ["CLOSE-UP","On the grey water beside the boat, a faint reflection of KAEDE smiling.","Trên mặt nước xám cạnh thuyền, bóng Kaede mỉm cười hiện mờ.",[]],
+  ["CLOSE-UP","TSUBAKI reaching toward the water.","Tsubaki vươn tay xuống nước.",["w","tsub","top-right, beside Tsubaki's mouth","Sister…","Tỷ…"]],
+  ["WIDE SHOT","The reflection breaks into ripples. Tsubaki keeps rowing, crying silently.","Bóng vỡ thành gợn sóng. Tsubaki vẫn chèo, lặng lẽ khóc.",[]]]},
+ {id:"4d",L:"F3 LR2 F2",c:"tsub mira",p:[
+  ["WIDE SHOT","TSUBAKI drags her boat onto a grey shore and collapses; ahead, warm lantern light glows from a cave.","Tsubaki kéo thuyền lên bờ xám rồi gục; phía trước, ánh đèn lồng ấm hắt ra từ hang.",[]],
+  ["MEDIUM SHOT","MIRA crouches over her with a lantern, fox ears twitching.","Mira cúi xuống với chiếc đèn lồng, tai cáo giật giật.",["s","mira","top-left, beside Mira's head","Another one from the East? You're the second this century.","Lại một người từ phương Đông? Ngươi là người thứ hai trong thế kỷ này đấy."]],
+  ["CLOSE-UP","TSUBAKI grabbing Mira's sleeve weakly.","Tsubaki yếu ớt níu tay áo Mira.",["s","tsub","top-right, beside Tsubaki's head","The first one… white kimono… red ribbon…","Người thứ nhất… áo trắng… ruy băng đỏ…"]],
+  ["MEDIUM SHOT","MIRA hands her a loaf of bread and points down a road toward distant ruins.","Mira đưa ổ bánh mì và chỉ con đường về phía phế tích xa.",["s","mira","top-left, beside Mira's head","North gate of Aldrenn. Eat. She already paid for both of you.","Cổng bắc Aldrenn. Ăn đi. Cô ấy đã trả tiền cho cả hai người rồi."]]]},
+]);
+INS("c06","5",[
+ {id:"5b",L:"F2 LR3 F2",c:"tsub gwyh",p:[
+  ["CLOSE-UP","GWYNDRA's glowing eyes dropping to the red ribbon tied on Tsubaki's wrist.","Mắt Gwyndra nhìn xuống dải ruy băng đỏ trên cổ tay Tsubaki.",[]],
+  ["CLOSE-UP","The red ribbon on Tsubaki's wrist fluttering.","Dải ruy băng đỏ trên cổ tay Tsubaki bay phấp phới.",[]],
+  ["CLOSE-UP","GWYNDRA's burning sword lowering by a fraction.","Thanh kiếm lửa của Gwyndra hạ xuống một chút.",[]],
+  ["MEDIUM SHOT","TSUBAKI, not noticing, steps forward.","Tsubaki không để ý, bước lên.",["s","tsub","top-left, beside Tsubaki's head","Draw, gatekeeper.","Rút kiếm đi, kẻ gác cổng."]]]},
+]);
+INS("c06","7",[
+ {id:"7b",L:"F3 LR2 F2",c:"tsub gwyh",p:[
+  ["MEDIUM SHOT","TSUBAKI, shaking with anger and grief, shouting at Gwyndra.","Tsubaki run lên vì giận và đau, quát Gwyndra.",["s","tsub","top-left, beside Tsubaki's head","Why didn't you just let her in?!","Sao ngươi không để tỷ ấy vào?!"]],
+  ["CLOSE-UP","GWYNDRA's empty eyes.","Mắt rỗng của Gwyndra.",["s","gwyh","top-right, beside Gwyndra's head","The queen has not given leave.","Nữ hoàng chưa cho phép."]],
+  ["CLOSE-UP","TSUBAKI opening her mouth to shout the truth.","Tsubaki há miệng định hét lên sự thật.",["s","tsub","top-left, beside Tsubaki's head","Your queen is—","Nữ hoàng của ngươi đã—"]],
+  ["MEDIUM SHOT","TSUBAKI stops, her eyes falling on the candle at the grave, and she cannot finish.","Tsubaki khựng lại, mắt nhìn ngọn nến bên mộ, không nói tiếp được.",[]]]},
+]);
+INS("c06","8",[
+ {id:"8b",L:"F3 LR2 F2",c:"tsub gwyh",p:[
+  ["WIDE SHOT, night","TSUBAKI sits by the grave beside the standing Gwyndra; the candle between them.","Đêm, Tsubaki ngồi cạnh mộ, bên Gwyndra đang đứng gác; ngọn nến ở giữa.",[]],
+  ["CLOSE-UP","TSUBAKI pouring sake over the grave stones.","Tsubaki rưới rượu lên đá mộ.",[]],
+  ["CLOSE-UP","TSUBAKI holding a small cup up to Gwyndra.","Tsubaki đưa một chén nhỏ lên Gwyndra.",["s","tsub","top-left, beside Tsubaki's head","For keeping her company.","Vì đã ở bên tỷ ấy."]],
+  ["MEDIUM SHOT","GWYNDRA takes the cup, does not drink, and sets it carefully beside the candle.","Gwyndra nhận chén, không uống, cẩn thận đặt cạnh ngọn nến.",[]]]},
+]);
+INS("c06","9",[
+ {id:"9b",L:"F3 LR2 F2",c:"brun tsub sera",p:[
+  ["WIDE SHOT","BRUNHILD leads TSUBAKI into the ruined shrine with the great bonfire.","Brunhild dẫn Tsubaki vào ngôi đền đổ có đống lửa lớn.",[]],
+  ["MEDIUM SHOT","Young SERAPHINE, blindfolded, rises from beside the fire and turns toward their footsteps, smiling.","Seraphine trẻ, mắt bịt băng, đứng dậy hướng về tiếng bước chân, mỉm cười.",["s","sera","top-left, beside Seraphine's head","Welcome home.","Chào mừng về nhà."]],
+  ["CLOSE-UP","TSUBAKI, wary.","Tsubaki dè chừng.",["s","tsub","top-right, beside Tsubaki's head","This isn't my home.","Đây không phải nhà ta."]],
+  ["MEDIUM SHOT","SERAPHINE only smiles wider and pats the stone beside her.","Seraphine chỉ cười tươi hơn, vỗ lên tảng đá bên cạnh.",["s","sera","top-left, beside Seraphine's head","Everyone says that at first.","Lúc đầu ai cũng nói vậy."]]]},
+ {id:"9c",L:"F2 LR2 F4",c:"brun tsub sera hand",p:[
+  ["MEDIUM SHOT, present day","At the bonfire now: BRUNHILD, TSUBAKI and SERAPHINE sitting together around the fire.","Hiện tại: Brunhild, Tsubaki và Seraphine quây quần bên lửa.",["s","sera","top-left, beside Seraphine's head","And then?","Rồi sao nữa?"]],
+  ["CLOSE-UP","BRUNHILD gazing at the shrine entrance.","Brunhild nhìn về cửa đền.",["s","brun","top-right, beside Brunhild's head","Then we waited. For someone like him to come again.","Rồi chúng ta chờ. Chờ một người như hắn lại đến."]],
+  ["CLOSE-UP","TSUBAKI pausing with her sake cup halfway to her lips, looking the same way.","Tsubaki dừng chén rượu giữa chừng, nhìn cùng hướng.",[]],
+  ["SPLASH-LIKE WIDE SHOT, first-person view from the dark entrance","Seen from the doorway: the three women by the bonfire turn toward the viewer in surprise. In the foreground, a gloved hand holding a small flame enters the frame.","Từ cửa đền nhìn vào: ba người bên lửa quay lại ngạc nhiên. Ở tiền cảnh, một bàn tay đeo găng cầm đốm lửa nhỏ.",["c","bottom-right corner","End of Season 1.","Hết Mùa 1."]]]},
+]);
+// trang 9 cũ của chương 6 không còn là trang kết mùa
+(()=>{const pg=CH.find(c=>c.id==="c06").pages.find(p=>p.id==="9");const last=pg.p[pg.p.length-1];pg.p[pg.p.length-1]=last.filter(t=>!(Array.isArray(t)&&t[0]==="c"&&/End of Season/.test(t[2]||"")));})();
+
 const SOON=[
  {no:7,n:{vi:"Mùa 2 · Thánh Ca Dưới Lòng Đất",en:"Season 2 · Hymns Beneath the Earth"}},{no:8,n:{vi:"Mùa 2 · Cuốn Sổ Hiến Tế",en:"Season 2 · The Ledger of Offerings"}},
 ];
@@ -18035,7 +18709,7 @@ const EPS=CH.map(c=>({...c,kind:{vi:"Chương "+c.no,en:"Chapter "+c.no},pages:c
   toks.forEach((t,ri)=>{const cols=t.startsWith("LR")?["left","right"]:["full"];for(const col of cols){const P=pg.p[pi++];if(!P)continue;
     panels.push({r:ri+1,c:col,shot:P[0],d:P[1],vd:P[2],tx:P.slice(3).filter(x=>x&&x.length).map(t2=>t2[0]==="c"?{k:"cap",at:t2[1],en:t2[2],vi:t2[3]}:{k:t2[0]==="w"?"wh":"say",who:t2[1],at:t2[2],en:t2[3],vi:t2[4]})});}});
   const who=new Set([...(pg.c||"").split(/\s+/).filter(Boolean),...panels.flatMap(p=>p.tx.map(t=>t.who).filter(Boolean))]);who.delete("none");
-  return {rows,panels,cast:[...who].filter(k=>CAST[k])};})}));
+  return {id:pg.id,rows,panels,cast:[...who].filter(k=>CAST[k])};})}));
 
 window.COMIC={CAST,EPS,SEASONS,SOON,STYLE};
 
@@ -18076,7 +18750,7 @@ window.comicPrompt=comicPrompt;
 
 // ---------------- Ô ẢNH TRONG XƯỞNG ----------------
 const G=T("Truyện tranh","Comics");
-function slotId(ep,pi){return "comic_"+ep.id+"_p"+(pi+1);}
+function slotId(ep,pi){return "comic_"+ep.id+"_p"+ep.pages[pi].id;}
 const CSLOTS=[];
 for(const ep of EPS)ep.pages.forEach((pg,pi)=>{const s={id:slotId(ep,pi),g:G,n:`${T("Chương","Ch.")} ${ep.no} · ${T("Trang","Page")} ${pi+1}/${ep.pages.length}`,
   get pos(){return comicPrompt(ep,pi);},neg:"",rec:1,opt:true,nsfw:false,big:false,gpt:1,comic:1,
@@ -18104,10 +18778,12 @@ const CK="cinderveil_comic";let CS=null;
 function cs(){if(CS)return CS;try{CS=JSON.parse(localStorage.getItem(CK)||"null");}catch(e){}CS=CS||{};CS.read=CS.read||{};CS.unl=CS.unl||{};return CS;}
 function csSave(){try{localStorage.setItem(CK,JSON.stringify(cs()));}catch(e){}}
 function isUnl(ep){const c=cs();if(c.unl[ep.id])return true;if(cond(ep.u)){c.unl[ep.id]=Date.now();csSave();return true;}return false;} // đã mở thì mở mãi
-function pagesRead(ep){return cs().read[ep.id]||[];}
-function markPage(ep,pi){const c=cs();const a=c.read[ep.id]||(c.read[ep.id]=[]);if(!a.includes(pi)){a.push(pi);csSave();}}
+function pagesRead(ep){const a=cs().read[ep.id]||[];return a.filter(x=>ep.pages.some(p=>p.id===String(x)));}
+function markPage(ep,pi){const c=cs();const a=c.read[ep.id]||(c.read[ep.id]=[]);const id=ep.pages[pi]&&ep.pages[pi].id;if(id&&!a.includes(id)){a.push(id);csSave();}}
 function epState(ep){const n=pagesRead(ep).length;return n>=ep.pages.length?"done":n>0||(cs().pos&&cs().pos[ep.id])?"part":"new";}
-function setLast(ep,pi,k){const c=cs();c.last={e:ep.id,p:pi,k:k||0,t:Date.now()};c.pos=c.pos||{};c.pos[ep.id]={p:pi,k:k||0};csSave();}
+function setLast(ep,pi,k){const c=cs();const pid=ep.pages[pi]?ep.pages[pi].id:"1";c.last={e:ep.id,p:pi,pid,k:k||0,t:Date.now()};c.pos=c.pos||{};c.pos[ep.id]={p:pi,pid,k:k||0};csSave();}
+// vị trí lưu theo mã trang → khi chương được chèn thêm trang vẫn mở đúng chỗ
+function posIdx(ep,o){if(!o)return 0;if(o.pid){const i=ep.pages.findIndex(p=>p.id===o.pid);if(i>=0)return i;}return Math.min(o.p||0,ep.pages.length-1);}
 function unreadCount(){return EPS.filter(e=>isUnl(e)&&epState(e)==="new").length;}
 
 // ---------------- DÒ KHUNG TRUYỆN (theo rãnh đen giữa các khung) ----------------
@@ -18140,31 +18816,31 @@ window.cvDetectPanels=detectPanels;
 // ---------------- GIAO DIỆN (kiểu app đọc truyện) ----------------
 const css=document.createElement("style");css.textContent=`
 #cmx{position:fixed;inset:0;z-index:9500;background:#060508;color:#ece2d0;opacity:0;transition:opacity .25s;overflow:hidden}
-#cmx.on{opacity:1}
+#cmx.cx_on{opacity:1}
 #cmx .cx-scroll{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(env(safe-area-inset-bottom) + 24px)}
 /* thanh trên kiểu app: trong suốt, mờ nền */
 .cx-bar{position:absolute;left:0;right:0;z-index:5;display:flex;align-items:center;gap:8px;padding:8px 12px;background:linear-gradient(180deg,rgba(8,6,8,.92),rgba(8,6,8,.72));backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:transform .28s cubic-bezier(.2,.8,.25,1),opacity .28s}
-.cx-bar.top{top:0;padding-top:calc(env(safe-area-inset-top) + 8px);border-bottom:1px solid rgba(201,164,106,.18)}
-.cx-bar.bot{bottom:0;padding-bottom:calc(env(safe-area-inset-bottom) + 10px);border-top:1px solid rgba(201,164,106,.18);flex-direction:column;align-items:stretch;gap:8px;background:linear-gradient(0deg,rgba(8,6,8,.95),rgba(8,6,8,.75))}
-#cmx.hide .cx-bar.top{transform:translateY(-110%);opacity:0}#cmx.hide .cx-bar.bot{transform:translateY(110%);opacity:0}
+.cx-bar.cx_top{top:0;padding-top:calc(env(safe-area-inset-top) + 8px);border-bottom:1px solid rgba(201,164,106,.18)}
+.cx-bar.cx_bot{bottom:0;padding-bottom:calc(env(safe-area-inset-bottom) + 10px);border-top:1px solid rgba(201,164,106,.18);flex-direction:column;align-items:stretch;gap:8px;background:linear-gradient(0deg,rgba(8,6,8,.95),rgba(8,6,8,.75))}
+#cmx.cx_hide .cx-bar.cx_top{transform:translateY(-110%);opacity:0}#cmx.cx_hide .cx-bar.cx_bot{transform:translateY(110%);opacity:0}
 .cx-bar h3{flex:1;min-width:0;margin:0;font:700 17px/1.15 var(--fd,serif);color:#ecd09a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cx-bar h3 small{display:block;font:700 9.5px/1.4 var(--fb,sans-serif);letter-spacing:.2em;color:#a8957a;text-transform:uppercase}
 .cx-i{flex:none;width:38px;height:38px;border-radius:50%;border:1px solid rgba(201,164,106,.35);background:rgba(24,17,14,.7);color:#ecd09a;font-size:16px;display:grid;place-items:center;padding:0}
 .cx-i:active{transform:scale(.92)}
 .cx-row{display:flex;align-items:center;gap:8px}
 .cx-chip{height:32px;padding:0 12px;border-radius:16px;border:1px solid rgba(201,164,106,.35);background:rgba(24,17,14,.7);color:#e8d3ac;font:600 12px var(--fb,sans-serif)}
-.cx-chip.on{background:linear-gradient(180deg,#e8893b,#a8481a);color:#fff3e0;border-color:#ffb267}
+.cx-chip.cx_on{background:linear-gradient(180deg,#e8893b,#a8481a);color:#fff3e0;border-color:#ffb267}
 .cx-prog{position:relative;height:4px;border-radius:2px;background:rgba(255,255,255,.1);overflow:hidden;flex:1}
 .cx-prog i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#c9a46a,#ff9a50);border-radius:2px;transition:width .3s}
 .cx-pl{font:600 11px var(--fb,sans-serif);color:#b8ab98;letter-spacing:.06em;min-width:74px;text-align:right}
 .cx-thin{position:absolute;left:0;top:0;height:2px;z-index:6;background:linear-gradient(90deg,#c9a46a,#ff9a50);box-shadow:0 0 8px rgba(255,140,60,.7);transition:width .3s;padding-top:0;margin-top:env(safe-area-inset-top)}
 /* ---- thư viện ---- */
 .cx-hero{position:relative;height:min(62vh,520px);overflow:hidden}
-.cx-hero .cv{position:absolute;inset:0;background:#120c0c center 18%/cover no-repeat;transform:scale(1.04)}
-.cx-hero .cv.ph{background:radial-gradient(120% 70% at 50% 25%,#5a2a10,#140c0c 60%,#060508)}
+.cx-hero .cx_cv{position:absolute;inset:0;background:#120c0c center 18%/cover no-repeat;transform:scale(1.04)}
+.cx-hero .cx_cv.cx_ph{background:radial-gradient(120% 70% at 50% 25%,#5a2a10,#140c0c 60%,#060508)}
 .cx-hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,5,8,.55) 0,transparent 22%,transparent 40%,rgba(6,5,8,.85) 72%,#060508 100%)}
-.cx-hero .in{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:0 18px 16px}
-.cx-hero .eyb{font:800 10px/1 var(--fb,sans-serif);letter-spacing:.28em;color:#ff9a50;text-transform:uppercase}
+.cx-hero .cx_in{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:0 18px 16px}
+.cx-hero .cx_eyb{font:800 10px/1 var(--fb,sans-serif);letter-spacing:.28em;color:#ff9a50;text-transform:uppercase}
 .cx-hero h2{margin:6px 0 4px;font:700 30px/1.05 var(--fd,serif);color:#fff1d8;text-shadow:0 2px 12px rgba(0,0,0,.8)}
 .cx-hero p{margin:0 0 12px;font-size:13.5px;line-height:1.45;color:#d9c8a8;max-width:520px}
 .cx-cta{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:52px;border:none;border-radius:14px;font:800 15px var(--fb,sans-serif);letter-spacing:.06em;color:#2a0c02;
@@ -18180,50 +18856,50 @@ const css=document.createElement("style");css.textContent=`
 .cx-li+.cx-li::before{content:"";position:absolute;left:96px;right:18px;top:0;height:1px;background:rgba(201,164,106,.1)}
 .cx-th{flex:none;width:66px;height:92px;border-radius:9px;overflow:hidden;position:relative;background:radial-gradient(120% 80% at 50% 25%,#3a1c0c,#0b0809 70%);border:1px solid rgba(201,164,106,.3)}
 .cx-th img{width:100%;height:100%;object-fit:cover;object-position:top}
-.cx-th .no{position:absolute;left:0;right:0;bottom:0;padding:10px 0 3px;text-align:center;font:800 11px var(--fb,sans-serif);color:#fff1d8;background:linear-gradient(transparent,rgba(0,0,0,.85))}
-.cx-li .tx{flex:1;min-width:0}
-.cx-li .t1{font:700 16.5px/1.2 var(--fd,serif);color:#f3e3c4}
-.cx-li .t2{font-size:11.5px;color:#9f9280;margin-top:3px}
-.cx-li .t3{display:flex;align-items:center;gap:8px;margin-top:7px}
+.cx-th .cx_no{position:absolute;left:0;right:0;bottom:0;padding:10px 0 3px;text-align:center;font:800 11px var(--fb,sans-serif);color:#fff1d8;background:linear-gradient(transparent,rgba(0,0,0,.85))}
+.cx-li .cx_tx{flex:1;min-width:0}
+.cx-li .cx_t1{font:700 16.5px/1.2 var(--fd,serif);color:#f3e3c4}
+.cx-li .cx_t2{font-size:11.5px;color:#9f9280;margin-top:3px}
+.cx-li .cx_t3{display:flex;align-items:center;gap:8px;margin-top:7px}
 .cx-tag{font:800 9.5px/1 var(--fb,sans-serif);letter-spacing:.08em;padding:4px 7px;border-radius:7px}
-.cx-tag.new{background:#e8893b;color:#2a0c02}.cx-tag.rd{background:rgba(201,164,106,.18);color:#ecd09a;border:1px solid rgba(201,164,106,.45)}
-.cx-tag.ok{color:#9fd59a;border:1px solid rgba(159,213,154,.4)}.cx-tag.noart{color:#a8957a;border:1px dashed rgba(201,164,106,.35)}
-.cx-li .bar{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.08);overflow:hidden}.cx-li .bar i{display:block;height:100%;background:#c9a46a}
-.cx-li.lock{opacity:.55}.cx-li.lock .t1{color:#9a8f80;letter-spacing:.2em}.cx-li .lk{font-size:11px;color:#e8c99a;margin-top:6px}
-.cx-li.soon{opacity:.35}
-.cx-li .go{flex:none;color:#c9a46a;font-size:18px}
+.cx-tag.cx_new{background:#e8893b;color:#2a0c02}.cx-tag.cx_rd{background:rgba(201,164,106,.18);color:#ecd09a;border:1px solid rgba(201,164,106,.45)}
+.cx-tag.cx_ok{color:#9fd59a;border:1px solid rgba(159,213,154,.4)}.cx-tag.cx_noart{color:#a8957a;border:1px dashed rgba(201,164,106,.35)}
+.cx-li .cx_bar{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.08);overflow:hidden}.cx-li .cx_bar i{display:block;height:100%;background:#c9a46a}
+.cx-li.cx_lock{opacity:.55}.cx-li.cx_lock .cx_t1{color:#9a8f80;letter-spacing:.2em}.cx-li .cx_lk{font-size:11px;color:#e8c99a;margin-top:6px}
+.cx-li.cx_soon{opacity:.35}
+.cx-li .cx_go{flex:none;color:#c9a46a;font-size:18px}
 /* ---- trình đọc ---- */
 .cx-stage{position:absolute;inset:0;overflow:hidden;touch-action:pan-y}
 .cx-page{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-top:calc(env(safe-area-inset-top) + 58px);padding-bottom:calc(env(safe-area-inset-bottom) + 120px)}
 .cx-page img{display:block;width:100%;height:auto;transition:transform .25s;transform-origin:var(--zx,50%) var(--zy,50%)}
-.cx-page.zoom img{transform:scale(2)}
+.cx-page.cx_zoom img{transform:scale(2)}
 .cx-all .cx-pg{position:relative;margin-bottom:6px;overflow:hidden}
 .cx-all .cx-pg img{aspect-ratio:2/3;object-fit:cover;background:#0d0a0c}
-.cx-all .cx-pg img.zm{transform:scale(2)}
+.cx-all .cx-pg img.cx_zm{transform:scale(2)}
 .cx-script.cx-inl{padding:14px;border-top:1px solid rgba(201,164,106,.15);border-bottom:1px solid rgba(201,164,106,.15);background:#0b080a}
 .cx-pan{position:absolute;inset:0}
-.cx-pan .fr{position:absolute;overflow:hidden;border-radius:4px;box-shadow:0 0 0 1px rgba(201,164,106,.28),0 18px 50px rgba(0,0,0,.9);transition:all .45s cubic-bezier(.2,.8,.25,1)}
-.cx-pan .fr img{position:absolute;max-width:none;transition:all .45s cubic-bezier(.2,.8,.25,1)}
-.cx-pan .glow{position:absolute;inset:0;pointer-events:none;background:radial-gradient(60% 45% at 50% 50%,rgba(232,137,59,.08),transparent 70%)}
+.cx-pan .cx_fr{position:absolute;overflow:hidden;border-radius:4px;box-shadow:0 0 0 1px rgba(201,164,106,.28),0 18px 50px rgba(0,0,0,.9);transition:all .45s cubic-bezier(.2,.8,.25,1)}
+.cx-pan .cx_fr img{position:absolute;max-width:none;transition:all .45s cubic-bezier(.2,.8,.25,1)}
+.cx-pan .cx_glow{position:absolute;inset:0;pointer-events:none;background:radial-gradient(60% 45% at 50% 50%,rgba(232,137,59,.08),transparent 70%)}
 .cx-sub{position:absolute;left:14px;right:14px;z-index:4;padding:10px 14px;border-radius:12px;background:rgba(10,7,6,.9);border:1px solid rgba(201,164,106,.35);font-size:14px;line-height:1.5;color:#f1e3c8;pointer-events:none;transition:bottom .28s,opacity .2s}
 .cx-sub i{color:#e8c99a}.cx-sub b{color:#ffb267}
-.cx-dots{display:flex;gap:4px;flex:1}.cx-dots i{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.12);transition:background .2s}.cx-dots i.on{background:linear-gradient(90deg,#c9a46a,#ff9a50)}
+.cx-dots{display:flex;gap:4px;flex:1}.cx-dots i{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.12);transition:background .2s}.cx-dots i.cx_on{background:linear-gradient(90deg,#c9a46a,#ff9a50)}
 .cx-end{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;background:radial-gradient(80% 60% at 50% 40%,rgba(90,40,14,.45),transparent 70%),#060508}
-.cx-end .e1{font:800 10px/1 var(--fb,sans-serif);letter-spacing:.3em;color:#ff9a50}
+.cx-end .cx_e1{font:800 10px/1 var(--fb,sans-serif);letter-spacing:.3em;color:#ff9a50}
 .cx-end h2{font:700 30px/1.1 var(--fd,serif);color:#fff1d8;margin:10px 0 6px}
 .cx-end .orn{color:#c9a46a;margin:6px 0 18px;letter-spacing:.4em}
-.cx-end .nx{width:min(340px,92%);border:1px solid rgba(201,164,106,.35);border-radius:14px;padding:14px;background:rgba(20,14,12,.7);margin-bottom:14px}
-.cx-end .nx .k{font:800 9.5px/1 var(--fb,sans-serif);letter-spacing:.2em;color:#a8957a}
-.cx-end .nx .t{font:700 19px/1.2 var(--fd,serif);color:#f3e3c4;margin:6px 0 4px}.cx-end .nx .s{font-size:12.5px;color:#b8ab98}
-.cx-end .row2{display:flex;gap:10px;width:min(340px,92%)}.cx-end .row2 button{flex:1}
+.cx-end .cx_nx{width:min(340px,92%);border:1px solid rgba(201,164,106,.35);border-radius:14px;padding:14px;background:rgba(20,14,12,.7);margin-bottom:14px}
+.cx-end .cx_nx .cx_k{font:800 9.5px/1 var(--fb,sans-serif);letter-spacing:.2em;color:#a8957a}
+.cx-end .cx_nx .cx_t{font:700 19px/1.2 var(--fd,serif);color:#f3e3c4;margin:6px 0 4px}.cx-end .cx_nx .cx_s{font-size:12.5px;color:#b8ab98}
+.cx-end .cx_row2{display:flex;gap:10px;width:min(340px,92%)}.cx-end .cx_row2 button{flex:1}
 /* kịch bản khi chưa có tranh */
 .cx-script{padding:calc(env(safe-area-inset-top) + 66px) 14px calc(env(safe-area-inset-bottom) + 130px)}
-.cx-script .note{font-size:12.5px;color:#b8ab98;padding:11px 13px;border:1px dashed rgba(201,164,106,.4);border-radius:12px;margin-bottom:12px;line-height:1.55}
-.cx-script .pn{margin:0 0 12px;padding:12px 14px;border-radius:12px;background:linear-gradient(180deg,rgba(30,22,18,.9),rgba(16,12,12,.9));border-left:3px solid #c9a46a}
-.cx-script .pn .h{font:800 10px/1 var(--fb,sans-serif);letter-spacing:.2em;color:#e8893b;margin-bottom:7px}
-.cx-script .pn .vd{font-style:italic;color:#b8ab98;font-size:13px;margin-bottom:6px}
-.cx-script .pn .c{font-family:var(--fd,serif);font-style:italic;color:#e8d3ac;font-size:16px;line-height:1.4;margin:4px 0}
-.cx-script .pn .s{font-size:14.5px;line-height:1.45;margin:4px 0}.cx-script .pn .s b{color:#ffb267}
+.cx-script .cx_note{font-size:12.5px;color:#b8ab98;padding:11px 13px;border:1px dashed rgba(201,164,106,.4);border-radius:12px;margin-bottom:12px;line-height:1.55}
+.cx-script .cx_pn{margin:0 0 12px;padding:12px 14px;border-radius:12px;background:linear-gradient(180deg,rgba(30,22,18,.9),rgba(16,12,12,.9));border-left:3px solid #c9a46a}
+.cx-script .cx_pn .cx_h{font:800 10px/1 var(--fb,sans-serif);letter-spacing:.2em;color:#e8893b;margin-bottom:7px}
+.cx-script .cx_pn .cx_vd{font-style:italic;color:#b8ab98;font-size:13px;margin-bottom:6px}
+.cx-script .cx_pn .cx_c{font-family:var(--fd,serif);font-style:italic;color:#e8d3ac;font-size:16px;line-height:1.4;margin:4px 0}
+.cx-script .cx_pn .cx_s{font-size:14.5px;line-height:1.45;margin:4px 0}.cx-script .cx_pn .cx_s b{color:#ffb267}
 .cx-acts{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 14px}.cx-acts .btn{flex:1;min-width:140px}
 .cx-tip{font-size:12px;line-height:1.55;color:#cdbf9f;background:rgba(232,137,59,.08);border:1px solid rgba(232,137,59,.3);border-radius:12px;padding:10px 12px;margin-bottom:12px}
 .cx-tip b{color:#ffb267}
@@ -18231,59 +18907,59 @@ const css=document.createElement("style");css.textContent=`
 .cxhub{position:absolute;z-index:6;left:14px;top:calc(var(--sat,0px) + 96px);display:flex;align-items:center;gap:10px;padding:8px 14px 8px 8px;border-radius:30px;border:1px solid rgba(255,190,120,.6);
  background:linear-gradient(100deg,rgba(60,22,8,.92),rgba(24,12,10,.88));box-shadow:0 0 0 1px rgba(0,0,0,.5),0 0 22px rgba(232,137,59,.45),inset 0 1px 0 rgba(255,220,170,.25);color:#fff1d8;animation:cxhIn .6s cubic-bezier(.2,1.3,.4,1) both}
 @keyframes cxhIn{from{opacity:0;transform:translateX(-30px)}}
-.cxhub .bk{position:relative;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 50% 40%,#ffcf8a,#e8893b 55%,#7a2a08);box-shadow:0 0 14px rgba(255,150,60,.8)}
-.cxhub .bk svg{width:22px;height:22px;stroke:#2a0c02;fill:none;stroke-width:1.8}
-.cxhub .bk::after{content:"";position:absolute;inset:-5px;border-radius:50%;border:1px solid rgba(255,190,120,.6);animation:cxhRing 2.4s ease-out infinite}
+.cxhub .cx_bk{position:relative;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 50% 40%,#ffcf8a,#e8893b 55%,#7a2a08);box-shadow:0 0 14px rgba(255,150,60,.8)}
+.cxhub .cx_bk svg{width:22px;height:22px;stroke:#2a0c02;fill:none;stroke-width:1.8}
+.cxhub .cx_bk::after{content:"";position:absolute;inset:-5px;border-radius:50%;border:1px solid rgba(255,190,120,.6);animation:cxhRing 2.4s ease-out infinite}
 @keyframes cxhRing{from{transform:scale(.85);opacity:1}to{transform:scale(1.35);opacity:0}}
-.cxhub .tt{display:flex;flex-direction:column;line-height:1.1;text-align:left}
-.cxhub .tt b{font:700 17px var(--fd,serif);letter-spacing:.06em;color:#ffe2bd}
-.cxhub .tt small{font:700 9.5px var(--fb,sans-serif);letter-spacing:.14em;color:#ffb267;text-transform:uppercase;margin-top:3px;max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cxhub .n{position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:#e8893b;color:#2a0c02;font:800 11px/20px var(--fb,sans-serif);text-align:center;box-shadow:0 0 10px rgba(255,140,60,.9)}
+.cxhub .cx_tt{display:flex;flex-direction:column;line-height:1.1;text-align:left}
+.cxhub .cx_tt b{font:700 17px var(--fd,serif);letter-spacing:.06em;color:#ffe2bd}
+.cxhub .cx_tt small{font:700 9.5px var(--fb,sans-serif);letter-spacing:.14em;color:#ffb267;text-transform:uppercase;margin-top:3px;max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cxhub .cx_n{position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:#e8893b;color:#2a0c02;font:800 11px/20px var(--fb,sans-serif);text-align:center;box-shadow:0 0 10px rgba(255,140,60,.9)}
 .cxhub:active{transform:scale(.96)}
-.cxhub.img{padding:0;border:none;background:none;box-shadow:none;width:178px;height:74px;border-radius:0}
-.cxhub.img .im{position:absolute;inset:0;background:var(--cxhi) center/100% 100% no-repeat;filter:drop-shadow(0 0 10px rgba(232,137,59,.45))}
-.cxhub.img .bk{display:none}
+.cxhub.cx_img{padding:0;border:none;background:none;box-shadow:none;width:178px;height:74px;border-radius:0}
+.cxhub.cx_img .cx_im{position:absolute;inset:0;background:var(--cxhi) center/100% 100% no-repeat;filter:drop-shadow(0 0 10px rgba(232,137,59,.45))}
+.cxhub.cx_img .cx_bk{display:none}
 /* chữ nằm giữa ô da trống: từ ~29% đến ~93% bề ngang ảnh, giữa theo chiều dọc */
-.cxhub.img .tt{position:absolute;left:29%;right:7%;top:14%;bottom:20%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
-.cxhub.img .tt b{font-size:16px;letter-spacing:.12em;text-shadow:0 1px 2px #000,0 0 8px rgba(232,137,59,.6)}
-.cxhub.img .tt small{max-width:100%;font-size:8.5px;margin-top:3px;text-shadow:0 1px 2px #000}
-.cxhub.img .n{top:2px;right:2px}
+.cxhub.cx_img .cx_tt{position:absolute;left:29%;right:7%;top:14%;bottom:20%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.cxhub.cx_img .cx_tt b{font-size:16px;letter-spacing:.12em;text-shadow:0 1px 2px #000,0 0 8px rgba(232,137,59,.6)}
+.cxhub.cx_img .cx_tt small{max-width:100%;font-size:8.5px;margin-top:3px;text-shadow:0 1px 2px #000}
+.cxhub.cx_img .cx_n{top:2px;right:2px}
 `;document.head.appendChild(css);
 
 const BOOK='<svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 016.5 3H20v15H6.5A2.5 2.5 0 004 20.5z"/><path d="M4 20.5A2.5 2.5 0 016.5 18H20v3H6.5"/><path d="M9 7.5h7M9 10.5h5"/></svg>';
 let V=null; // trạng thái trình đọc
-function closeCmx(){const o=q("#cmx");if(o){o.classList.remove("on");setTimeout(()=>o.remove(),250);}V=null;safe(()=>{if(q("#hub.on"))hubBtn();});}
-function root(){let o=q("#cmx");if(!o){o=document.createElement("div");o.id="cmx";document.body.appendChild(o);requestAnimationFrame(()=>o.classList.add("on"));}o.className="on";o.innerHTML="";return o;}
+function closeCmx(){const o=q("#cmx");if(o){o.classList.remove("cx_on");setTimeout(()=>o.remove(),250);}V=null;safe(()=>{if(q("#hub.on"))hubBtn();});}
+function root(){let o=q("#cmx");if(!o){o=document.createElement("div");o.id="cmx";document.body.appendChild(o);requestAnimationFrame(()=>o.classList.add("cx_on"));}o.className="cx_on";o.innerHTML="";return o;}
 async function urlOf(id){return id?await IMG.url(id):null;}
 function epProg(ep){return pagesRead(ep).length/ep.pages.length;}
 function heroEp(){const c=cs();const last=c.last&&EPS.find(e=>e.id===c.last.e);if(last&&isUnl(last)&&epState(last)!=="done")return {ep:last,resume:1};
   const nw=EPS.find(e=>isUnl(e)&&epState(e)!=="done");if(nw)return {ep:nw,resume:epState(nw)==="part"};const all=EPS.filter(isUnl);return {ep:all[all.length-1]||EPS[0],resume:0,again:1};}
-function openAt(ep){const ps=epState(ep)==="part"&&cs().pos&&cs().pos[ep.id];openEp(ep,ps?ps.p:0,ps?ps.k:0);}
+function openAt(ep){const ps=epState(ep)==="part"&&cs().pos&&cs().pos[ep.id];openEp(ep,ps?posIdx(ep,ps):0,ps?ps.k:0);}
 
 // --- thư viện ---
 async function showComics(){const o=root();const H=heroEp();const ep=H.ep;
   const sc=document.createElement("div");sc.className="cx-scroll";o.appendChild(sc);
   const nU=EPS.filter(isUnl).length;
-  let h=`<div class="cx-hero"><div class="cv ph" id="cxcv"></div><div class="in"><div class="eyb">${T("Biên Niên Màn Tro","Chronicles of the Ash Veil")} · ${T("Chương","Chapter")} ${ep.no}</div>
+  let h=`<div class="cx-hero"><div class="cx_cv cx_ph" id="cxcv"></div><div class="cx_in"><div class="cx_eyb">${T("Biên Niên Màn Tro","Chronicles of the Ash Veil")} · ${T("Chương","Chapter")} ${ep.no}</div>
     <h2>${escH(L(ep.n))}</h2><p>${escH(L(ep.sum))}</p>
-    <button class="cx-cta" id="cxgo">${H.resume?`▶ ${T("Đọc tiếp","Continue")} <small>· ${T("trang","page")} ${(cs().pos&&cs().pos[ep.id]?cs().pos[ep.id].p:0)+1}/${ep.pages.length}</small>`:H.again?`↺ ${T("Đọc lại","Read again")}`:`▶ ${T("Đọc ngay","Start reading")}`}</button></div></div>
+    <button class="cx-cta" id="cxgo">${H.resume?`▶ ${T("Đọc tiếp","Continue")} <small>· ${T("trang","page")} ${posIdx(ep,cs().pos&&cs().pos[ep.id])+1}/${ep.pages.length}</small>`:H.again?`↺ ${T("Đọc lại","Read again")}`:`▶ ${T("Đọc ngay","Start reading")}`}</button></div></div>
     <div class="cx-tabs"><b>${T("Danh sách chương","Chapters")}</b><span>${nU}/${EPS.length+SOON.length} ${T("đã mở","unlocked")}</span></div>`;
   for(const S of SEASONS){h+=`<div class="cx-sea">${escH(L(S.n))}</div>`;
     for(const e of EPS.filter(x=>x.s===S.id)){const ok=isUnl(e),st=ok?epState(e):"",art=!!pageImgId(e,0);
-      h+=`<button class="cx-li ${ok?"":"lock"}" data-e="${e.id}"><div class="cx-th">${ok&&art?`<img data-cov="${e.id}" alt="">`:""}<div class="no">${e.no}</div></div>
-        <div class="tx"><div class="t1">${escH(ok?L(e.n):"? ? ? ?")}</div><div class="t2">${T("Chương","Chapter")} ${e.no} · ${e.pages.length} ${T("trang","pages")}</div>
-        ${ok?`<div class="t3">${st==="new"?`<span class="cx-tag new">${T("MỚI","NEW")}</span>`:st==="done"?`<span class="cx-tag ok">✓ ${T("ĐÃ ĐỌC","READ")}</span>`:`<span class="cx-tag rd">${T("ĐANG ĐỌC","READING")}</span>`}
-          ${art?"":`<span class="cx-tag noart">${T("CHƯA CÓ TRANH","NO ART YET")}</span>`}${st==="part"?`<span class="bar"><i style="width:${Math.max(8,epProg(e)*100)}%"></i></span>`:""}</div>`
-          :`<div class="lk">🔒 ${escH(condTxt(e.u))}</div>`}</div><span class="go">›</span></button>`;}
-    for(const s2 of SOON)h+=`<div class="cx-li soon"><div class="cx-th"><div class="no">${s2.no}</div></div><div class="tx"><div class="t1">${escH(L(s2.n))}</div><div class="t2">${T("Sắp ra mắt","Coming soon")}</div></div></div>`;}
+      h+=`<button class="cx-li ${ok?"":"cx_lock"}" data-e="${e.id}"><div class="cx-th">${ok&&art?`<img data-cov="${e.id}" alt="">`:""}<div class="cx_no">${e.no}</div></div>
+        <div class="cx_tx"><div class="cx_t1">${escH(ok?L(e.n):"? ? ? ?")}</div><div class="cx_t2">${T("Chương","Chapter")} ${e.no} · ${e.pages.length} ${T("trang","pages")}</div>
+        ${ok?`<div class="cx_t3">${st==="new"?`<span class="cx-tag cx_new">${T("MỚI","NEW")}</span>`:st==="done"?`<span class="cx-tag cx_ok">✓ ${T("ĐÃ ĐỌC","READ")}</span>`:`<span class="cx-tag cx_rd">${T("ĐANG ĐỌC","READING")}</span>`}
+          ${art?"":`<span class="cx-tag cx_noart">${T("CHƯA CÓ TRANH","NO ART YET")}</span>`}${st==="part"?`<span class="cx_bar"><i style="width:${Math.max(8,epProg(e)*100)}%"></i></span>`:""}</div>`
+          :`<div class="cx_lk">🔒 ${escH(condTxt(e.u))}</div>`}</div><span class="cx_go">›</span></button>`;}
+    for(const s2 of SOON)h+=`<div class="cx-li cx_soon"><div class="cx-th"><div class="cx_no">${s2.no}</div></div><div class="cx_tx"><div class="cx_t1">${escH(L(s2.n))}</div><div class="cx_t2">${T("Sắp ra mắt","Coming soon")}</div></div></div>`;}
   h+=`<div class="cx-sea" style="text-align:center;padding:22px 18px">${T("Tranh truyện vẽ bằng ChatGPT · Xưởng Ảnh → Truyện tranh","Comic art is made with ChatGPT · Studio → Comics")}</div>`;
   sc.innerHTML=h;
-  const top=document.createElement("div");top.className="cx-bar top";top.style.background="linear-gradient(180deg,rgba(6,5,8,.75),transparent)";top.style.borderBottom="none";top.style.backdropFilter="none";
+  const top=document.createElement("div");top.className="cx-bar cx_top";top.style.background="linear-gradient(180deg,rgba(6,5,8,.75),transparent)";top.style.borderBottom="none";top.style.backdropFilter="none";
   top.innerHTML=`<button class="cx-i" data-k="x">✕</button><h3>${T("Truyện","Comics")}<small>Cinderveil</small></h3>`;o.appendChild(top);
   top.querySelector('[data-k="x"]').onclick=closeCmx;
   sc.querySelector("#cxgo").onclick=()=>H.again?openEp(ep,0):openAt(ep);
   sc.querySelectorAll("[data-e]").forEach(b=>b.onclick=()=>{const e=EPS.find(x=>x.id===b.dataset.e);if(!isUnl(e)){safe(()=>toast(T("Chưa mở: ","Locked: ")+condTxt(e.u),2200));return;}openAt(e);});
-  const cid=pageImgId(ep,0);if(cid){const u=await safe(()=>IMG.url(cid));const cv=sc.querySelector("#cxcv");if(u&&cv){cv.classList.remove("ph");cv.style.backgroundImage=`url(${u})`;}}
+  const cid=pageImgId(ep,0);if(cid){const u=await safe(()=>IMG.url(cid));const cv=sc.querySelector("#cxcv");if(u&&cv){cv.classList.remove("cx_ph");cv.style.backgroundImage=`url(${u})`;}}
   for(const e of EPS){if(!isUnl(e))continue;const id=pageImgId(e,0);const im=sc.querySelector(`[data-cov="${e.id}"]`);if(!id||!im)continue;const u=await safe(()=>IMG.url(id,true));if(u)im.src=u;}}
 window.showComics=showComics;window.cvComicUnread=()=>safe(unreadCount)||0;
 
@@ -18292,9 +18968,9 @@ async function openEp(ep,pi,k0){const c=cs();
   V={ep,pi,mode:c.mode||"panel",k:0,panels:null,url:null,sub:VI&&c.sub!==false,end:false};setLast(ep,pi,0);
   const o=root();const stage=document.createElement("div");stage.className="cx-stage";o.appendChild(stage);
   const thin=document.createElement("div");thin.className="cx-thin";o.appendChild(thin);
-  const top=document.createElement("div");top.className="cx-bar top";
+  const top=document.createElement("div");top.className="cx-bar cx_top";
   top.innerHTML=`<button class="cx-i" data-k="back">‹</button><h3>${escH(L(ep.n))}<small>${T("Chương","Chapter")} ${ep.no} · ${escH(L(SEASONS.find(x=>x.id===ep.s).n))}</small></h3><button class="cx-i" data-k="x">✕</button>`;o.appendChild(top);
-  const bot=document.createElement("div");bot.className="cx-bar bot";o.appendChild(bot);
+  const bot=document.createElement("div");bot.className="cx-bar cx_bot";o.appendChild(bot);
   top.querySelector('[data-k="back"]').onclick=()=>showComics();top.querySelector('[data-k="x"]').onclick=closeCmx;
   const id=pageImgId(ep,pi);V.url=await urlOf(id);
   if(V.mode==="page")return renderAll(stage,bot);
@@ -18307,7 +18983,7 @@ function renderAll(stage,bot){const ep=V.ep;V.mode="page";botBar(bot);stage.inne
   const p=document.createElement("div");p.className="cx-page cx-all";stage.appendChild(p);
   ep.pages.forEach((pg,i)=>{const w=document.createElement("div");w.className="cx-pg";w.dataset.pi=i;const id=pageImgId(ep,i);
     w.innerHTML=id?`<img alt="" data-id="${id}">${V.sub?`<div class="cx-script cx-inl">${scriptHTML(pg,"vi")}</div>`:""}`
-      :`<div class="cx-script cx-inl"><div class="note"><b>${T("Trang","Page")} ${i+1}</b> — ${T("chưa có tranh, đây là bản kịch bản.","no art yet, here is the script.")}</div>
+      :`<div class="cx-script cx-inl"><div class="cx_note"><b>${T("Trang","Page")} ${i+1}</b> — ${T("chưa có tranh, đây là bản kịch bản.","no art yet, here is the script.")}</div>
         <div class="cx-acts"><button class="btn" data-cp="${i}">📋 ${T("Sao chép prompt","Copy prompt")}</button><button class="btn" data-ad="${i}">＋ ${T("Thêm tranh","Add art")}</button></div>${scriptHTML(pg,VI?"vi":"en")}</div>`;
     p.appendChild(w);});
   p.insertAdjacentHTML("beforeend",`<div style="padding:26px 16px 30px"><button class="cx-cta" id="cxfin">${T("Hết chương","End of chapter")} ›</button></div>`);
@@ -18316,19 +18992,19 @@ function renderAll(stage,bot){const ep=V.ep;V.mode="page";botBar(bot);stage.inne
   p.querySelectorAll("[data-ad]").forEach(b=>b.onclick=e=>{e.stopPropagation();addArt(ep,+b.dataset.ad);});
   p.querySelector("#cxfin").onclick=e=>{e.stopPropagation();ep.pages.forEach((_,i)=>markPage(ep,i));endCard();};
   let lt=0;p.onclick=ev=>{if(ev.target.closest("button"))return;const im=ev.target.closest("img");const now=Date.now();
-    if(im&&now-lt<280){const r=im.getBoundingClientRect();im.style.setProperty("--zx",((ev.clientX-r.left)/r.width*100)+"%");im.style.setProperty("--zy",((ev.clientY-r.top)/r.height*100)+"%");im.classList.toggle("zm");lt=0;return;}
+    if(im&&now-lt<280){const r=im.getBoundingClientRect();im.style.setProperty("--zx",((ev.clientX-r.left)/r.width*100)+"%");im.style.setProperty("--zy",((ev.clientY-r.top)/r.height*100)+"%");im.classList.toggle("cx_zm");lt=0;return;}
     lt=now;setTimeout(()=>{if(lt===now)toggleChrome();},290);};
   const onS=()=>{const mid=p.scrollTop+p.clientHeight*.45;let cur=0;p.querySelectorAll(".cx-pg").forEach(w=>{if(w.offsetTop<=mid)cur=+w.dataset.pi;if(w.offsetTop+w.offsetHeight<=p.scrollTop+p.clientHeight+30)markPage(ep,+w.dataset.pi);});
     if(cur!==V.pi){V.pi=cur;setLast(ep,cur,0);pgLabel();}};
   p.addEventListener("scroll",onS,{passive:true});
   requestAnimationFrame(()=>{const t=p.querySelector(`.cx-pg[data-pi="${V.pi}"]`);if(t&&V.pi>0)p.scrollTop=t.offsetTop-70;});
   pgLabel();}
-function toggleChrome(force){const o=q("#cmx");if(!o)return;o.classList.toggle("hide",force!==undefined?force:!o.classList.contains("hide"));placeSub();}
+function toggleChrome(force){const o=q("#cmx");if(!o)return;o.classList.toggle("cx_hide",force!==undefined?force:!o.classList.contains("cx_hide"));placeSub();}
 function botBar(bot){const ep=V.ep;const hasArt=!!V.url;
-  const prog=V.mode==="panel"&&V.panels?`<div class="cx-dots">${V.panels.map((_,i)=>`<i class="${i<=V.k?"on":""}"></i>`).join("")}</div>`:`<div class="cx-prog"><i style="width:${(V.pi+1)/ep.pages.length*100}%"></i></div>`;
+  const prog=V.mode==="panel"&&V.panels?`<div class="cx-dots">${V.panels.map((_,i)=>`<i class="${i<=V.k?"cx_on":""}"></i>`).join("")}</div>`:`<div class="cx-prog"><i style="width:${(V.pi+1)/ep.pages.length*100}%"></i></div>`;
   bot.innerHTML=`<div class="cx-row">${prog}<span class="cx-pl"></span></div>
    <div class="cx-row"><button class="cx-i" data-k="prev">‹</button>
-    <button class="cx-chip ${V.mode==="panel"||V.mode==="script"?"on":""}" data-k="mp">${T("Từng khung","Panels")}</button><button class="cx-chip ${V.mode==="page"?"on":""}" data-k="mg">${T("Cuộn dọc","Scroll")}</button>${VI?`<button class="cx-chip ${V.sub?"on":""}" data-k="sub">${T("Phụ đề","Subs")}</button>`:""}
+    <button class="cx-chip ${V.mode==="panel"||V.mode==="script"?"cx_on":""}" data-k="mp">${T("Từng khung","Panels")}</button><button class="cx-chip ${V.mode==="page"?"cx_on":""}" data-k="mg">${T("Cuộn dọc","Scroll")}</button>${VI?`<button class="cx-chip ${V.sub?"cx_on":""}" data-k="sub">${T("Phụ đề","Subs")}</button>`:""}
     <span style="flex:1"></span><button class="cx-i" data-k="next">›</button></div>`;
   bot.querySelector('[data-k="prev"]').onclick=e=>{e.stopPropagation();step(-1);};bot.querySelector('[data-k="next"]').onclick=e=>{e.stopPropagation();step(1);};
   const stage=q("#cmx .cx-stage");
@@ -18339,23 +19015,23 @@ function botBar(bot){const ep=V.ep;const hasArt=!!V.url;
 function pgLabel(){const el=q("#cmx .cx-pl");if(!el||!V)return;const ep=V.ep;
   el.textContent=V.mode==="panel"&&V.panels?`${V.k+1}/${V.panels.length} · ${T("tr.","p.")}${V.pi+1}/${ep.pages.length}`:`${T("Trang","Page")} ${V.pi+1}/${ep.pages.length}`;
   const th=q("#cmx .cx-thin");if(th){const per=1/ep.pages.length;const inP=V.mode==="panel"&&V.panels?(V.k+1)/V.panels.length:1;th.style.width=((V.pi*per+inP*per)*100)+"%";}
-  q("#cmx .cx-dots")&&q("#cmx .cx-dots").querySelectorAll("i").forEach((d,i)=>d.classList.toggle("on",i<=V.k));
+  q("#cmx .cx-dots")&&q("#cmx .cx-dots").querySelectorAll("i").forEach((d,i)=>d.classList.toggle("cx_on",i<=V.k));
   const pb=q("#cmx .cx-prog i");if(pb)pb.style.width=((V.pi+1)/ep.pages.length*100)+"%";}
 function renderPage(stage,bot){botBar(bot);stage.innerHTML="";
   if(V.mode==="page"){const p=document.createElement("div");p.className="cx-page";p.innerHTML=`<img src="${V.url}" alt="">`;stage.appendChild(p);
     if(V.sub){const s=document.createElement("div");s.className="cx-script";s.style.padding="14px";s.innerHTML=scriptHTML(V.ep.pages[V.pi],"vi");p.appendChild(s);}
     // chạm 1 lần: ẩn/hiện thanh; chạm đúp: phóng to chỗ chạm
-    let lt=0;p.onclick=ev=>{const now=Date.now();if(now-lt<280){const im=p.querySelector("img"),r=im.getBoundingClientRect();im.style.setProperty("--zx",((ev.clientX-r.left)/r.width*100)+"%");im.style.setProperty("--zy",((ev.clientY-r.top)/r.height*100)+"%");p.classList.toggle("zoom");lt=0;return;}lt=now;setTimeout(()=>{if(lt===now)toggleChrome();},290);};
+    let lt=0;p.onclick=ev=>{const now=Date.now();if(now-lt<280){const im=p.querySelector("img"),r=im.getBoundingClientRect();im.style.setProperty("--zx",((ev.clientX-r.left)/r.width*100)+"%");im.style.setProperty("--zy",((ev.clientY-r.top)/r.height*100)+"%");p.classList.toggle("cx_zoom");lt=0;return;}lt=now;setTimeout(()=>{if(lt===now)toggleChrome();},290);};
     p.addEventListener("scroll",()=>{if(p.scrollTop+p.clientHeight>=p.scrollHeight-40)markPage(V.ep,V.pi);},{passive:true});}
-  else{const p=document.createElement("div");p.className="cx-pan";p.innerHTML=`<div class="glow"></div><div class="fr"><img src="${V.url}" alt=""></div>`;stage.appendChild(p);
+  else{const p=document.createElement("div");p.className="cx-pan";p.innerHTML=`<div class="cx_glow"></div><div class="cx_fr"><img src="${V.url}" alt=""></div>`;stage.appendChild(p);
     const sub=document.createElement("div");sub.className="cx-sub";sub.style.opacity="0";stage.appendChild(sub);
     p.onclick=ev=>{const r=p.getBoundingClientRect();const x=(ev.clientX-r.left)/r.width;if(x<.28)step(-1);else if(x>.72)step(1);else toggleChrome();};swipe(p);placePanel(true);}
   pgLabel();}
 function swipe(el){let x0=0,y0=0;el.addEventListener("touchstart",e=>{x0=e.touches[0].clientX;y0=e.touches[0].clientY;},{passive:true});
   el.addEventListener("touchend",e=>{const t=e.changedTouches[0];const dx=t.clientX-x0,dy=t.clientY-y0;if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)*1.3){e.preventDefault();step(dx<0?1:-1);}},{passive:false});}
-function chromeH(){const o=q("#cmx");const hid=o&&o.classList.contains("hide");const t=q("#cmx .cx-bar.top"),b=q("#cmx .cx-bar.bot");return {t:hid||!t?0:t.offsetHeight,b:hid||!b?0:b.offsetHeight};}
+function chromeH(){const o=q("#cmx");const hid=o&&o.classList.contains("cx_hide");const t=q("#cmx .cx-bar.cx_top"),b=q("#cmx .cx-bar.cx_bot");return {t:hid||!t?0:t.offsetHeight,b:hid||!b?0:b.offsetHeight};}
 function placeSub(){const sub=q("#cmx .cx-sub");if(!sub)return;sub.style.bottom=(chromeH().b+12)+"px";}
-function placePanel(first){const p=q("#cmx .cx-pan");if(!p||!V||!V.panels)return;const fr=p.querySelector(".fr"),im=fr.querySelector("img");const P=V.panels[V.k];
+function placePanel(first){const p=q("#cmx .cx-pan");if(!p||!V||!V.panels)return;const fr=p.querySelector(".cx_fr"),im=fr.querySelector("img");const P=V.panels[V.k];
   const ar=im.naturalWidth?im.naturalWidth/im.naturalHeight:2/3;const VW=p.clientWidth,VH=p.clientHeight;
   const sub=q("#cmx .cx-sub");const pn=V.ep.pages[V.pi].panels[V.k];const tx=V.sub&&pn&&V.panels.length===V.ep.pages[V.pi].panels.length?(pn.tx||[]):[];
   if(sub){sub.innerHTML=tx.map(t=>t.k==="cap"?`<i>${escH(t.vi)}</i>`:`<b>${escH(CAST[t.who]?CAST[t.who].n:"")}:</b> ${escH(t.vi)}`).join("<br>");sub.style.opacity=tx.length?"1":"0";placeSub();}
@@ -18374,17 +19050,17 @@ async function step(d){if(!V)return;const ep=V.ep;
   if(d>0){markPage(ep,V.pi);return endCard();}}
 function endCard(){const ep=V.ep;V.end=true;const stage=q("#cmx .cx-stage");const i=EPS.indexOf(ep);const nx=EPS[i+1]||null;const sn=!nx&&SOON[0];
   const ok=nx&&isUnl(nx);toggleChrome(false);
-  stage.innerHTML=`<div class="cx-end"><div class="e1">${T("HẾT CHƯƠNG","END OF CHAPTER")} ${ep.no}</div><h2>${escH(L(ep.n))}</h2><div class="orn">✦ ✦ ✦</div>
-    ${nx?`<div class="nx"><div class="k">${T("CHƯƠNG TIẾP THEO","NEXT CHAPTER")} · ${nx.no}</div><div class="t">${escH(ok?L(nx.n):"? ? ? ?")}</div><div class="s">${ok?escH(L(nx.sum)):"🔒 "+escH(condTxt(nx.u))}</div></div>`
-      :sn?`<div class="nx"><div class="k">${T("SẮP RA MẮT","COMING SOON")} · ${sn.no}</div><div class="t">${escH(L(sn.n))}</div></div>`:""}
-    <div class="row2"><button class="btn" data-k="lib">${T("Danh sách","Episodes")}</button>${ok?`<button class="btn main" data-k="nx">${T("Đọc tiếp","Next")} ›</button>`:""}</div></div>`;
+  stage.innerHTML=`<div class="cx-end"><div class="cx_e1">${T("HẾT CHƯƠNG","END OF CHAPTER")} ${ep.no}</div><h2>${escH(L(ep.n))}</h2><div class="orn">✦ ✦ ✦</div>
+    ${nx?`<div class="cx_nx"><div class="cx_k">${T("CHƯƠNG TIẾP THEO","NEXT CHAPTER")} · ${nx.no}</div><div class="cx_t">${escH(ok?L(nx.n):"? ? ? ?")}</div><div class="cx_s">${ok?escH(L(nx.sum)):"🔒 "+escH(condTxt(nx.u))}</div></div>`
+      :sn?`<div class="cx_nx"><div class="cx_k">${T("SẮP RA MẮT","COMING SOON")} · ${sn.no}</div><div class="cx_t">${escH(L(sn.n))}</div></div>`:""}
+    <div class="cx_row2"><button class="btn" data-k="lib">${T("Danh sách","Episodes")}</button>${ok?`<button class="btn main" data-k="nx">${T("Đọc tiếp","Next")} ›</button>`:""}</div></div>`;
   stage.querySelector('[data-k="lib"]').onclick=()=>showComics();const b=stage.querySelector('[data-k="nx"]');if(b)b.onclick=()=>openEp(nx,0);
-  const bot=q("#cmx .cx-bar.bot");if(bot)bot.style.display="none";safe(()=>{SFX.play("buff",.8);});}
-function scriptHTML(pg,lang){return pg.panels.map((p,j)=>`<div class="pn"><div class="h">${T("KHUNG","PANEL")} ${j+1}</div><div class="vd">${escH(lang==="en"?p.d:p.vd)}</div>
-  ${(p.tx||[]).map(t=>t.k==="cap"?`<div class="c">${escH(t[lang]||t.vi)}</div>`:`<div class="s"><b>${escH(CAST[t.who]?CAST[t.who].n:"")}${t.k==="wh"?T(" (thì thầm)"," (whispers)"):""}:</b> ${escH(t[lang]||t.vi)}</div>`).join("")}</div>`).join("");}
+  const bot=q("#cmx .cx-bar.cx_bot");if(bot)bot.style.display="none";safe(()=>{SFX.play("buff",.8);});}
+function scriptHTML(pg,lang){return pg.panels.map((p,j)=>`<div class="cx_pn"><div class="cx_h">${T("KHUNG","PANEL")} ${j+1}</div><div class="cx_vd">${escH(lang==="en"?p.d:p.vd)}</div>
+  ${(p.tx||[]).map(t=>t.k==="cap"?`<div class="cx_c">${escH(t[lang]||t.vi)}</div>`:`<div class="cx_s"><b>${escH(CAST[t.who]?CAST[t.who].n:"")}${t.k==="wh"?T(" (thì thầm)"," (whispers)"):""}:</b> ${escH(t[lang]||t.vi)}</div>`).join("")}</div>`).join("");}
 function renderScript(stage,bot){const ep=V.ep,pi=V.pi;V.mode="script";botBar(bot);
   stage.innerHTML=`<div class="cx-page" style="padding:0"><div class="cx-script">
-   <div class="note">${T("Trang này chưa có tranh — đây là bản kịch bản. Bấm <b>Sao chép prompt</b>, dán vào ChatGPT (nên dùng cùng một cuộc trò chuyện cho mọi trang), rồi <b>Thêm tranh</b>.","This page has no art yet — here is the script. Tap <b>Copy prompt</b>, paste it into ChatGPT, then <b>Add art</b>.")}</div>
+   <div class="cx_note">${T("Trang này chưa có tranh — đây là bản kịch bản. Bấm <b>Sao chép prompt</b>, dán vào ChatGPT (nên dùng cùng một cuộc trò chuyện cho mọi trang), rồi <b>Thêm tranh</b>.","This page has no art yet — here is the script. Tap <b>Copy prompt</b>, paste it into ChatGPT, then <b>Add art</b>.")}</div>
    <div class="cx-acts"><button class="btn" data-k="cp">📋 ${T("Sao chép prompt","Copy prompt")}</button><button class="btn" data-k="add">＋ ${T("Thêm tranh","Add art")}</button></div>
    ${scriptHTML(ep.pages[pi],VI?"vi":"en")}</div></div>`;
   stage.querySelector('[data-k="cp"]').onclick=()=>copyTxt(comicPrompt(ep,pi));
@@ -18403,9 +19079,9 @@ safe(()=>{if(typeof UI_SLOTS==="undefined"||SLOT_BY_ID.ui_comic_btn)return;const
 function hubBtn(){const hub=q("#hub");if(!hub||!hub.classList.contains("on"))return;let b=hub.querySelector(".cxhub");const lob=hub.querySelector(".lobby")||hub;
   if(!b){b=document.createElement("button");b.className="cxhub";lob.appendChild(b);b.onclick=()=>{safe(()=>{SFX.play("ui");haptic(8);});showComics();};}
   const n=safe(unreadCount)||0;const H=safe(heroEp);const img=typeof UIA!=="undefined"&&UIA.ui_comic_btn;
-  b.classList.toggle("img",!!img);if(img)b.style.setProperty("--cxhi",`url(${img})`);
+  b.classList.toggle("cx_img",!!img);if(img)b.style.setProperty("--cxhi",`url(${img})`);
   const sub=n?T(`${n} chương mới`,`${n} new`):H&&H.resume?T("Đọc tiếp · Chương ","Continue · Ch. ")+H.ep.no:T("Biên Niên Màn Tro","Ash Veil Chronicles");
-  b.innerHTML=`${img?'<i class="im"></i>':""}<span class="bk">${BOOK}</span><span class="tt"><b>${T("TRUYỆN","COMICS")}</b><small>${escH(sub)}</small></span>${n?`<span class="n">${n}</span>`:""}`
+  b.innerHTML=`${img?'<i class="cx_im"></i>':""}<span class="cx_bk">${BOOK}</span><span class="cx_tt"><b>${T("TRUYỆN","COMICS")}</b><small>${escH(sub)}</small></span>${n?`<span class="cx_n">${n}</span>`:""}`
   // đặt ngay dưới tiêu đề và dải thông báo (vd. "Seraphine muốn kể chuyện"), không đè lên
   requestAnimationFrame(()=>{safe(()=>{const lr=lob.getBoundingClientRect();let y=0;
     lob.querySelectorAll(".ltop,.lbubble,.ltale,.lstory,button,div").forEach(el=>{if(el===b||b.contains(el)||el.closest(".lmenu,.lchar,.lbottom,.lname"))return;const r=el.getBoundingClientRect();
@@ -18417,35 +19093,35 @@ if(typeof showHub==="function"){const _sh=showHub;showHub=async function(){const
 // ---------------- XƯỞNG ẢNH → TRUYỆN TRANH → CHƯƠNG → TỪNG TRANG + PROMPT ----------------
 const cssS=document.createElement("style");cssS.textContent=`
 .cxs-big{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;margin:0 0 12px;border-radius:14px;border:1px solid rgba(255,190,120,.55);background:linear-gradient(100deg,rgba(70,26,8,.9),rgba(24,12,10,.9));color:#fff1d8;text-align:left;box-shadow:0 0 18px rgba(232,137,59,.25)}
-.cxs-big .ic2{font-size:26px}.cxs-big b{display:block;font:700 17px var(--fd,serif);color:#ffe2bd}.cxs-big small{color:#d9c8a8;font-size:12px}
+.cxs-big .cx_ic2{font-size:26px}.cxs-big b{display:block;font:700 17px var(--fd,serif);color:#ffe2bd}.cxs-big small{color:#d9c8a8;font-size:12px}
 .cxs-ch{display:block;width:100%;text-align:left;padding:12px 14px;margin:0 0 10px;border-radius:12px;border:1px solid rgba(201,164,106,.35);background:rgba(20,14,12,.75);color:inherit}
-.cxs-ch .t{font:700 16px var(--fd,serif);color:#f3e3c4}.cxs-ch .m{font-size:12px;color:#b8ab98;margin:4px 0 7px}
-.cxs-ch.lock{opacity:.6}
+.cxs-ch .cx_t{font:700 16px var(--fd,serif);color:#f3e3c4}.cxs-ch .cx_m{font-size:12px;color:#b8ab98;margin:4px 0 7px}
+.cxs-ch.cx_lock{opacity:.6}
 .cxs-pg{display:flex;gap:12px;padding:12px;margin:0 0 10px;border-radius:12px;border:1px solid rgba(201,164,106,.28);background:rgba(18,13,12,.8)}
-.cxs-pg .th{flex:none;width:70px;height:105px;border-radius:8px;overflow:hidden;background:radial-gradient(120% 80% at 50% 25%,#3a1c0c,#0b0809 70%);border:1px solid rgba(201,164,106,.3);display:grid;place-items:center;color:#a8957a;font:800 18px var(--fd,serif)}
-.cxs-pg .th img{width:100%;height:100%;object-fit:cover}
-.cxs-pg .bd{flex:1;min-width:0}.cxs-pg .h{font:700 15px var(--fd,serif);color:#f3e3c4}.cxs-pg .sm{font-size:11.5px;line-height:1.45;color:#a8957a;margin:4px 0 8px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.cxs-pg .bt{display:flex;flex-wrap:wrap;gap:6px}.cxs-pg textarea{width:100%;margin-top:8px;font-size:11px;min-height:160px}
+.cxs-pg .cx_th{flex:none;width:70px;height:105px;border-radius:8px;overflow:hidden;background:radial-gradient(120% 80% at 50% 25%,#3a1c0c,#0b0809 70%);border:1px solid rgba(201,164,106,.3);display:grid;place-items:center;color:#a8957a;font:800 18px var(--fd,serif)}
+.cxs-pg .cx_th img{width:100%;height:100%;object-fit:cover}
+.cxs-pg .cx_bd{flex:1;min-width:0}.cxs-pg .cx_h{font:700 15px var(--fd,serif);color:#f3e3c4}.cxs-pg .cx_sm{font-size:11.5px;line-height:1.45;color:#a8957a;margin:4px 0 8px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.cxs-pg .cx_bt{display:flex;flex-wrap:wrap;gap:6px}.cxs-pg textarea{width:100%;margin-top:8px;font-size:11px;min-height:160px}
 .cxs-st{font:800 9.5px/1 var(--fb,sans-serif);padding:4px 7px;border-radius:7px;margin-left:6px;vertical-align:middle}
-.cxs-st.ok{color:#9fd59a;border:1px solid rgba(159,213,154,.45)}.cxs-st.no{color:#e8c99a;border:1px dashed rgba(232,201,154,.5)}`;document.head.appendChild(cssS);
+.cxs-st.cx_ok{color:#9fd59a;border:1px solid rgba(159,213,154,.45)}.cxs-st.cx_no{color:#e8c99a;border:1px dashed rgba(232,201,154,.5)}`;document.head.appendChild(cssS);
 const nArt=e=>e.pages.filter((_,i)=>pageImgId(e,i)).length;
 async function comicStudio(cid){
   if(!cid){const tot=EPS.reduce((a,e)=>a+e.pages.length,0),done=EPS.reduce((a,e)=>a+nArt(e),0);
     const b=modal(T("Truyện tranh","Comics"),`<div class="row" style="gap:6px;margin-bottom:10px"><button class="pill" id="cxsb">← ${T("Xưởng Ảnh","Studio")}</button><button class="pill" id="cxrd">📖 ${T("Mở trình đọc","Open reader")}</button></div>
      <div class="prog"><div class="row" style="justify-content:space-between"><b>${T("Tiến độ vẽ truyện","Comic art progress")}</b><span>${done}/${tot} ${T("trang","pages")}</span></div><div class="pbar2"><i style="width:${done/tot*100}%"></i></div></div>
      <div class="cx-tip">${T("Mỗi trang: bấm <b>Sao chép prompt</b> → dán vào ChatGPT → tải ảnh về → <b>Thêm tranh</b>. Nên làm cả chương trong <b>cùng một cuộc trò chuyện</b> ChatGPT để nhân vật giữ nguyên.","Each page: <b>Copy prompt</b> → paste into ChatGPT → save the image → <b>Add art</b>. Do a whole chapter in the <b>same ChatGPT conversation</b> to keep characters consistent.")}</div>
-     ${SEASONS.map(S=>`<div class="orn">${escH(L(S.n))}</div>`+EPS.filter(e=>e.s===S.id).map(e=>{const n=nArt(e);return `<button class="cxs-ch" data-c="${e.id}"><div class="t">${T("Chương","Chapter")} ${e.no} · ${escH(L(e.n))}</div><div class="m">${n}/${e.pages.length} ${T("trang đã có tranh","pages with art")}${isUnl(e)?"":" · 🔒 "+T("chưa mở trong game","not unlocked in game")}</div><div class="pbar2"><i style="width:${n/e.pages.length*100}%"></i></div></button>`;}).join("")).join("")}
+     ${SEASONS.map(S=>`<div class="orn">${escH(L(S.n))}</div>`+EPS.filter(e=>e.s===S.id).map(e=>{const n=nArt(e);return `<button class="cxs-ch" data-c="${e.id}"><div class="cx_t">${T("Chương","Chapter")} ${e.no} · ${escH(L(e.n))}</div><div class="cx_m">${n}/${e.pages.length} ${T("trang đã có tranh","pages with art")}${isUnl(e)?"":" · 🔒 "+T("chưa mở trong game","not unlocked in game")}</div><div class="pbar2"><i style="width:${n/e.pages.length*100}%"></i></div></button>`;}).join("")).join("")}
      ${SOON.length?`<div class="muted" style="text-align:center;margin-top:8px">${T("Sắp có","Coming")}: ${SOON.map(x=>escH(L(x.n))).join(" · ")}</div>`:""}`);
     b.querySelector("#cxsb").onclick=()=>showStudio();b.querySelector("#cxrd").onclick=()=>{closeModal();showComics();};
     b.querySelectorAll("[data-c]").forEach(x=>x.onclick=()=>comicStudio(x.dataset.c));return;}
   const ep=EPS.find(e=>e.id===cid);const sc=q("#mbody")?q("#mbody").scrollTop:0;
   const b=modal(`${T("Chương","Ch.")} ${ep.no} · ${L(ep.n)}`,`<div class="row" style="gap:6px;margin-bottom:10px"><button class="pill" id="cxsb">← ${T("Các chương","Chapters")}</button><button class="pill" id="cxrd">📖 ${T("Đọc chương này","Read chapter")}</button></div>
     <div class="muted" style="margin-bottom:10px">${escH(L(ep.sum))}</div>
-    ${ep.pages.map((pg,i)=>{const id=pageImgId(ep,i);return `<div class="cxs-pg"><div class="th">${id?`<img data-t="${id}" alt="">`:i+1}</div><div class="bd">
-      <div class="h">${T("Trang","Page")} ${i+1}<span class="cxs-st ${id?"ok":"no"}">${id?"✓ "+T("CÓ TRANH","ART"):T("CHƯA CÓ","NO ART")}</span></div>
-      <div class="sm">${escH(pg.panels.map(x=>x.vd).join(" · "))}</div>
-      <div class="bt"><button class="sbtn add" data-cp="${i}">📋 ${T("Sao chép prompt","Copy prompt")}</button><button class="sbtn" data-ad="${i}">${id?"↻ "+T("Thay tranh","Replace"):"＋ "+T("Thêm tranh","Add art")}</button><button class="sbtn" data-vw="${i}">👁 Prompt</button>${id?`<button class="sbtn" data-rd="${i}">📖 ${T("Đọc","Read")}</button>`:""}</div>
-      <div class="pv" data-pv="${i}"></div></div></div>`;}).join("")}`);
+    ${ep.pages.map((pg,i)=>{const id=pageImgId(ep,i);return `<div class="cxs-pg"><div class="cx_th">${id?`<img data-t="${id}" alt="">`:i+1}</div><div class="cx_bd">
+      <div class="cx_h">${T("Trang","Page")} ${i+1}<span class="cxs-st ${id?"cx_ok":"cx_no"}">${id?"✓ "+T("CÓ TRANH","ART"):T("CHƯA CÓ","NO ART")}</span></div>
+      <div class="cx_sm">${escH(pg.panels.map(x=>x.vd).join(" · "))}</div>
+      <div class="cx_bt"><button class="sbtn add" data-cp="${i}">📋 ${T("Sao chép prompt","Copy prompt")}</button><button class="sbtn" data-ad="${i}">${id?"↻ "+T("Thay tranh","Replace"):"＋ "+T("Thêm tranh","Add art")}</button><button class="sbtn" data-vw="${i}">👁 Prompt</button>${id?`<button class="sbtn" data-rd="${i}">📖 ${T("Đọc","Read")}</button>`:""}</div>
+      <div class="cx_pv" data-pv="${i}"></div></div></div>`;}).join("")}`);
   b.querySelectorAll("img[data-t]").forEach(im=>IMG.url(im.dataset.t,true).then(u=>{if(u)im.src=u;}));
   b.querySelector("#cxsb").onclick=()=>comicStudio();b.querySelector("#cxrd").onclick=()=>{closeModal();openEp(ep,0);};
   b.querySelectorAll("[data-cp]").forEach(x=>x.onclick=()=>copyTxt(comicPrompt(ep,+x.dataset.cp)));
@@ -18457,7 +19133,7 @@ async function comicStudio(cid){
 window.comicStudio=comicStudio;
 if(typeof showStudio==="function"){const _ss=showStudio;showStudio=async function(){const r=await _ss.apply(this,arguments);safe(()=>{const b=q("#mbody");if(!b||b.querySelector(".cxs-big"))return;
   const tot=EPS.reduce((a,e)=>a+e.pages.length,0),done=EPS.reduce((a,e)=>a+nArt(e),0);
-  b.insertAdjacentHTML("afterbegin",`<button class="cxs-big" id="cxsgo"><span class="ic2">📖</span><span><b>${T("Truyện tranh","Comics")}</b><small>${EPS.length} ${T("chương","chapters")} · ${done}/${tot} ${T("trang đã có tranh — bấm để xem prompt từng trang","pages with art — tap for page prompts")}</small></span></button>`);
+  b.insertAdjacentHTML("afterbegin",`<button class="cxs-big" id="cxsgo"><span class="cx_ic2">📖</span><span><b>${T("Truyện tranh","Comics")}</b><small>${EPS.length} ${T("chương","chapters")} · ${done}/${tot} ${T("trang đã có tranh — bấm để xem prompt từng trang","pages with art — tap for page prompts")}</small></span></button>`);
   b.querySelector("#cxsgo").onclick=()=>comicStudio();});return r;};}
 
 // ---------------- SẢNH ----------------
