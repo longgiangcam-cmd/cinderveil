@@ -9327,6 +9327,15 @@ try{if(navigator.audioSession)navigator.audioSession.type="playback";}catch(e){}
 {const _he=hfxEdge;let lastW=0;hfxEdge=function(col,dur,str){try{if(col==="255,40,40"&&performance.now()-lastW>800){lastW=performance.now();SFX.play("warn",1);}}catch(x){}return _he.apply(this,arguments);};}
 {const _dm=dfMoment;dfMoment=function(e,boss){const r=_dm.apply(this,arguments);try{const t=Math.max(300,(e._dfxEnd||performance.now()+1300)-performance.now()-480);setTimeout(()=>{try{SFX.play("fallAway",1);}catch(x){}},t);}catch(x){}return r;};}
 
+// ===================== 5.29j — CỐ VẤN KHÔNG TỰ TẮT HẲN =====================
+// Trước: nút ✕ nhỏ trên bảng cố vấn TẮT cố vấn cho cả game (dễ chạm nhầm trên điện thoại) → mất cố vấn ở mọi màn.
+// Giờ: ✕ chỉ ẩn bảng đó; muốn tắt hẳn vẫn vào Cài đặt. Bật lại cố vấn một lần cho ai đã lỡ tắt.
+function advFix(){try{if(M&&M.set&&!M.set.advFix1){M.set.advFix1=1;if(M.set.adv===false)M.set.adv=true;save();}}catch(e){}}
+advFix();{const _ld=load;load=function(){const r=_ld.apply(this,arguments);advFix();return r;};}
+addEventListener("load",()=>setTimeout(advFix,0));
+document.addEventListener("click",ev=>{const x=ev.target&&ev.target.closest&&ev.target.closest(".advx");if(!x)return;ev.stopPropagation();ev.preventDefault();
+  const p=x.closest(".advp");if(p)p.remove();document.querySelectorAll(".advnode").forEach(n=>n.classList.remove("advnode"));},true);
+
 // ===================== 5.21 — XƯỞNG ẢNH: NHÃN CÔNG CỤ (WAI / ChatGPT) + KÍCH THƯỚC =====================
 function slotTool(s){return (s.gpt||s.ui)?"gpt":"wai";}
 function slotSize(s){if(slotTool(s)==="gpt")return s.gpt||s.land?"1536×1024":(/_anvil|banner|top_bar|hand_tray|hp_|textbox|nameplate|btn/.test(s.id)?"1536×1024":"1024×1024");return s.land?"1216×832":"832×1216";}
@@ -17308,6 +17317,15 @@ try{if(navigator.audioSession)navigator.audioSession.type="playback";}catch(e){}
 {const _es=eSkill;eSkill=function(e,m){const k=mvKind(e,m);if(k&&SLEEP_MUL&&m&&m.n){try{SFX.play("skillCall",1);}catch(x){}}return _es.apply(this,arguments);};}
 {const _he=hfxEdge;let lastW=0;hfxEdge=function(col,dur,str){try{if(col==="255,40,40"&&performance.now()-lastW>800){lastW=performance.now();SFX.play("warn",1);}}catch(x){}return _he.apply(this,arguments);};}
 {const _dm=dfMoment;dfMoment=function(e,boss){const r=_dm.apply(this,arguments);try{const t=Math.max(300,(e._dfxEnd||performance.now()+1300)-performance.now()-480);setTimeout(()=>{try{SFX.play("fallAway",1);}catch(x){}},t);}catch(x){}return r;};}
+
+// ===================== 5.29j — CỐ VẤN KHÔNG TỰ TẮT HẲN =====================
+// Trước: nút ✕ nhỏ trên bảng cố vấn TẮT cố vấn cho cả game (dễ chạm nhầm trên điện thoại) → mất cố vấn ở mọi màn.
+// Giờ: ✕ chỉ ẩn bảng đó; muốn tắt hẳn vẫn vào Cài đặt. Bật lại cố vấn một lần cho ai đã lỡ tắt.
+function advFix(){try{if(M&&M.set&&!M.set.advFix1){M.set.advFix1=1;if(M.set.adv===false)M.set.adv=true;save();}}catch(e){}}
+advFix();{const _ld=load;load=function(){const r=_ld.apply(this,arguments);advFix();return r;};}
+addEventListener("load",()=>setTimeout(advFix,0));
+document.addEventListener("click",ev=>{const x=ev.target&&ev.target.closest&&ev.target.closest(".advx");if(!x)return;ev.stopPropagation();ev.preventDefault();
+  const p=x.closest(".advp");if(p)p.remove();document.querySelectorAll(".advnode").forEach(n=>n.classList.remove("advnode"));},true);
 
 // ===================== 5.21 — XƯỞNG ẢNH: NHÃN CÔNG CỤ (WAI / ChatGPT) + KÍCH THƯỚC =====================
 function slotTool(s){return (s.gpt||s.ui)?"gpt":"wai";}
