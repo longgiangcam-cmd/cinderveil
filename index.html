@@ -8781,7 +8781,16 @@ try{CONTENT.push({v:"5.25",notes:[
 // Giờ: "_alt" = GIAI ĐOẠN 2 — hiện khi nàng còn nửa máu (boss: lúc kích hoạt giai đoạn 2; Hollow Soldier: lúc đứng dậy lần 2),
 // hoành tráng hơn ảnh thường (đang tung đòn, hào quang, tia lửa). "_hurt" = chớp lên khi trúng đòn nặng: quỳ/loạng choạng, máu, mặt đau đớn.
 try{PROMPT_CHG.push([{test:sid=>/^en_nyx(_cutin)?$/.test(sid)},Date.UTC(2026,10,28,2,30)]);}catch(e){}
-const P2COM="(attacking:1.15), dynamic pose, dynamic angle, (glowing aura:1.15), power up, embers, sparks, motion blur, intense, (menacing:1.2), red rim light, dark atmosphere";
+const P2COM="dynamic pose, dynamic angle, (glowing aura:1.15), power up, motion blur, intense, (menacing:1.2), dark atmosphere";
+// màu/ánh sáng riêng cho từng kẻ địch (trước đây ai cũng "embers + red rim light" → mọi ảnh ra lửa đỏ)
+const P2COL={hollow:"embers, sparks, red rim light",ghoul:"blood mist, red rim light",ratgirl:"dim green sewer light, red rim light",crow:"red moonlight, crimson rim light",
+ boneknight:"blue fire, cold blue rim light",cultist:"blood red light, red rim light",wraith:"cold blue fire, blue rim light",gargoyle:"lightning, cold blue rim light",
+ watcher:"blue fire, blue rim light",voidspawn:"purple void light, purple rim light",nightmare:"purple mist, purple rim light",arachne:"red glow, red rim light",
+ lamia:"golden glow, red rim light",succubus:"pink light, pink rim light",swordgirl:"cold moonlight, white rim light",necro:"green fire, green rim light",
+ abyssknight:"dark red aura, red rim light",dryad:"sickly green light, green rim light",dullahan:"blue fire, blue rim light",vampire:"blood red moonlight, red rim light",
+ gwyndra:"embers, sparks, fire, red rim light",ornisa:"holy particles, (sickly green light:1.15), green rim light",nyx:"purple fire, purple rim light",
+ morrigan:"red moon, crimson rim light",seline:"holy light, golden particles, white rim light"};
+const P2CAST=new Set(["cultist","necro","succubus","ornisa","nyx","morrigan","seline","voidspawn","nightmare"]);
 const H2COM="(injured:1.2), (pained expression:1.2), wince, clenched teeth, blood on face, bruise, torn clothes, sweat, panting";
 const P2={
  hollow:"full body, from below, (sword slash:1.2), slashing at viewer, leaping, broken sword glowing red, (red aura:1.15), shouting, burning ruins",
@@ -8805,7 +8814,7 @@ const P2={
  dullahan:"full body, riding horse, black horse, ghost horse, (charging:1.2), sword raised, holding own head aloft, (blue fire trail:1.2), graveyard road",
  vampire:"full body, from below, (blood magic:1.2), floating, red cape spread, blood whips, (glowing red eyes:1.15), fangs, blood moon",
  gwyndra:"full body, from below, (flaming greatsword slash:1.2), (fire aura:1.2), cape burning, burning eyes, flames everywhere, throne room",
- ornisa:"full body, from below, floating, holy staff raised, (blazing halo:1.2), (sickly holy light:1.15), maggots raining, rotting congregation, cathedral",
+ ornisa:"full body, from below, (floating:1.2), feet off ground, (holy staff raised high:1.2), both arms raised, (blazing halo:1.2), (sickly green holy light:1.2), light beams from above, rotting petals falling, kneeling corpses below, cathedral",
  nyx:"full body, from below, (huge wings spread:1.2), (purple fire aura:1.2), crown blazing, glowing yellow eyes, cruel smile, eclipse, throne of bones",
  morrigan:"full body, from below, (crow storm:1.2), feather cloak becoming wings, (glowing red eyes:1.15), black lightning, ruined tower, full moon",
  seline:"full body, from below, (black wings spread:1.2), (shattered halo blazing:1.2), chains whipping, black blood tears, holy fire, ruined cathedral"};
@@ -8847,7 +8856,7 @@ function enIdent(k){const s=SLOT_BY_ID["en_"+k];if(!s)return "";if(k==="hollow")
 function enIdent0(k){const s=SLOT_BY_ID["en_"+k];if(!s)return "";const T=waiSplit(s.pos);const a=T.findIndex(t=>t==="mature female");const b=T.findIndex(t=>t==="full body");
   return (a>=0&&b>a?T.slice(a+1,b):[]).join(", ");}
 (function(){for(const k of Object.keys(P2)){const id=enIdent(k);if(!id)continue;const head=W2_Q+", 1girl, solo, mature female, "+id;
-    const a=SLOT_BY_ID["en_"+k+"_alt"];if(a){a.pos=w2post(head+", "+P2[k]+", "+P2COM+", "+W2_STY,a);const P2N="Phase 2";a.n=(ENEMIES[k]?ENEMIES[k].n.split(" — ")[0]:k)+" — "+P2N;
+    const a=SLOT_BY_ID["en_"+k+"_alt"];if(a){a.pos=w2post(head+", "+P2[k]+", "+(P2CAST.has(k)?"(casting spell:1.15)":"(attacking:1.15)")+", "+P2COM+", "+(P2COL[k]||"red rim light")+", "+W2_STY,a);const P2N="Phase 2";a.n=(ENEMIES[k]?ENEMIES[k].n.split(" — ")[0]:k)+" — "+P2N;
       a.desc="Phase 2: shown when she drops to half HP (bosses: when phase 2 triggers; Hollow Soldier: when she rises again). Make it MORE epic than her first image: attacking, power aura, sparks. Same framing: full body, centered, face in the upper third.";a.note="";
       if(typeof a.neg==="string"&&!/standing still/.test(a.neg))a.neg+=", standing still, idle, sitting, calm";}
     const h=SLOT_BY_ID["en_"+k+"_hurt"];if(h){h.pos=w2post(head+", "+H2[k]+", "+H2COM+", dark atmosphere, "+W2_STY,h);
@@ -8960,6 +8969,209 @@ function dfxKeep(){try{if(C&&C.en)for(const e of C.en){if(e._dead&&e._dfxEnd&&pe
 (function(){for(const s of SLOTS){if(!/^en_[a-z]+_alt$/.test(s.id)||typeof s.neg!=="string"||/laser/.test(s.neg))continue;s.neg+=", gun, laser, grenade, cone, bottle, holding object, futuristic weapon";
   if(/^en_lamia_alt$/.test(s.id))s.neg+=", holding weapon, sword, spear";}
   try{PROMPT_CHG.push([{test:sid=>sid==="en_lamia_alt"},Date.UTC(2026,10,28,4,42)]);}catch(e){}})();
+// ---------- HIỆU ỨNG KẺ ĐỊCH CHẾT (đơn giản, to, đẹp): 1) nhát chém sáng ngang người  2) linh hồn bay lên thành cột sáng ----------
+function deathFx(e,el){try{if(!vxOn()||!el)return;hfxPoke();const r=el.getBoundingClientRect();if(!r.width)return;const x=r.left+r.width/2,y=r.top+r.height*.42,bot=r.bottom,W=innerWidth;
+  const col=(e.d&&e.d.boss)?"255,215,140":(C&&C.kind==="e")?"205,150,255":"255,160,90";
+  // nhát chém
+  vxStreak(x,y,W*1.1,"255,255,255",.32);vxStreak(x,y+4,W*.8,col,.4);vxRing(x,bot-8,r.width*.9,col,.5,0,.28);
+  e._deathCol=col;}catch(x){}}
+function soulFx(e,el){try{if(!vxOn()||!el)return;hfxPoke();const r=el.getBoundingClientRect();if(!r.width)return;const x=r.left+r.width/2,y=r.top+r.height*.4,bot=r.bottom;const col=e._deathCol||"255,160,90";
+  vxPillar(x,bot,r.width*.5,col,1.2);vxRing(x,bot-6,r.width*1.1,col,.8,0,.3);vxRing(x,bot-6,r.width*.6,"255,245,225",.6,.12,.3);
+  vxEmbers(x,y+r.height*.2,42,col,r.width*.45,320,2);vxFlare(x,r.top+r.height*.15,240,"255,250,235",.6,0,.25);
+  try{SFX.play("twinkle",.7);}catch(x){}}catch(x){}}
+{const _hE4=hitEnemy;hitEnemy=function(e,n){const h0=e?e.hp:0;const r=_hE4.apply(this,arguments);try{if(e&&h0>0&&e.hp<=0){const el=$(`#combat .en[data-u="${e.u}"] .ef`)||$(`#combat .en[data-u="${e.u}"]`);deathFx(e,el);
+    const wait=e._dfxEnd?Math.max(150,e._dfxEnd-performance.now()):260;setTimeout(()=>{const el2=$(`#combat .en[data-u="${e.u}"] .ef`)||$(`#combat .en[data-u="${e.u}"]`)||el;soulFx(e,el2);},wait);}}catch(x){}return r;};}
+
+// Ornisa: giám mục (không phải bà xơ), đội mũ mitre cao, mặt thấy rõ (không mạng che), da thối rữa
+(function(){const REP={"bishop":"(female bishop:1.1)","mitre":"(tall golden mitre:1.2)","white and gold robes":"white and gold vestments","rotting":"(rotting skin:1.2), cracked grey skin","decay":"decaying face","(veil:1.2)":"lace veil hanging behind head, face visible","veil":"lace veil hanging behind head, face visible"};
+  for(const s of SLOTS){if(!/^en_ornisa/.test(s.id))continue;const f=p=>p&&w2post(waiSplit(p).map(t=>REP[t]||t).join(", "),{id:"w",g:"x"});s.pos=f(s.pos);if(s.variants)s.variants.forEach(v=>v.pos=f(v.pos));
+    if(typeof s.neg==="string"&&!/face mask/.test(s.neg))s.neg+=", nun, habit, face mask, covered face, mouth veil";}
+  try{PROMPT_CHG.push([{test:sid=>/^en_[a-z]+_alt$/.test(sid)||sid==="en_ornisa_hurt"},Date.UTC(2026,10,28,6,30)]);}catch(e){}})();
+// ---------- Ảnh ngang HẠ GỤC của 5 trùm: khớp ngoại hình chiến đấu + tàn bạo như ảnh Bị hạ, kiểu cảnh điện ảnh rộng ----------
+(function(){const DEF={
+  gwyndra:"(kneeling:1.15), both knees, (flaming greatsword broken in two:1.2), broken blade in ground, cracked blackened armor, (burning red cape:1.1), head bowed, dying flames around her, ruined throne room",
+  ornisa:"(collapsed on altar steps:1.2), fallen mitre beside her, shattered holy staff, (shattered halo:1.15), fading green light, rotting congregation in shadows, cathedral",
+  morrigan:"(lying among black feathers:1.2), on tower top, shredded feather cloak, crows flying away, full moon behind",
+  seline:"(lying on broken cathedral floor:1.2), broken black wings spread, halo shards scattered, snapped chains, single beam of light from above",
+  nyx:"(slumped on throne of bones:1.2), (true form fading:1.15), cracked horns, tattered wings, fallen burning crown on floor, single tear"};
+ const COM="(defeated:1.2), (severely injured:1.15), (broken armor:1.1), torn clothes, blood on body, blood on face, wounds, half-closed eyes, exhausted, embers, ash falling, smoke, wide shot, cinematic, dramatic lighting, dark atmosphere";
+ for(const [k,pose] of Object.entries(DEF)){const s=SLOT_BY_ID["en_"+k+"_defeat"];const id=enIdent(k);if(!s||!id)continue;
+   const com=/armor/.test(id)?COM:COM.replace("(broken armor:1.1), ","");
+   s.pos=w2post([W2_Q,"1girl, solo, mature female",id.split(", ").filter(t=>!/smile|grin|smirk|looking down at viewer|^flaming greatsword$|mitre|^holy staff$|crown of black fire/.test(t)).join(", "),pose,com,W2_STY].join(", "),s);
+   if(typeof s.neg==="string"&&!/intact armor/.test(s.neg))s.neg+=", peaceful, sleeping, clean, intact armor, smile, standing, crossed legs";}
+ try{PROMPT_CHG.push([{test:sid=>/^en_(gwyndra|ornisa|morrigan|seline|nyx)_defeat$/.test(sid)},Date.UTC(2026,10,28,6,42)]);}catch(e){}})();
+// Nyx — ảnh Bị hạ (dọc) viết lại: đang gục hấp hối trên ngai, không còn ngồi thẳng uy nghi, cánh rách rũ, vương miện rơi
+(function(){const h=SLOT_BY_ID.en_nyx_hurt;if(!h)return;
+  h.pos=w2post([W2_Q,"1girl, solo, mature female, tall female, demon, (huge ram horns:1.15), cracked horns, very long purple hair, messy hair, (black sclera:1.1), yellow eyes, (black and gold armored gown:1.1), (glowing void tattoos:1.1)",
+   "full body, from above, (slumped sideways on throne:1.2), head hanging to side, (arm dangling off armrest:1.15), (tattered wings drooping:1.2), wings torn to shreds, fallen crown on floor, (body cracking with purple light:1.1), purple flames dying, throne of bones",
+   "(dying:1.2), (defeated:1.2), (severely injured:1.2), (shattered armor:1.15), (torn clothes:1.2), black blood dripping from mouth, black blood pool, blood on face, wounds, (lifeless eyes:1.15), eyes half-open, blank stare, pale face, ash falling, smoke, harsh shadows, purple rim light, dark atmosphere",W2_STY].join(", "),h);
+  if(!/sitting upright/.test(h.neg))h.neg+=", sitting upright, regal, wings spread, crown on head, yellow scarf, clean";
+  try{PROMPT_CHG.push([{test:sid=>sid==="en_nyx_hurt"},Date.UTC(2026,10,28,6,44)]);}catch(e){}})();
+// Nyx — ảnh ngang HẠ GỤC viết lại riêng (ngoại hình nguyên hình "nhiều cánh xòe + vương miện" lấn át cảnh gục)
+(function(){const s=SLOT_BY_ID.en_nyx_defeat;if(!s)return;
+  s.pos=w2post([W2_Q,"1girl, solo, mature female, tall female, demon, (huge ram horns:1.15), cracked horns, very long purple hair, messy hair, yellow eyes, (black and gold armored gown:1.1), (glowing void tattoos:1.1)",
+   "(slumped sideways on throne:1.2), head hanging to side, (arm dangling off armrest:1.15), (tattered wings drooping to floor:1.2), wings torn to shreds, fallen crown on floor, (body cracking with purple light:1.15), (true form fading:1.1), purple flames dying, (single tear:1.1), throne of bones",
+   "(defeated:1.2), (severely injured:1.2), (shattered armor:1.15), (torn clothes:1.2), black blood dripping from mouth, black blood pool, blood on face, wounds, half-closed eyes, pale face, ash falling, smoke, wide shot, cinematic, purple rim light, dark atmosphere",W2_STY].join(", "),s);
+  if(!/sitting upright/.test(s.neg))s.neg+=", sitting upright, regal, wings spread, crown on head, yellow scarf";
+  try{PROMPT_CHG.push([{test:sid=>sid==="en_nyx_defeat"},Date.UTC(2026,10,28,6,47)]);}catch(e){}})();
+// Morrigan — Bị hạ (dọc) + HẠ GỤC (ngang): bỏ "rơi giữa không trung" (ra dáng đứng/lơ lửng), cho nằm gục hẳn trên đỉnh tháp
+(function(){const ID="1girl, solo, mature female, (human face:1.2), crow witch, long black hair, messy hair, (shredded feather cloak:1.2), black feathers";
+ const BR="(dying:1.2), (defeated:1.2), (brutal aftermath:1.2), (heavily wounded:1.2), (deep wounds:1.2), (bleeding heavily:1.2), blood dripping from mouth, (blood pool:1.15), blood on face, (torn clothes:1.2), ripped clothes, (unconscious:1.15), limp, (lifeless eyes:1.15), eyes half-open, pale face, embers, ash falling, harsh shadows";
+ const h=SLOT_BY_ID.en_morrigan_hurt;if(h){
+  h.pos=w2post([W2_Q,ID,"full body, (lying on back:1.2), (from above:1.15), sprawled on cracked stone floor, (crater of black feathers:1.15), arms spread limp, one leg bent, hair fanned out on ground, broken parapet, dead crows around her, scattered black feathers",BR,"cold moonlight, red rim light, dark atmosphere",W2_STY].join(", "),h);
+  if(typeof h.neg==="string"&&!/midair/.test(h.neg))h.neg+=", standing, walking, floating, midair, levitating, from below, upright, feet on ground";}
+ const s=SLOT_BY_ID.en_morrigan_defeat;if(s){
+  s.pos=w2post([W2_Q,ID,"(lying on side:1.2), (collapsed on tower top:1.2), ruined tower, (arm hanging over broken edge:1.15), head resting on stone, (wings of feathers torn apart:1.15), dead crows on ground, last crows flying away into the night, feathers drifting down",BR,"huge full moon in sky, wide shot, cinematic, cold blue moonlight, red embers, dark atmosphere",W2_STY].join(", "),s);
+  if(typeof s.neg==="string"&&!/midair/.test(s.neg))s.neg+=", standing, walking, floating, midair, levitating, upright, wings spread, smile";}
+ try{PROMPT_CHG.push([{test:sid=>sid==="en_morrigan_hurt"||sid==="en_morrigan_defeat"},Date.UTC(2026,10,28,6,50)]);}catch(e){}})();
+
+// ===================== 5.27 — CỐ VẤN Ở CỬA HÀNG + LỬA TRẠI, CHIA THEO HƯỚNG BUILD =====================
+// 8 hướng build = 8 lối chơi của các nàng (Sustain, Bleed, Fortress, Combo, Hex, Tempo, Volley, Corruption).
+// Cố vấn đoán hướng bạn đang đi (bộ bài + nàng đồng hành), gợi ý mua gì trong số vàng đang có, kèm lý do;
+// có thể bấm sang hướng khác để xem nên mua gì nếu muốn đổi lối chơi.
+const BUILD_ORDER=["brun","sera","elis","tsub","morw","mira","lyra","nyx"];
+const RELIC_KW={sera:/heal|HP/i,elis:/Bleed/i,brun:/Block/i,tsub:/attack|Strength/i,morw:/Vulnerable|Weak/i,mira:/draw|Energy|0-cost|gold/i,lyra:/all enemies|area|ALL/i,nyx:/Curse/i};
+function bFits(h,id){const d=CARDS[id];if(!d||!ROLE_WANT[h])return "";const c=mkCard(id);const cd=cdef(c)||{};const fx=cd.fx||d.fx||{};try{return ROLE_WANT[h](d,fx,id,cd.cost!=null?cd.cost:d.c)||"";}catch(e){return "";}}
+function buildScores(){const sc={};for(const h of BUILD_ORDER){let n=0;for(const c of R.deck)if(bFits(h,c.id))n++;sc[h]=n+(h===R.comp?8:h===R.comp2?5:0);}return sc;}
+function mainBuild(){const sc=buildScores();return BUILD_ORDER.slice().sort((a,b)=>sc[b]-sc[a]||(b===R.comp)-(a===R.comp))[0];}
+function bName(h){return `${ROLE[h]?ROLE[h].r:h} · ${HEROES[h]?HEROES[h].n:h}`;}
+// chấm điểm một món trong cửa hàng theo một hướng build
+function shopVal(it,h){if(it.k==="c"){const a=advCard(it.id);const f=bFits(h,it.id);return {v:a.sc+(f?2.6:0),why:f?[f,...a.why.slice(0,1)]:a.why.slice(0,2),fit:!!f};}
+  if(it.k==="r"){const r=RELICS[it.id]||{};const f=RELIC_KW[h]&&RELIC_KW[h].test(r.d||"");return {v:3.2+(f?2.4:0),why:[f?"relic matches this build":"a relic lasts the whole run"],fit:f};}
+  if(it.k==="p"){const n=(R.pots||[]).length;return {v:n>=2?.6:1.6,why:[n>=2?"you already carry potions":"a potion can save a hard fight"],fit:false};}
+  if(it.k==="rm"){const S=deckStat();const cur=R.deck.filter(c=>(CARDS[c.id]||{}).t==="cur").length;const basic=R.deck.filter(c=>c.id==="chem"||c.id==="do").length;
+    return {v:cur?5.5:basic>=5?3.4:basic>=3?2.2:.8,why:[cur?"remove a Curse first":basic>=3?`thin out basic Slash/Defend (${basic} left)`:"your deck is already lean"],fit:false};}
+  return {v:0,why:[]};}
+function shopPlan(items,h){let g=R.gold;const L=items.map(it=>({it,...shopVal(it,h)})).filter(x=>x.v>=2).sort((a,b)=>b.v/Math.max(30,b.it.p)*60+b.v-(a.v/Math.max(30,a.it.p)*60+a.v));
+  const buy=[],skip=[];let nc=0;for(const x of L){if(x.it.k==="c"&&(x.v<3.4||nc>=2))continue;if(x.it.k==="p"&&buy.some(y=>y.it.k==="p"))continue;if(x.it.p<=g){buy.push(x);g-=x.it.p;if(x.it.k==="c")nc++;}else skip.push(x);}return {buy,skip,left:g};}
+function itName(it){return it.k==="c"?CARDS[it.id].n:it.k==="r"?RELICS[it.id].n:it.k==="p"?POTIONS[it.id].n:"Remove a card";}
+function advShop(){try{if(!advOn()||!R)return;const s=$("#shop");if(!s||!s.classList.contains("on"))return;const pad=s.querySelector(".pad");if(!pad||pad.querySelector(".advshop"))return;
+  // đọc lại hàng đang bày trên quầy
+  const items=[];s.querySelectorAll("[data-i]").forEach(el=>{const card=el.querySelector(".card[data-id]");const p=+((el.textContent.match(/◉\s*(\d+)/)||[])[1]||0);
+    if(card){items.push({k:"c",id:card.dataset.id,p,el});return;}const b=el.querySelector("b");const nm=b?b.textContent.replace(/^\s+|\s+$/g,""):"";
+    const rid=Object.keys(RELICS).find(k=>RELICS[k].n===nm);if(rid){items.push({k:"r",id:rid,p,el});return;}const pid=Object.keys(POTIONS).find(k=>nm.endsWith(POTIONS[k].n));if(pid)items.push({k:"p",id:pid,p,el});});
+  const rm=s.querySelector("#rmv");if(rm&&!rm.classList.contains("dis"))items.push({k:"rm",p:+((rm.textContent.match(/◉\s*(\d+)/)||[])[1]||75),el:rm});
+  if(!items.length)return;let cur=mainBuild();const sc=buildScores();
+  const box=document.createElement("div");box.className="advp adv2 advshop";
+  const draw=()=>{const P=shopPlan(items,cur);s.querySelectorAll(".advpick").forEach(x=>x.classList.remove("advpick"));s.querySelectorAll(".advtag.shp").forEach(x=>x.remove());
+    P.buy.forEach(x=>{const t=x.it.el.querySelector(".card")||x.it.el;t.classList.add("advpick");if(x.it.k==="c")t.insertAdjacentHTML("beforeend",`<i class="advtag shp">ADVISOR</i>`);});
+    const row=x=>`<div class="adv-r"><div class="adv-h"><b>${esc(itName(x.it))}</b><span class="adv-s">◉ ${x.it.p}</span></div>${x.why.slice(0,2).map(w=>`<div class="adv-p">✓ ${esc(w)}</div>`).join("")}</div>`;
+    box.innerHTML=`<b>💡 Advisor</b><span>${P.buy.length?`For <em>${esc(bName(cur))}</em>: buy ${P.buy.map(x=>`<em>${esc(itName(x.it))}</em>`).join(" → ")}`:`Nothing here clearly helps <em>${esc(bName(cur))}</em>. Save your gold.`}</span>
+      <div class="adv-ctx">Gold ${R.gold} → ${P.left} left after these. ${cur===mainBuild()?"This is the build your deck leans toward.":"You are previewing another build."}</div>
+      <div class="bchips">${BUILD_ORDER.map(h=>`<button class="bchip ${h===cur?"on":""}" data-h="${h}">${esc(ROLE[h]?ROLE[h].r:h)}${sc[h]>0?` <small>${sc[h]}</small>`:""}</button>`).join("")}</div>
+      <button class="adv-more">Why ▾</button><div class="adv-d" hidden><div class="adv-ctx">${esc(ROLE[cur]?ROLE[cur].d:"")}</div>${P.buy.map(row).join("")}${P.skip.length?`<div class="adv-ctx">Good but not affordable now: ${P.skip.slice(0,3).map(x=>esc(itName(x.it))).join(", ")}.</div>`:""}</div>`;
+    box.querySelectorAll(".bchip").forEach(b=>b.onclick=()=>{cur=b.dataset.h;draw();});const mb=box.querySelector(".adv-more"),dd=box.querySelector(".adv-d");mb.onclick=()=>{dd.hidden=!dd.hidden;mb.textContent=dd.hidden?"Why ▾":"Hide ▴";};};
+  draw();const g=pad.querySelector(".cardgrid");(g||pad.firstChild).before(box);}catch(e){}}
+// cửa hàng vẽ lại sau mỗi lần mua → gắn lại cố vấn
+{const ob=new MutationObserver(()=>{if($("#shop")&&$("#shop").classList.contains("on"))setTimeout(advShop,30);});const tryObs=()=>{const s=$("#shop");if(s)ob.observe(s,{childList:true,subtree:false,attributes:true,attributeFilter:["class"]});const mc=s&&s.querySelector(".mc");if(mc)ob.observe(mc,{childList:true});};
+  if(document.readyState!=="loading")tryObs();else addEventListener("DOMContentLoaded",tryObs);}
+// ---------- Lửa trại: nên Nghỉ hay Rèn (và rèn lá nào cho đúng hướng) ----------
+function advCamp(){try{if(!advOn()||!R)return;const v=$("#vn");if(!v||!v.classList.contains("camp")||v.querySelector(".advcamp"))return;const ch=v.querySelector(".vch");if(!ch)return;
+  const hp=R.hp/R.max,h=mainBuild();const up=R.deck.filter(c=>!c.up&&(CARDS[c.id]||{}).up&&(CARDS[c.id]||{}).t!=="cur");
+  const best=up.map(c=>({c,v:(bFits(h,c.id)?3:0)+({0:0,1:1,2:2,3:3,4:4,5:3}[CARDS[c.id].r]||1)+(CARDS[c.id].t==="pow"?1:0)})).filter(x=>x.v>=2).sort((a,b)=>b.v-a.v)[0];
+  const rest=hp<.5||(hp<.7&&R.map&&R.map.pos&&R.map.pos.r>=10);
+  const b=document.createElement("div");b.className="advp adv2 advcamp";
+  b.innerHTML=`<b>💡 Advisor</b><span>${rest?`<em>Rest</em> — HP ${Math.round(hp*100)}% is too low to risk the next fights.`:best?`<em>Forge ${esc(CARDS[best.c.id].n)}</em> — HP ${Math.round(hp*100)}% is fine; upgrading your key card pays off every fight.`:`<em>Rest</em> — nothing worth upgrading.`}</span>
+   ${!rest&&best&&bFits(h,best.c.id)?`<div class="adv-p">✓ ${esc(bFits(h,best.c.id))}</div>`:""}<div class="adv-ctx">Build: ${esc(bName(h))}</div>`;
+  ch.before(b);}catch(e){}}
+{const ob2=new MutationObserver(()=>{const v=$("#vn");if(v&&v.classList.contains("camp"))setTimeout(advCamp,40);});const go=()=>{const v=$("#vn");if(v)ob2.observe(v,{attributes:true,attributeFilter:["class"],childList:true});};
+  if(document.readyState!=="loading")go();else addEventListener("DOMContentLoaded",go);}
+(function(){const st=document.createElement("style");st.textContent=`
+.bchips{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.bchip{border:1px solid rgba(255,210,140,.35);background:rgba(0,0,0,.3);color:#e9d3a8;border-radius:999px;padding:4px 10px;font-size:11.5px;font-weight:600;line-height:1.2}
+.bchip small{opacity:.6;font-size:10px}
+.bchip.on{background:linear-gradient(180deg,#ffe3a0,#e8a440);color:#3a1a02;border-color:#ffd27a}
+.advcamp{position:relative;z-index:3;margin:0 0 8px}
+#shop .btn.advpick{animation:none}`;document.head.appendChild(st);})();
+
+// ===================== 5.28 — ÂM THANH LÁ BÀI: SƯỚNG TAI + ĐA DẠNG =====================
+// Mỗi lá có 2 lớp: tiếng "tung lá" theo loại (đánh / kỹ năng / sức mạnh / nguyền) + tiếng "trúng đòn" theo kiểu chiêu,
+// mỗi kiểu có 3 biến thể chọn ngẫu nhiên + lệch cao độ nhẹ → nghe không lặp. Đòn to có thêm lớp trầm "bùm" + tiếng kính vỡ.
+// Thêm tiếng riêng cho: rút bài, nạp năng lượng, tăng Sức Mạnh, Giáp to/nhỏ, hạ gục, đánh lan.
+(function(){const S=AU.S;const R3=a=>a[Math.floor(Math.random()*a.length)];const J=()=>.94+Math.random()*.12;
+  const sub=(f,d,g,at)=>AU.tone(f,d,{to:f*.45,g,at:at||0,type:"sine"});
+  const ping=(f,d,g,at,rev)=>AU.tone(f,d,{g,at:at||0,type:"triangle",rev:rev==null?.5:rev});
+  // --- lớp tung lá ---
+  S.relAtk=m=>{const j=J();AU.nz(.16,{fr:600*j,to:4200*j,q:1.1,g:.24,a:.03});AU.tone(260*j,.12,{to:520*j,g:.08,type:"triangle"});};
+  S.relSkl=m=>{const j=J();ping(1046*j,.25,.05,0,.6);ping(1568*j,.3,.035,.05,.7);AU.nz(.2,{f:"highpass",fr:3000,to:7000,g:.04,a:.06,rev:.5});};
+  S.relPow=m=>{const j=J();[262,330,392,523].forEach((f,i)=>AU.tone(f*j,1.1,{g:.045,a:.15,at:i*.04,rev:.8,type:"sawtooth",lp:1400}));sub(65,1,.35);AU.nz(.9,{fr:300,to:2400,q:.8,g:.08,a:.4,rev:.6});};
+  S.relCur=m=>{AU.tone(98,.6,{type:"sawtooth",lp:500,g:.1,a:.05,rev:.6,to:73});AU.nz(.5,{f:"lowpass",fr:600,to:150,g:.14,a:.05,rev:.5});};
+  S.exhaust=m=>{AU.nz(.35,{f:"highpass",fr:1800,to:5000,g:.09,a:.02,rev:.4});for(let i=0;i<4;i++)AU.nz(.02,{f:"highpass",fr:3000+Math.random()*3000,g:.06,at:.05+Math.random()*.25});};
+  // --- lớp trúng đòn: 3 biến thể mỗi kiểu ---
+  const slashes=[
+    m=>{AU.nz(.14,{fr:3200*m,to:600,q:1.6,g:.34});sub(140*m,.16,.45);AU.nz(.04,{f:"highpass",fr:6000,g:.14,at:.004});},
+    m=>{AU.nz(.18,{fr:2200*m,to:450,q:2.2,g:.32});AU.tone(1800*m,.06,{to:900,type:"triangle",g:.06});sub(120*m,.18,.5);},
+    m=>{AU.nz(.12,{fr:4200*m,to:900,q:1.2,g:.3});AU.nz(.1,{fr:1400*m,to:300,q:3,g:.22,at:.02});sub(160*m,.14,.42);}];
+  S.slashV=m=>R3(slashes)(m*J());
+  S.tick=m=>{const j=m*J();AU.nz(.07,{fr:3600*j,to:1200,q:1.8,g:.26});AU.tone(900*j,.04,{type:"triangle",g:.05});sub(180*j,.08,.25);};
+  S.stab=m=>{const j=m*J();AU.nz(.05,{f:"highpass",fr:4500,g:.32});AU.tone(1900*j,.08,{to:700,type:"triangle",g:.12});sub(210*j,.09,.3,.025);AU.nz(.06,{fr:900,to:400,q:6,g:.14,at:.04});};
+  S.bash=m=>{const j=m*J();sub(120*j,.3,.7);AU.nz(.14,{f:"lowpass",fr:900,to:200,g:.42});AU.tone(380*j,.12,{type:"square",lp:900,g:.06,at:.01});AU.nz(.05,{f:"highpass",fr:3500,g:.12,at:.01});};
+  S.sweepV=m=>{const j=m*J();AU.nz(.32,{fr:400*j,to:3000*j,q:1,g:.26,a:.08});sub(90*j,.4,.55,.06);AU.nz(.25,{f:"lowpass",fr:1600,to:300,g:.22,at:.08,rev:.3});};
+  S.fireV=m=>{const j=m*J();AU.nz(.4,{f:"lowpass",fr:1800*j,to:350,g:.34,a:.02,rev:.4});sub(75*j,.45,.5);for(let i=0;i<5;i++)AU.nz(.02,{f:"highpass",fr:2400+Math.random()*3500,g:.13,at:.03+Math.random()*.3});};
+  S.bleedV=m=>{const j=m*J();AU.nz(.1,{fr:2600*j,to:700,q:2,g:.28});AU.nz(.12,{fr:900,to:300,q:7,g:.26,at:.03});AU.tone(300*j,.12,{to:110,g:.14,type:"triangle",at:.02});sub(130*j,.12,.3);};
+  S.curseV=m=>{const j=m*J();AU.tone(104*j,.6,{type:"sawtooth",lp:650,g:.11,a:.04,rev:.6,to:78});AU.tone(1245*j,.4,{g:.03,a:.02,rev:.8,to:620});sub(60,.6,.3);};
+  // --- kỹ năng ---
+  S.shieldV=m=>{const j=J();const base=R3([780,860,940]);[[1,.13],[1.5,.08],[2.31,.055],[3.17,.035]].forEach(([k,g])=>AU.tone(base*k*j,.42,{g,rev:.4}));AU.nz(.03,{f:"highpass",fr:3200,g:.18});sub(150,.2,.35);};
+  S.shieldBig=m=>{[[196,.16],[294,.1],[392,.08],[588,.05],[784,.04]].forEach(([f,g])=>AU.tone(f,1.4,{g,rev:.7,a:.005}));AU.nz(.05,{f:"highpass",fr:2500,g:.2});sub(82,.9,.5);};
+  S.buffV=m=>{const j=J();const keys=R3([[523,659,784,1047],[587,740,880,1175],[494,622,740,988]]);keys.forEach((f,i)=>ping(f*j,.32,.08,i*.05,.6));AU.nz(.35,{fr:1800,to:7000,g:.05,a:.12,rev:.5});};
+  S.healV=m=>{const j=J();[784,1175,1568,2093].forEach((f,i)=>AU.tone(f*j,.8,{g:.06,at:i*.07,a:.03,rev:.8}));AU.nz(.8,{f:"highpass",fr:4000,to:9000,g:.035,a:.3,rev:.8});};
+  S.debuffV=m=>{const j=J();AU.nz(.45,{fr:2500*j,to:300,q:2.5,g:.26,a:.05,rev:.5});AU.tone(392*j,.5,{to:196*j,type:"sawtooth",lp:900,g:.1,rev:.6});AU.tone(415*j,.5,{to:207*j,type:"sawtooth",lp:900,g:.08,rev:.6});sub(90,.4,.25);};
+  S.riffle=m=>{const n=Math.max(1,Math.min(5,Math.round(m)));for(let i=0;i<n;i++)AU.nz(.045,{f:"highpass",fr:2600+Math.random()*1500,g:.08,at:i*.055,a:.005});};
+  S.zap=m=>{AU.tone(220,.35,{to:1320,type:"sawtooth",lp:2600,g:.12,a:.02,rev:.4});ping(1760,.4,.08,.28,.7);ping(2637,.5,.055,.34,.8);};
+  S.strUp=m=>{sub(70,.5,.55);AU.tone(147,.5,{to:220,type:"sawtooth",lp:800,g:.1,a:.04,rev:.4});AU.nz(.4,{fr:200,to:1800,q:1,g:.12,a:.1,rev:.4});};
+  // --- đòn to & hạ gục ---
+  S.heavy=m=>{sub(58,.7,.8);AU.nz(.5,{f:"lowpass",fr:1600,to:120,g:.3,a:.005,rev:.4});};
+  S.crit=m=>{sub(48,.9,.9);AU.nz(.25,{f:"highpass",fr:2500,to:7000,g:.22,rev:.4});for(let i=0;i<4;i++)ping(1800+Math.random()*2200,.25,.045,.02+Math.random()*.1,.6);};
+  S.killV=m=>{sub(62,.8,.7);AU.nz(.6,{f:"lowpass",fr:2200,to:160,g:.26,a:.005,rev:.5});[784,1175,1568].forEach((f,i)=>ping(f,.7,.05,.12+i*.06,.8));};
+  // gán kiểu chiêu → âm trúng đòn mới
+  Object.assign(VFX_SND,{slash:"slashV",multi:"tick",sweep:"sweepV",pierce:"stab",blunt:"bash",fire:"fireV",bleed:"bleedV",curse:"curseV",debuff:"debuffV",shield:"shieldV",buff:"buffV",heal:"healV"});})();
+// tung lá + lớp phụ theo hiệu ứng của lá
+{const _acS=applyCard;applyCard=async function(c,d,fx){try{if(d&&SLEEP_MUL!==0){const t=d.t;SFX.play(t==="atk"?"relAtk":t==="pow"?"relPow":t==="cur"?"relCur":"relSkl",1);
+    if(fx){if(fx.e)setTimeout(()=>SFX.play("zap",1),90);if(fx.s)setTimeout(()=>SFX.play("strUp",1),60);if(fx.b>=12)setTimeout(()=>SFX.play("shieldBig",1),40);if(fx.dr)setTimeout(()=>SFX.play("riffle",fx.dr),140);if(fx.ex||d.ex)setTimeout(()=>SFX.play("exhaust",1),300);}}}catch(e){}
+  return _acS.apply(this,arguments);};}
+// đòn to: thêm lớp trầm; rất to: thêm tiếng vỡ
+{const _hS=hitEnemy;hitEnemy=function(e,n){const h0=e?e.hp:0;const r=_hS.apply(this,arguments);try{if(e&&n>=25)SFX.play("crit",1);else if(e&&n>=14)SFX.play("heavy",1);if(e&&h0>0&&e.hp<=0)setTimeout(()=>SFX.play("killV",1),40);}catch(x){}return r;};}
+
+// ===================== 5.29 — CHUYỂN PHASE CỦA BOSS: MÀN "GIAI ĐOẠN II" ĐIỆN ẢNH + VÀI KHOẢNH KHẮC KHÁC =====================
+// Một lần duy nhất mỗi trận, chỉ dùng: 1 lớp tối (opacity), 1 dải chữ (transform/opacity), lớp hiệu ứng WebGL sẵn có → tắt hẳn sau ~2s.
+const BPH_COL={gwyndra:"255,120,50",ornisa:"220,230,140",morrigan:"200,60,80",seline:"255,235,170",nyx:"200,90,255"};
+const BPH_LINE={gwyndra:"The hollow knight’s flame roars back to life.",ornisa:"The rotting saint rises, her faith unbroken.",morrigan:"The raven witch becomes the storm.",
+ seline:"Her broken halo blazes one last time.",nyx:"The Queen of the Abyss spreads her wings. The last light dims."};
+(function(){const S=AU.S;const sub=(f,d,g,at)=>AU.tone(f,d,{to:f*.4,g,at:at||0});
+  S.phaseRoar=m=>{sub(55,1.6,.9);AU.nz(1.4,{fr:180,to:1800,q:1.2,g:.22,a:.25,rev:.6});[110,116,165,233].forEach((f,i)=>AU.tone(f,1.6,{type:"sawtooth",lp:900,g:.05,a:.3,at:i*.03,rev:.8}));
+    [[196,.12],[294,.07],[392,.05]].forEach(([f,g])=>AU.tone(f,2,{g,at:.55,rev:.8}));sub(45,1.2,.8,.55);};
+  S.heartbeat=m=>{sub(70,.18,.8);sub(62,.2,.6,.24);};})();
+(function(){const st=document.createElement("style");st.textContent=`
+.bph-dim{position:fixed;inset:0;z-index:44;pointer-events:none;background:radial-gradient(ellipse at 50% 40%,rgba(0,0,0,.25),rgba(0,0,0,.85));opacity:0}
+.bph{position:fixed;left:0;right:0;top:34%;z-index:46;pointer-events:none;text-align:center;opacity:0}
+.bph .bph-bar{position:absolute;left:0;right:0;top:50%;height:2px;transform:translateY(-50%);background:linear-gradient(90deg,transparent,rgba(var(--bc),1),transparent)}
+.bph h2{margin:0;white-space:nowrap;font-family:var(--serif,serif);font-weight:900;font-size:clamp(30px,10vw,60px);letter-spacing:.08em;color:#fff;text-shadow:0 0 18px rgba(var(--bc),1),0 0 44px rgba(var(--bc),.8),0 4px 4px #000;line-height:1}
+.bph .bph-n{font-size:12px;font-weight:800;letter-spacing:.35em;color:rgba(var(--bc),1);text-shadow:0 1px 2px #000;margin-bottom:6px}
+.bph .bph-d{margin:10px auto 0;max-width:86vw;font-size:13px;line-height:1.4;color:#f1dfc2;text-shadow:0 1px 3px #000}
+.bph .bph-l{margin:6px auto 0;max-width:86vw;font-family:var(--serif,serif);font-style:italic;font-size:14px;color:#e8cfa5;text-shadow:0 1px 3px #000}
+.lastst{position:fixed;left:50%;z-index:46;pointer-events:none;transform:translateX(-50%);font-family:var(--serif,serif);font-weight:900;font-size:22px;letter-spacing:.2em;color:#ffd9d0;text-shadow:0 0 12px rgba(255,40,40,1),0 2px 2px #000;white-space:nowrap}`;document.head.appendChild(st);})();
+async function bossPhaseFx(e){try{const id=e.id,col=BPH_COL[id]||"255,70,60";hfxPoke();const ef=enEl(e)?.querySelector(".ef");const p=ef&&vxAt(ef);
+  const dim=document.createElement("div");dim.className="bph-dim";document.body.appendChild(dim);dim.animate([{opacity:0},{opacity:1,offset:.15},{opacity:1,offset:.7},{opacity:0}],{duration:2200,fill:"forwards"}).onfinish=()=>dim.remove();
+  SFX.play("phaseRoar",1);try{haptic(30);setTimeout(()=>haptic(40),550);}catch(x){}
+  if(p&&vxOn()){vxRing(p.x,p.y,p.w*.8,col,.5);setTimeout(()=>{try{vxPillar(p.x,p.y+p.h*.5,p.w*.9,col,1.3);vxShock(p.x,p.y,innerWidth*.9,.6);vxFlash(p.x,p.y,innerWidth,"255,255,255",.3);
+      vxRing(p.x,p.y,innerWidth*.6,col,.7);vxRing(p.x,p.y,innerWidth*1.1,"255,240,220",.9,.12);vxStreak(innerWidth/2,innerHeight*.34,innerWidth*1.3,col,.7);vxEmbers(p.x,p.y+p.h*.3,46,col,p.w*.6,360,2);hfxEdge(col,1400,1);}catch(x){}},550);}
+  if(ef){try{ef.animate([{transform:"scale(1)"},{transform:"scale(.94)",offset:.25},{transform:"scale(1.12)",offset:.32},{transform:"scale(1)"}],{duration:1600,easing:"ease-out"});}catch(x){}}
+  const b=document.createElement("div");b.className="bph";b.style.setProperty("--bc",col);const nm=(ENEMIES[id]||{}).n||"";const em=(typeof EM!=="undefined"&&EM[id])||{};
+  b.innerHTML=`<div class="bph-bar"></div><div class="bph-n">${esc(nm.split(" — ")[0].toUpperCase())} · ${esc((em.n||"").toUpperCase())}</div><h2>PHASE II</h2>${BPH_LINE[id]?`<div class="bph-l">${esc(BPH_LINE[id])}</div>`:""}${em.d?`<div class="bph-d">${esc(em.d)}</div>`:""}`;
+  document.body.appendChild(b);b.animate([{opacity:0,transform:"scale(1.4)"},{opacity:0,transform:"scale(1.4)",offset:.22},{opacity:1,transform:"scale(1)",offset:.32,easing:"cubic-bezier(.2,.9,.3,1)"},{opacity:1,offset:.82},{opacity:0,transform:"scale(1.02)"}],{duration:2600,fill:"forwards"}).onfinish=()=>b.remove();
+  const bar=b.querySelector(".bph-bar");bar.animate([{transform:"translateY(-50%) scaleX(0)"},{transform:"translateY(-50%) scaleX(0)",offset:.25},{transform:"translateY(-50%) scaleX(1)",offset:.4}],{duration:2600,fill:"forwards"});
+  await new Promise(r=>setTimeout(r,1500*Math.max(.7,SLEEP_MUL||1)));}catch(x){}}
+// thay dòng chữ nổi nhỏ "PHASE 2 — ..." bằng màn điện ảnh; giữ nguyên cơ chế
+{const _ep=emPhase;emPhase=function(e){const fa=floatAt;floatAt=function(){};let r;try{r=_ep.apply(this,arguments);}finally{floatAt=fa;}if(SLEEP_MUL)bossPhaseFx(e);return r;};}
+// trùm còn dưới 20% máu: một lần "LAST STAND" — viền đỏ đập + tiếng tim
+{const _hB=hitEnemy;hitEnemy=function(e,n){const h0=e?e.hp:0;const r=_hB.apply(this,arguments);try{if(e&&e.d&&e.d.boss&&!e._ls&&e.hp>0&&e.hp<=e.max*.2&&h0>e.max*.2){e._ls=1;
+    hfxEdge("255,30,40",600,1);setTimeout(()=>hfxEdge("255,30,40",600,.7),650);SFX.play("heartbeat",1);setTimeout(()=>SFX.play("heartbeat",1),650);
+    const ef=enEl(e)?.querySelector(".ef");const p=ef&&vxAt(ef);const t=document.createElement("div");t.className="lastst";t.textContent="LAST STAND";t.style.top=((p?p.r.top:innerHeight*.2)+8)+"px";document.body.appendChild(t);
+    t.animate([{opacity:0,transform:"translateX(-50%) scale(1.5)"},{opacity:1,transform:"translateX(-50%) scale(1)",offset:.2},{opacity:1,offset:.75},{opacity:0}],{duration:1600,fill:"forwards"}).onfinish=()=>t.remove();}}catch(x){}return r;};}
+
+// bỏ dòng thông báo "nổi giận" cũ (đã nằm trong màn GIAI ĐOẠN II)
+(function(){for(const k of Object.keys(BPH_LINE)){const d=ENEMIES[k];if(d&&d.enrage&&d.enrage.t)d.enrage.t="";}
+  const _t=toast;toast=function(m){if(m===""||m==null)return;return _t.apply(this,arguments);};})();
 
 // ===================== 5.21 — XƯỞNG ẢNH: NHÃN CÔNG CỤ (WAI / ChatGPT) + KÍCH THƯỚC =====================
 function slotTool(s){return (s.gpt||s.ui)?"gpt":"wai";}
@@ -13519,7 +13731,7 @@ function prioQueue(){const all=SLOTS.map(s=>({s,...slotRank(s),n:(typeof freshId
    ${list.slice(0,PQ.n).map((x,i)=>{const s=x.s;return `<div class="pq-row ${x.n?"done":""}"><span class="pq-rk r${x.r}">${x.r}</span><div class="pq-mid"><div class="pq-n">${i+1}. ${esc(s.n)}</div>
      <div class="pq-meta"><span class="pq-tool ${tool(x)}">${tool(x)==="gpt"?"ChatGPT":"WAI"}</span><span>${size(s)}</span>${s.nsfw?"<span>🔞</span>":""}${x.n?`<span class="ok">✓ ${x.n}</span>`:""}${x.st?`<span class="stale">🔁 vẽ lại</span>`:""}<span class="g">${esc(s.g)}</span></div></div>
      <div class="pq-btns"><button class="sbtn" data-pp="${s.id}">📋</button><button class="sbtn add" data-pa="${s.id}">＋</button></div></div>`;}).join("")||`<p class="muted" style="text-align:center;padding:20px">Đã xong hết mục này — tuyệt lắm!</p>`}
-   ${list.length>PQ.n?`<button class="btn" id="pqmore">Xem thêm (${list.length-PQ.n} ô nữa)</button>`:""}
+   ${list.length>PQ.n?`<button class="btn" id="pqmore">Xem thêm (${list.length-PQ.n} lá)</button>`:""}
    <button class="btn" id="pqback">← Xưởng Ảnh</button>`;
   const b=modal("🎯 Thêm ảnh theo ưu tiên",html);
   b.querySelectorAll("[data-tool]").forEach(el=>el.onclick=()=>{PQ.tool=el.dataset.tool;PQ.n=40;prioQueue();});
@@ -16397,7 +16609,16 @@ try{CONTENT.push({v:"5.25",notes:[
 // Giờ: "_alt" = GIAI ĐOẠN 2 — hiện khi nàng còn nửa máu (boss: lúc kích hoạt giai đoạn 2; Hollow Soldier: lúc đứng dậy lần 2),
 // hoành tráng hơn ảnh thường (đang tung đòn, hào quang, tia lửa). "_hurt" = chớp lên khi trúng đòn nặng: quỳ/loạng choạng, máu, mặt đau đớn.
 try{PROMPT_CHG.push([{test:sid=>/^en_nyx(_cutin)?$/.test(sid)},Date.UTC(2026,10,28,2,30)]);}catch(e){}
-const P2COM="(attacking:1.15), dynamic pose, dynamic angle, (glowing aura:1.15), power up, embers, sparks, motion blur, intense, (menacing:1.2), red rim light, dark atmosphere";
+const P2COM="dynamic pose, dynamic angle, (glowing aura:1.15), power up, motion blur, intense, (menacing:1.2), dark atmosphere";
+// màu/ánh sáng riêng cho từng kẻ địch (trước đây ai cũng "embers + red rim light" → mọi ảnh ra lửa đỏ)
+const P2COL={hollow:"embers, sparks, red rim light",ghoul:"blood mist, red rim light",ratgirl:"dim green sewer light, red rim light",crow:"red moonlight, crimson rim light",
+ boneknight:"blue fire, cold blue rim light",cultist:"blood red light, red rim light",wraith:"cold blue fire, blue rim light",gargoyle:"lightning, cold blue rim light",
+ watcher:"blue fire, blue rim light",voidspawn:"purple void light, purple rim light",nightmare:"purple mist, purple rim light",arachne:"red glow, red rim light",
+ lamia:"golden glow, red rim light",succubus:"pink light, pink rim light",swordgirl:"cold moonlight, white rim light",necro:"green fire, green rim light",
+ abyssknight:"dark red aura, red rim light",dryad:"sickly green light, green rim light",dullahan:"blue fire, blue rim light",vampire:"blood red moonlight, red rim light",
+ gwyndra:"embers, sparks, fire, red rim light",ornisa:"holy particles, (sickly green light:1.15), green rim light",nyx:"purple fire, purple rim light",
+ morrigan:"red moon, crimson rim light",seline:"holy light, golden particles, white rim light"};
+const P2CAST=new Set(["cultist","necro","succubus","ornisa","nyx","morrigan","seline","voidspawn","nightmare"]);
 const H2COM="(injured:1.2), (pained expression:1.2), wince, clenched teeth, blood on face, bruise, torn clothes, sweat, panting";
 const P2={
  hollow:"full body, from below, (sword slash:1.2), slashing at viewer, leaping, broken sword glowing red, (red aura:1.15), shouting, burning ruins",
@@ -16421,7 +16642,7 @@ const P2={
  dullahan:"full body, riding horse, black horse, ghost horse, (charging:1.2), sword raised, holding own head aloft, (blue fire trail:1.2), graveyard road",
  vampire:"full body, from below, (blood magic:1.2), floating, red cape spread, blood whips, (glowing red eyes:1.15), fangs, blood moon",
  gwyndra:"full body, from below, (flaming greatsword slash:1.2), (fire aura:1.2), cape burning, burning eyes, flames everywhere, throne room",
- ornisa:"full body, from below, floating, holy staff raised, (blazing halo:1.2), (sickly holy light:1.15), maggots raining, rotting congregation, cathedral",
+ ornisa:"full body, from below, (floating:1.2), feet off ground, (holy staff raised high:1.2), both arms raised, (blazing halo:1.2), (sickly green holy light:1.2), light beams from above, rotting petals falling, kneeling corpses below, cathedral",
  nyx:"full body, from below, (huge wings spread:1.2), (purple fire aura:1.2), crown blazing, glowing yellow eyes, cruel smile, eclipse, throne of bones",
  morrigan:"full body, from below, (crow storm:1.2), feather cloak becoming wings, (glowing red eyes:1.15), black lightning, ruined tower, full moon",
  seline:"full body, from below, (black wings spread:1.2), (shattered halo blazing:1.2), chains whipping, black blood tears, holy fire, ruined cathedral"};
@@ -16463,7 +16684,7 @@ function enIdent(k){const s=SLOT_BY_ID["en_"+k];if(!s)return "";if(k==="hollow")
 function enIdent0(k){const s=SLOT_BY_ID["en_"+k];if(!s)return "";const T=waiSplit(s.pos);const a=T.findIndex(t=>t==="mature female");const b=T.findIndex(t=>t==="full body");
   return (a>=0&&b>a?T.slice(a+1,b):[]).join(", ");}
 (function(){for(const k of Object.keys(P2)){const id=enIdent(k);if(!id)continue;const head=W2_Q+", 1girl, solo, mature female, "+id;
-    const a=SLOT_BY_ID["en_"+k+"_alt"];if(a){a.pos=w2post(head+", "+P2[k]+", "+P2COM+", "+W2_STY,a);const P2N="Giai đoạn 2";a.n=(ENEMIES[k]?ENEMIES[k].n.split(" — ")[0]:k)+" — "+P2N;
+    const a=SLOT_BY_ID["en_"+k+"_alt"];if(a){a.pos=w2post(head+", "+P2[k]+", "+(P2CAST.has(k)?"(casting spell:1.15)":"(attacking:1.15)")+", "+P2COM+", "+(P2COL[k]||"red rim light")+", "+W2_STY,a);const P2N="Giai đoạn 2";a.n=(ENEMIES[k]?ENEMIES[k].n.split(" — ")[0]:k)+" — "+P2N;
       a.desc="Giai đoạn 2: hiện khi nàng còn nửa máu (boss: lúc vào giai đoạn 2; Hollow Soldier: lúc đứng dậy lần hai). Phải HOÀNH TRÁNG hơn ảnh thường: đang tung đòn, hào quang, tia lửa. Cùng bố cục: toàn thân, ở giữa, mặt ở 1/3 trên.";a.note="";
       if(typeof a.neg==="string"&&!/standing still/.test(a.neg))a.neg+=", standing still, idle, sitting, calm";}
     const h=SLOT_BY_ID["en_"+k+"_hurt"];if(h){h.pos=w2post(head+", "+H2[k]+", "+H2COM+", dark atmosphere, "+W2_STY,h);
@@ -16576,6 +16797,209 @@ function dfxKeep(){try{if(C&&C.en)for(const e of C.en){if(e._dead&&e._dfxEnd&&pe
 (function(){for(const s of SLOTS){if(!/^en_[a-z]+_alt$/.test(s.id)||typeof s.neg!=="string"||/laser/.test(s.neg))continue;s.neg+=", gun, laser, grenade, cone, bottle, holding object, futuristic weapon";
   if(/^en_lamia_alt$/.test(s.id))s.neg+=", holding weapon, sword, spear";}
   try{PROMPT_CHG.push([{test:sid=>sid==="en_lamia_alt"},Date.UTC(2026,10,28,4,42)]);}catch(e){}})();
+// ---------- HIỆU ỨNG KẺ ĐỊCH CHẾT (đơn giản, to, đẹp): 1) nhát chém sáng ngang người  2) linh hồn bay lên thành cột sáng ----------
+function deathFx(e,el){try{if(!vxOn()||!el)return;hfxPoke();const r=el.getBoundingClientRect();if(!r.width)return;const x=r.left+r.width/2,y=r.top+r.height*.42,bot=r.bottom,W=innerWidth;
+  const col=(e.d&&e.d.boss)?"255,215,140":(C&&C.kind==="e")?"205,150,255":"255,160,90";
+  // nhát chém
+  vxStreak(x,y,W*1.1,"255,255,255",.32);vxStreak(x,y+4,W*.8,col,.4);vxRing(x,bot-8,r.width*.9,col,.5,0,.28);
+  e._deathCol=col;}catch(x){}}
+function soulFx(e,el){try{if(!vxOn()||!el)return;hfxPoke();const r=el.getBoundingClientRect();if(!r.width)return;const x=r.left+r.width/2,y=r.top+r.height*.4,bot=r.bottom;const col=e._deathCol||"255,160,90";
+  vxPillar(x,bot,r.width*.5,col,1.2);vxRing(x,bot-6,r.width*1.1,col,.8,0,.3);vxRing(x,bot-6,r.width*.6,"255,245,225",.6,.12,.3);
+  vxEmbers(x,y+r.height*.2,42,col,r.width*.45,320,2);vxFlare(x,r.top+r.height*.15,240,"255,250,235",.6,0,.25);
+  try{SFX.play("twinkle",.7);}catch(x){}}catch(x){}}
+{const _hE4=hitEnemy;hitEnemy=function(e,n){const h0=e?e.hp:0;const r=_hE4.apply(this,arguments);try{if(e&&h0>0&&e.hp<=0){const el=$(`#combat .en[data-u="${e.u}"] .ef`)||$(`#combat .en[data-u="${e.u}"]`);deathFx(e,el);
+    const wait=e._dfxEnd?Math.max(150,e._dfxEnd-performance.now()):260;setTimeout(()=>{const el2=$(`#combat .en[data-u="${e.u}"] .ef`)||$(`#combat .en[data-u="${e.u}"]`)||el;soulFx(e,el2);},wait);}}catch(x){}return r;};}
+
+// Ornisa: giám mục (không phải bà xơ), đội mũ mitre cao, mặt thấy rõ (không mạng che), da thối rữa
+(function(){const REP={"bishop":"(female bishop:1.1)","mitre":"(tall golden mitre:1.2)","white and gold robes":"white and gold vestments","rotting":"(rotting skin:1.2), cracked grey skin","decay":"decaying face","(veil:1.2)":"lace veil hanging behind head, face visible","veil":"lace veil hanging behind head, face visible"};
+  for(const s of SLOTS){if(!/^en_ornisa/.test(s.id))continue;const f=p=>p&&w2post(waiSplit(p).map(t=>REP[t]||t).join(", "),{id:"w",g:"x"});s.pos=f(s.pos);if(s.variants)s.variants.forEach(v=>v.pos=f(v.pos));
+    if(typeof s.neg==="string"&&!/face mask/.test(s.neg))s.neg+=", nun, habit, face mask, covered face, mouth veil";}
+  try{PROMPT_CHG.push([{test:sid=>/^en_[a-z]+_alt$/.test(sid)||sid==="en_ornisa_hurt"},Date.UTC(2026,10,28,6,30)]);}catch(e){}})();
+// ---------- Ảnh ngang HẠ GỤC của 5 trùm: khớp ngoại hình chiến đấu + tàn bạo như ảnh Bị hạ, kiểu cảnh điện ảnh rộng ----------
+(function(){const DEF={
+  gwyndra:"(kneeling:1.15), both knees, (flaming greatsword broken in two:1.2), broken blade in ground, cracked blackened armor, (burning red cape:1.1), head bowed, dying flames around her, ruined throne room",
+  ornisa:"(collapsed on altar steps:1.2), fallen mitre beside her, shattered holy staff, (shattered halo:1.15), fading green light, rotting congregation in shadows, cathedral",
+  morrigan:"(lying among black feathers:1.2), on tower top, shredded feather cloak, crows flying away, full moon behind",
+  seline:"(lying on broken cathedral floor:1.2), broken black wings spread, halo shards scattered, snapped chains, single beam of light from above",
+  nyx:"(slumped on throne of bones:1.2), (true form fading:1.15), cracked horns, tattered wings, fallen burning crown on floor, single tear"};
+ const COM="(defeated:1.2), (severely injured:1.15), (broken armor:1.1), torn clothes, blood on body, blood on face, wounds, half-closed eyes, exhausted, embers, ash falling, smoke, wide shot, cinematic, dramatic lighting, dark atmosphere";
+ for(const [k,pose] of Object.entries(DEF)){const s=SLOT_BY_ID["en_"+k+"_defeat"];const id=enIdent(k);if(!s||!id)continue;
+   const com=/armor/.test(id)?COM:COM.replace("(broken armor:1.1), ","");
+   s.pos=w2post([W2_Q,"1girl, solo, mature female",id.split(", ").filter(t=>!/smile|grin|smirk|looking down at viewer|^flaming greatsword$|mitre|^holy staff$|crown of black fire/.test(t)).join(", "),pose,com,W2_STY].join(", "),s);
+   if(typeof s.neg==="string"&&!/intact armor/.test(s.neg))s.neg+=", peaceful, sleeping, clean, intact armor, smile, standing, crossed legs";}
+ try{PROMPT_CHG.push([{test:sid=>/^en_(gwyndra|ornisa|morrigan|seline|nyx)_defeat$/.test(sid)},Date.UTC(2026,10,28,6,42)]);}catch(e){}})();
+// Nyx — ảnh Bị hạ (dọc) viết lại: đang gục hấp hối trên ngai, không còn ngồi thẳng uy nghi, cánh rách rũ, vương miện rơi
+(function(){const h=SLOT_BY_ID.en_nyx_hurt;if(!h)return;
+  h.pos=w2post([W2_Q,"1girl, solo, mature female, tall female, demon, (huge ram horns:1.15), cracked horns, very long purple hair, messy hair, (black sclera:1.1), yellow eyes, (black and gold armored gown:1.1), (glowing void tattoos:1.1)",
+   "full body, from above, (slumped sideways on throne:1.2), head hanging to side, (arm dangling off armrest:1.15), (tattered wings drooping:1.2), wings torn to shreds, fallen crown on floor, (body cracking with purple light:1.1), purple flames dying, throne of bones",
+   "(dying:1.2), (defeated:1.2), (severely injured:1.2), (shattered armor:1.15), (torn clothes:1.2), black blood dripping from mouth, black blood pool, blood on face, wounds, (lifeless eyes:1.15), eyes half-open, blank stare, pale face, ash falling, smoke, harsh shadows, purple rim light, dark atmosphere",W2_STY].join(", "),h);
+  if(!/sitting upright/.test(h.neg))h.neg+=", sitting upright, regal, wings spread, crown on head, yellow scarf, clean";
+  try{PROMPT_CHG.push([{test:sid=>sid==="en_nyx_hurt"},Date.UTC(2026,10,28,6,44)]);}catch(e){}})();
+// Nyx — ảnh ngang HẠ GỤC viết lại riêng (ngoại hình nguyên hình "nhiều cánh xòe + vương miện" lấn át cảnh gục)
+(function(){const s=SLOT_BY_ID.en_nyx_defeat;if(!s)return;
+  s.pos=w2post([W2_Q,"1girl, solo, mature female, tall female, demon, (huge ram horns:1.15), cracked horns, very long purple hair, messy hair, yellow eyes, (black and gold armored gown:1.1), (glowing void tattoos:1.1)",
+   "(slumped sideways on throne:1.2), head hanging to side, (arm dangling off armrest:1.15), (tattered wings drooping to floor:1.2), wings torn to shreds, fallen crown on floor, (body cracking with purple light:1.15), (true form fading:1.1), purple flames dying, (single tear:1.1), throne of bones",
+   "(defeated:1.2), (severely injured:1.2), (shattered armor:1.15), (torn clothes:1.2), black blood dripping from mouth, black blood pool, blood on face, wounds, half-closed eyes, pale face, ash falling, smoke, wide shot, cinematic, purple rim light, dark atmosphere",W2_STY].join(", "),s);
+  if(!/sitting upright/.test(s.neg))s.neg+=", sitting upright, regal, wings spread, crown on head, yellow scarf";
+  try{PROMPT_CHG.push([{test:sid=>sid==="en_nyx_defeat"},Date.UTC(2026,10,28,6,47)]);}catch(e){}})();
+// Morrigan — Bị hạ (dọc) + HẠ GỤC (ngang): bỏ "rơi giữa không trung" (ra dáng đứng/lơ lửng), cho nằm gục hẳn trên đỉnh tháp
+(function(){const ID="1girl, solo, mature female, (human face:1.2), crow witch, long black hair, messy hair, (shredded feather cloak:1.2), black feathers";
+ const BR="(dying:1.2), (defeated:1.2), (brutal aftermath:1.2), (heavily wounded:1.2), (deep wounds:1.2), (bleeding heavily:1.2), blood dripping from mouth, (blood pool:1.15), blood on face, (torn clothes:1.2), ripped clothes, (unconscious:1.15), limp, (lifeless eyes:1.15), eyes half-open, pale face, embers, ash falling, harsh shadows";
+ const h=SLOT_BY_ID.en_morrigan_hurt;if(h){
+  h.pos=w2post([W2_Q,ID,"full body, (lying on back:1.2), (from above:1.15), sprawled on cracked stone floor, (crater of black feathers:1.15), arms spread limp, one leg bent, hair fanned out on ground, broken parapet, dead crows around her, scattered black feathers",BR,"cold moonlight, red rim light, dark atmosphere",W2_STY].join(", "),h);
+  if(typeof h.neg==="string"&&!/midair/.test(h.neg))h.neg+=", standing, walking, floating, midair, levitating, from below, upright, feet on ground";}
+ const s=SLOT_BY_ID.en_morrigan_defeat;if(s){
+  s.pos=w2post([W2_Q,ID,"(lying on side:1.2), (collapsed on tower top:1.2), ruined tower, (arm hanging over broken edge:1.15), head resting on stone, (wings of feathers torn apart:1.15), dead crows on ground, last crows flying away into the night, feathers drifting down",BR,"huge full moon in sky, wide shot, cinematic, cold blue moonlight, red embers, dark atmosphere",W2_STY].join(", "),s);
+  if(typeof s.neg==="string"&&!/midair/.test(s.neg))s.neg+=", standing, walking, floating, midair, levitating, upright, wings spread, smile";}
+ try{PROMPT_CHG.push([{test:sid=>sid==="en_morrigan_hurt"||sid==="en_morrigan_defeat"},Date.UTC(2026,10,28,6,50)]);}catch(e){}})();
+
+// ===================== 5.27 — CỐ VẤN Ở CỬA HÀNG + LỬA TRẠI, CHIA THEO HƯỚNG BUILD =====================
+// 8 hướng build = 8 lối chơi của các nàng (Sustain, Bleed, Fortress, Combo, Hex, Tempo, Volley, Corruption).
+// Cố vấn đoán hướng bạn đang đi (bộ bài + nàng đồng hành), gợi ý mua gì trong số vàng đang có, kèm lý do;
+// có thể bấm sang hướng khác để xem nên mua gì nếu muốn đổi lối chơi.
+const BUILD_ORDER=["brun","sera","elis","tsub","morw","mira","lyra","nyx"];
+const RELIC_KW={sera:/heal|HP/i,elis:/Bleed/i,brun:/Block/i,tsub:/attack|Strength/i,morw:/Vulnerable|Weak/i,mira:/draw|Energy|0-cost|gold/i,lyra:/all enemies|area|ALL/i,nyx:/Curse/i};
+function bFits(h,id){const d=CARDS[id];if(!d||!ROLE_WANT[h])return "";const c=mkCard(id);const cd=cdef(c)||{};const fx=cd.fx||d.fx||{};try{return ROLE_WANT[h](d,fx,id,cd.cost!=null?cd.cost:d.c)||"";}catch(e){return "";}}
+function buildScores(){const sc={};for(const h of BUILD_ORDER){let n=0;for(const c of R.deck)if(bFits(h,c.id))n++;sc[h]=n+(h===R.comp?8:h===R.comp2?5:0);}return sc;}
+function mainBuild(){const sc=buildScores();return BUILD_ORDER.slice().sort((a,b)=>sc[b]-sc[a]||(b===R.comp)-(a===R.comp))[0];}
+function bName(h){return `${ROLE[h]?ROLE[h].r:h} · ${HEROES[h]?HEROES[h].n:h}`;}
+// chấm điểm một món trong cửa hàng theo một hướng build
+function shopVal(it,h){if(it.k==="c"){const a=advCard(it.id);const f=bFits(h,it.id);return {v:a.sc+(f?2.6:0),why:f?[f,...a.why.slice(0,1)]:a.why.slice(0,2),fit:!!f};}
+  if(it.k==="r"){const r=RELICS[it.id]||{};const f=RELIC_KW[h]&&RELIC_KW[h].test(r.d||"");return {v:3.2+(f?2.4:0),why:[f?"di vật hợp hướng build này":"di vật có tác dụng cả lượt chơi"],fit:f};}
+  if(it.k==="p"){const n=(R.pots||[]).length;return {v:n>=2?.6:1.6,why:[n>=2?"bạn đã mang bình thuốc":"một bình thuốc có thể cứu một trận khó"],fit:false};}
+  if(it.k==="rm"){const S=deckStat();const cur=R.deck.filter(c=>(CARDS[c.id]||{}).t==="cur").length;const basic=R.deck.filter(c=>c.id==="chem"||c.id==="do").length;
+    return {v:cur?5.5:basic>=5?3.4:basic>=3?2.2:.8,why:[cur?"bỏ Lời nguyền trước":basic>=3?`bớt lá Chém/Đỡ Đòn cơ bản (${basic} lá)`:"bộ bài của bạn đã gọn"],fit:false};}
+  return {v:0,why:[]};}
+function shopPlan(items,h){let g=R.gold;const L=items.map(it=>({it,...shopVal(it,h)})).filter(x=>x.v>=2).sort((a,b)=>b.v/Math.max(30,b.it.p)*60+b.v-(a.v/Math.max(30,a.it.p)*60+a.v));
+  const buy=[],skip=[];let nc=0;for(const x of L){if(x.it.k==="c"&&(x.v<3.4||nc>=2))continue;if(x.it.k==="p"&&buy.some(y=>y.it.k==="p"))continue;if(x.it.p<=g){buy.push(x);g-=x.it.p;if(x.it.k==="c")nc++;}else skip.push(x);}return {buy,skip,left:g};}
+function itName(it){return it.k==="c"?CARDS[it.id].n:it.k==="r"?RELICS[it.id].n:it.k==="p"?POTIONS[it.id].n:"Bỏ một lá";}
+function advShop(){try{if(!advOn()||!R)return;const s=$("#shop");if(!s||!s.classList.contains("on"))return;const pad=s.querySelector(".pad");if(!pad||pad.querySelector(".advshop"))return;
+  // đọc lại hàng đang bày trên quầy
+  const items=[];s.querySelectorAll("[data-i]").forEach(el=>{const card=el.querySelector(".card[data-id]");const p=+((el.textContent.match(/◉\s*(\d+)/)||[])[1]||0);
+    if(card){items.push({k:"c",id:card.dataset.id,p,el});return;}const b=el.querySelector("b");const nm=b?b.textContent.replace(/^\s+|\s+$/g,""):"";
+    const rid=Object.keys(RELICS).find(k=>RELICS[k].n===nm);if(rid){items.push({k:"r",id:rid,p,el});return;}const pid=Object.keys(POTIONS).find(k=>nm.endsWith(POTIONS[k].n));if(pid)items.push({k:"p",id:pid,p,el});});
+  const rm=s.querySelector("#rmv");if(rm&&!rm.classList.contains("dis"))items.push({k:"rm",p:+((rm.textContent.match(/◉\s*(\d+)/)||[])[1]||75),el:rm});
+  if(!items.length)return;let cur=mainBuild();const sc=buildScores();
+  const box=document.createElement("div");box.className="advp adv2 advshop";
+  const draw=()=>{const P=shopPlan(items,cur);s.querySelectorAll(".advpick").forEach(x=>x.classList.remove("advpick"));s.querySelectorAll(".advtag.shp").forEach(x=>x.remove());
+    P.buy.forEach(x=>{const t=x.it.el.querySelector(".card")||x.it.el;t.classList.add("advpick");if(x.it.k==="c")t.insertAdjacentHTML("beforeend",`<i class="advtag shp">ADVISOR</i>`);});
+    const row=x=>`<div class="adv-r"><div class="adv-h"><b>${esc(itName(x.it))}</b><span class="adv-s">◉ ${x.it.p}</span></div>${x.why.slice(0,2).map(w=>`<div class="adv-p">✓ ${esc(w)}</div>`).join("")}</div>`;
+    box.innerHTML=`<b>💡 Cố vấn</b><span>${P.buy.length?`Hướng <em>${esc(bName(cur))}</em>: mua ${P.buy.map(x=>`<em>${esc(itName(x.it))}</em>`).join(" → ")}`:`Không món nào ở đây thật sự giúp <em>${esc(bName(cur))}</em>. Hãy giữ vàng.`}</span>
+      <div class="adv-ctx">Vàng ${R.gold} → ${P.left} còn lại sau khi mua. ${cur===mainBuild()?"Đây là hướng bộ bài của bạn đang nghiêng về.":"Bạn đang xem thử một hướng build khác."}</div>
+      <div class="bchips">${BUILD_ORDER.map(h=>`<button class="bchip ${h===cur?"on":""}" data-h="${h}">${esc(ROLE[h]?ROLE[h].r:h)}${sc[h]>0?` <small>${sc[h]}</small>`:""}</button>`).join("")}</div>
+      <button class="adv-more">Vì sao ▾</button><div class="adv-d" hidden><div class="adv-ctx">${esc(ROLE[cur]?ROLE[cur].d:"")}</div>${P.buy.map(row).join("")}${P.skip.length?`<div class="adv-ctx">Tốt nhưng chưa đủ vàng: ${P.skip.slice(0,3).map(x=>esc(itName(x.it))).join(", ")}.</div>`:""}</div>`;
+    box.querySelectorAll(".bchip").forEach(b=>b.onclick=()=>{cur=b.dataset.h;draw();});const mb=box.querySelector(".adv-more"),dd=box.querySelector(".adv-d");mb.onclick=()=>{dd.hidden=!dd.hidden;mb.textContent=dd.hidden?"Vì sao ▾":"Ẩn ▴";};};
+  draw();const g=pad.querySelector(".cardgrid");(g||pad.firstChild).before(box);}catch(e){}}
+// cửa hàng vẽ lại sau mỗi lần mua → gắn lại cố vấn
+{const ob=new MutationObserver(()=>{if($("#shop")&&$("#shop").classList.contains("on"))setTimeout(advShop,30);});const tryObs=()=>{const s=$("#shop");if(s)ob.observe(s,{childList:true,subtree:false,attributes:true,attributeFilter:["class"]});const mc=s&&s.querySelector(".mc");if(mc)ob.observe(mc,{childList:true});};
+  if(document.readyState!=="loading")tryObs();else addEventListener("DOMContentLoaded",tryObs);}
+// ---------- Lửa trại: nên Nghỉ hay Rèn (và rèn lá nào cho đúng hướng) ----------
+function advCamp(){try{if(!advOn()||!R)return;const v=$("#vn");if(!v||!v.classList.contains("camp")||v.querySelector(".advcamp"))return;const ch=v.querySelector(".vch");if(!ch)return;
+  const hp=R.hp/R.max,h=mainBuild();const up=R.deck.filter(c=>!c.up&&(CARDS[c.id]||{}).up&&(CARDS[c.id]||{}).t!=="cur");
+  const best=up.map(c=>({c,v:(bFits(h,c.id)?3:0)+({0:0,1:1,2:2,3:3,4:4,5:3}[CARDS[c.id].r]||1)+(CARDS[c.id].t==="pow"?1:0)})).filter(x=>x.v>=2).sort((a,b)=>b.v-a.v)[0];
+  const rest=hp<.5||(hp<.7&&R.map&&R.map.pos&&R.map.pos.r>=10);
+  const b=document.createElement("div");b.className="advp adv2 advcamp";
+  b.innerHTML=`<b>💡 Cố vấn</b><span>${rest?`<em>Nghỉ ngơi</em> — Máu ${Math.round(hp*100)}% quá thấp để liều các trận tới.`:best?`<em>Rèn ${esc(CARDS[best.c.id].n)}</em> — Máu ${Math.round(hp*100)}% vẫn ổn; nâng cấp lá chủ lực có lợi ở mọi trận.`:`<em>Nghỉ ngơi</em> — không có lá nào đáng nâng cấp.`}</span>
+   ${!rest&&best&&bFits(h,best.c.id)?`<div class="adv-p">✓ ${esc(bFits(h,best.c.id))}</div>`:""}<div class="adv-ctx">Hướng build: ${esc(bName(h))}</div>`;
+  ch.before(b);}catch(e){}}
+{const ob2=new MutationObserver(()=>{const v=$("#vn");if(v&&v.classList.contains("camp"))setTimeout(advCamp,40);});const go=()=>{const v=$("#vn");if(v)ob2.observe(v,{attributes:true,attributeFilter:["class"],childList:true});};
+  if(document.readyState!=="loading")go();else addEventListener("DOMContentLoaded",go);}
+(function(){const st=document.createElement("style");st.textContent=`
+.bchips{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.bchip{border:1px solid rgba(255,210,140,.35);background:rgba(0,0,0,.3);color:#e9d3a8;border-radius:999px;padding:4px 10px;font-size:11.5px;font-weight:600;line-height:1.2}
+.bchip small{opacity:.6;font-size:10px}
+.bchip.on{background:linear-gradient(180deg,#ffe3a0,#e8a440);color:#3a1a02;border-color:#ffd27a}
+.advcamp{position:relative;z-index:3;margin:0 0 8px}
+#shop .btn.advpick{animation:none}`;document.head.appendChild(st);})();
+
+// ===================== 5.28 — ÂM THANH LÁ BÀI: SƯỚNG TAI + ĐA DẠNG =====================
+// Mỗi lá có 2 lớp: tiếng "tung lá" theo loại (đánh / kỹ năng / sức mạnh / nguyền) + tiếng "trúng đòn" theo kiểu chiêu,
+// mỗi kiểu có 3 biến thể chọn ngẫu nhiên + lệch cao độ nhẹ → nghe không lặp. Đòn to có thêm lớp trầm "bùm" + tiếng kính vỡ.
+// Thêm tiếng riêng cho: rút bài, nạp năng lượng, tăng Sức Mạnh, Giáp to/nhỏ, hạ gục, đánh lan.
+(function(){const S=AU.S;const R3=a=>a[Math.floor(Math.random()*a.length)];const J=()=>.94+Math.random()*.12;
+  const sub=(f,d,g,at)=>AU.tone(f,d,{to:f*.45,g,at:at||0,type:"sine"});
+  const ping=(f,d,g,at,rev)=>AU.tone(f,d,{g,at:at||0,type:"triangle",rev:rev==null?.5:rev});
+  // --- lớp tung lá ---
+  S.relAtk=m=>{const j=J();AU.nz(.16,{fr:600*j,to:4200*j,q:1.1,g:.24,a:.03});AU.tone(260*j,.12,{to:520*j,g:.08,type:"triangle"});};
+  S.relSkl=m=>{const j=J();ping(1046*j,.25,.05,0,.6);ping(1568*j,.3,.035,.05,.7);AU.nz(.2,{f:"highpass",fr:3000,to:7000,g:.04,a:.06,rev:.5});};
+  S.relPow=m=>{const j=J();[262,330,392,523].forEach((f,i)=>AU.tone(f*j,1.1,{g:.045,a:.15,at:i*.04,rev:.8,type:"sawtooth",lp:1400}));sub(65,1,.35);AU.nz(.9,{fr:300,to:2400,q:.8,g:.08,a:.4,rev:.6});};
+  S.relCur=m=>{AU.tone(98,.6,{type:"sawtooth",lp:500,g:.1,a:.05,rev:.6,to:73});AU.nz(.5,{f:"lowpass",fr:600,to:150,g:.14,a:.05,rev:.5});};
+  S.exhaust=m=>{AU.nz(.35,{f:"highpass",fr:1800,to:5000,g:.09,a:.02,rev:.4});for(let i=0;i<4;i++)AU.nz(.02,{f:"highpass",fr:3000+Math.random()*3000,g:.06,at:.05+Math.random()*.25});};
+  // --- lớp trúng đòn: 3 biến thể mỗi kiểu ---
+  const slashes=[
+    m=>{AU.nz(.14,{fr:3200*m,to:600,q:1.6,g:.34});sub(140*m,.16,.45);AU.nz(.04,{f:"highpass",fr:6000,g:.14,at:.004});},
+    m=>{AU.nz(.18,{fr:2200*m,to:450,q:2.2,g:.32});AU.tone(1800*m,.06,{to:900,type:"triangle",g:.06});sub(120*m,.18,.5);},
+    m=>{AU.nz(.12,{fr:4200*m,to:900,q:1.2,g:.3});AU.nz(.1,{fr:1400*m,to:300,q:3,g:.22,at:.02});sub(160*m,.14,.42);}];
+  S.slashV=m=>R3(slashes)(m*J());
+  S.tick=m=>{const j=m*J();AU.nz(.07,{fr:3600*j,to:1200,q:1.8,g:.26});AU.tone(900*j,.04,{type:"triangle",g:.05});sub(180*j,.08,.25);};
+  S.stab=m=>{const j=m*J();AU.nz(.05,{f:"highpass",fr:4500,g:.32});AU.tone(1900*j,.08,{to:700,type:"triangle",g:.12});sub(210*j,.09,.3,.025);AU.nz(.06,{fr:900,to:400,q:6,g:.14,at:.04});};
+  S.bash=m=>{const j=m*J();sub(120*j,.3,.7);AU.nz(.14,{f:"lowpass",fr:900,to:200,g:.42});AU.tone(380*j,.12,{type:"vuông",lp:900,g:.06,at:.01});AU.nz(.05,{f:"highpass",fr:3500,g:.12,at:.01});};
+  S.sweepV=m=>{const j=m*J();AU.nz(.32,{fr:400*j,to:3000*j,q:1,g:.26,a:.08});sub(90*j,.4,.55,.06);AU.nz(.25,{f:"lowpass",fr:1600,to:300,g:.22,at:.08,rev:.3});};
+  S.fireV=m=>{const j=m*J();AU.nz(.4,{f:"lowpass",fr:1800*j,to:350,g:.34,a:.02,rev:.4});sub(75*j,.45,.5);for(let i=0;i<5;i++)AU.nz(.02,{f:"highpass",fr:2400+Math.random()*3500,g:.13,at:.03+Math.random()*.3});};
+  S.bleedV=m=>{const j=m*J();AU.nz(.1,{fr:2600*j,to:700,q:2,g:.28});AU.nz(.12,{fr:900,to:300,q:7,g:.26,at:.03});AU.tone(300*j,.12,{to:110,g:.14,type:"triangle",at:.02});sub(130*j,.12,.3);};
+  S.curseV=m=>{const j=m*J();AU.tone(104*j,.6,{type:"sawtooth",lp:650,g:.11,a:.04,rev:.6,to:78});AU.tone(1245*j,.4,{g:.03,a:.02,rev:.8,to:620});sub(60,.6,.3);};
+  // --- kỹ năng ---
+  S.shieldV=m=>{const j=J();const base=R3([780,860,940]);[[1,.13],[1.5,.08],[2.31,.055],[3.17,.035]].forEach(([k,g])=>AU.tone(base*k*j,.42,{g,rev:.4}));AU.nz(.03,{f:"highpass",fr:3200,g:.18});sub(150,.2,.35);};
+  S.shieldBig=m=>{[[196,.16],[294,.1],[392,.08],[588,.05],[784,.04]].forEach(([f,g])=>AU.tone(f,1.4,{g,rev:.7,a:.005}));AU.nz(.05,{f:"highpass",fr:2500,g:.2});sub(82,.9,.5);};
+  S.buffV=m=>{const j=J();const keys=R3([[523,659,784,1047],[587,740,880,1175],[494,622,740,988]]);keys.forEach((f,i)=>ping(f*j,.32,.08,i*.05,.6));AU.nz(.35,{fr:1800,to:7000,g:.05,a:.12,rev:.5});};
+  S.healV=m=>{const j=J();[784,1175,1568,2093].forEach((f,i)=>AU.tone(f*j,.8,{g:.06,at:i*.07,a:.03,rev:.8}));AU.nz(.8,{f:"highpass",fr:4000,to:9000,g:.035,a:.3,rev:.8});};
+  S.debuffV=m=>{const j=J();AU.nz(.45,{fr:2500*j,to:300,q:2.5,g:.26,a:.05,rev:.5});AU.tone(392*j,.5,{to:196*j,type:"sawtooth",lp:900,g:.1,rev:.6});AU.tone(415*j,.5,{to:207*j,type:"sawtooth",lp:900,g:.08,rev:.6});sub(90,.4,.25);};
+  S.riffle=m=>{const n=Math.max(1,Math.min(5,Math.round(m)));for(let i=0;i<n;i++)AU.nz(.045,{f:"highpass",fr:2600+Math.random()*1500,g:.08,at:i*.055,a:.005});};
+  S.zap=m=>{AU.tone(220,.35,{to:1320,type:"sawtooth",lp:2600,g:.12,a:.02,rev:.4});ping(1760,.4,.08,.28,.7);ping(2637,.5,.055,.34,.8);};
+  S.strUp=m=>{sub(70,.5,.55);AU.tone(147,.5,{to:220,type:"sawtooth",lp:800,g:.1,a:.04,rev:.4});AU.nz(.4,{fr:200,to:1800,q:1,g:.12,a:.1,rev:.4});};
+  // --- đòn to & hạ gục ---
+  S.heavy=m=>{sub(58,.7,.8);AU.nz(.5,{f:"lowpass",fr:1600,to:120,g:.3,a:.005,rev:.4});};
+  S.crit=m=>{sub(48,.9,.9);AU.nz(.25,{f:"highpass",fr:2500,to:7000,g:.22,rev:.4});for(let i=0;i<4;i++)ping(1800+Math.random()*2200,.25,.045,.02+Math.random()*.1,.6);};
+  S.killV=m=>{sub(62,.8,.7);AU.nz(.6,{f:"lowpass",fr:2200,to:160,g:.26,a:.005,rev:.5});[784,1175,1568].forEach((f,i)=>ping(f,.7,.05,.12+i*.06,.8));};
+  // gán kiểu chiêu → âm trúng đòn mới
+  Object.assign(VFX_SND,{slash:"slashV",multi:"tick",sweep:"sweepV",pierce:"stab",blunt:"bash",fire:"fireV",bleed:"bleedV",curse:"curseV",debuff:"debuffV",shield:"shieldV",buff:"buffV",heal:"healV"});})();
+// tung lá + lớp phụ theo hiệu ứng của lá
+{const _acS=applyCard;applyCard=async function(c,d,fx){try{if(d&&SLEEP_MUL!==0){const t=d.t;SFX.play(t==="atk"?"relAtk":t==="pow"?"relPow":t==="cur"?"relCur":"relSkl",1);
+    if(fx){if(fx.e)setTimeout(()=>SFX.play("zap",1),90);if(fx.s)setTimeout(()=>SFX.play("strUp",1),60);if(fx.b>=12)setTimeout(()=>SFX.play("shieldBig",1),40);if(fx.dr)setTimeout(()=>SFX.play("riffle",fx.dr),140);if(fx.ex||d.ex)setTimeout(()=>SFX.play("exhaust",1),300);}}}catch(e){}
+  return _acS.apply(this,arguments);};}
+// đòn to: thêm lớp trầm; rất to: thêm tiếng vỡ
+{const _hS=hitEnemy;hitEnemy=function(e,n){const h0=e?e.hp:0;const r=_hS.apply(this,arguments);try{if(e&&n>=25)SFX.play("crit",1);else if(e&&n>=14)SFX.play("heavy",1);if(e&&h0>0&&e.hp<=0)setTimeout(()=>SFX.play("killV",1),40);}catch(x){}return r;};}
+
+// ===================== 5.29 — CHUYỂN PHASE CỦA BOSS: MÀN "GIAI ĐOẠN II" ĐIỆN ẢNH + VÀI KHOẢNH KHẮC KHÁC =====================
+// Một lần duy nhất mỗi trận, chỉ dùng: 1 lớp tối (opacity), 1 dải chữ (transform/opacity), lớp hiệu ứng WebGL sẵn có → tắt hẳn sau ~2s.
+const BPH_COL={gwyndra:"255,120,50",ornisa:"220,230,140",morrigan:"200,60,80",seline:"255,235,170",nyx:"200,90,255"};
+const BPH_LINE={gwyndra:"Ngọn lửa của hiệp sĩ rỗng bùng cháy trở lại.",ornisa:"Vị thánh thối rữa đứng dậy, đức tin không hề lay chuyển.",morrigan:"Phù thủy quạ hóa thành cơn bão.",
+ seline:"Vầng hào quang vỡ của nàng rực sáng lần cuối.",nyx:"Nữ Hoàng Vực Thẳm dang rộng đôi cánh. Tia sáng cuối cùng lụi tắt."};
+(function(){const S=AU.S;const sub=(f,d,g,at)=>AU.tone(f,d,{to:f*.4,g,at:at||0});
+  S.phaseRoar=m=>{sub(55,1.6,.9);AU.nz(1.4,{fr:180,to:1800,q:1.2,g:.22,a:.25,rev:.6});[110,116,165,233].forEach((f,i)=>AU.tone(f,1.6,{type:"sawtooth",lp:900,g:.05,a:.3,at:i*.03,rev:.8}));
+    [[196,.12],[294,.07],[392,.05]].forEach(([f,g])=>AU.tone(f,2,{g,at:.55,rev:.8}));sub(45,1.2,.8,.55);};
+  S.heartbeat=m=>{sub(70,.18,.8);sub(62,.2,.6,.24);};})();
+(function(){const st=document.createElement("style");st.textContent=`
+.bph-dim{position:fixed;inset:0;z-index:44;pointer-events:none;background:radial-gradient(ellipse at 50% 40%,rgba(0,0,0,.25),rgba(0,0,0,.85));opacity:0}
+.bph{position:fixed;left:0;right:0;top:34%;z-index:46;pointer-events:none;text-align:center;opacity:0}
+.bph .bph-bar{position:absolute;left:0;right:0;top:50%;height:2px;transform:translateY(-50%);background:linear-gradient(90deg,transparent,rgba(var(--bc),1),transparent)}
+.bph h2{margin:0;white-space:nowrap;font-family:var(--serif,serif);font-weight:900;font-size:clamp(30px,10vw,60px);letter-spacing:.08em;color:#fff;text-shadow:0 0 18px rgba(var(--bc),1),0 0 44px rgba(var(--bc),.8),0 4px 4px #000;line-height:1}
+.bph .bph-n{font-size:12px;font-weight:800;letter-spacing:.35em;color:rgba(var(--bc),1);text-shadow:0 1px 2px #000;margin-bottom:6px}
+.bph .bph-d{margin:10px auto 0;max-width:86vw;font-size:13px;line-height:1.4;color:#f1dfc2;text-shadow:0 1px 3px #000}
+.bph .bph-l{margin:6px auto 0;max-width:86vw;font-family:var(--serif,serif);font-style:italic;font-size:14px;color:#e8cfa5;text-shadow:0 1px 3px #000}
+.lastst{position:fixed;left:50%;z-index:46;pointer-events:none;transform:translateX(-50%);font-family:var(--serif,serif);font-weight:900;font-size:22px;letter-spacing:.2em;color:#ffd9d0;text-shadow:0 0 12px rgba(255,40,40,1),0 2px 2px #000;white-space:nowrap}`;document.head.appendChild(st);})();
+async function bossPhaseFx(e){try{const id=e.id,col=BPH_COL[id]||"255,70,60";hfxPoke();const ef=enEl(e)?.querySelector(".ef");const p=ef&&vxAt(ef);
+  const dim=document.createElement("div");dim.className="bph-dim";document.body.appendChild(dim);dim.animate([{opacity:0},{opacity:1,offset:.15},{opacity:1,offset:.7},{opacity:0}],{duration:2200,fill:"forwards"}).onfinish=()=>dim.remove();
+  SFX.play("phaseRoar",1);try{haptic(30);setTimeout(()=>haptic(40),550);}catch(x){}
+  if(p&&vxOn()){vxRing(p.x,p.y,p.w*.8,col,.5);setTimeout(()=>{try{vxPillar(p.x,p.y+p.h*.5,p.w*.9,col,1.3);vxShock(p.x,p.y,innerWidth*.9,.6);vxFlash(p.x,p.y,innerWidth,"255,255,255",.3);
+      vxRing(p.x,p.y,innerWidth*.6,col,.7);vxRing(p.x,p.y,innerWidth*1.1,"255,240,220",.9,.12);vxStreak(innerWidth/2,innerHeight*.34,innerWidth*1.3,col,.7);vxEmbers(p.x,p.y+p.h*.3,46,col,p.w*.6,360,2);hfxEdge(col,1400,1);}catch(x){}},550);}
+  if(ef){try{ef.animate([{transform:"scale(1)"},{transform:"scale(.94)",offset:.25},{transform:"scale(1.12)",offset:.32},{transform:"scale(1)"}],{duration:1600,easing:"ease-out"});}catch(x){}}
+  const b=document.createElement("div");b.className="bph";b.style.setProperty("--bc",col);const nm=(ENEMIES[id]||{}).n||"";const em=(typeof EM!=="undefined"&&EM[id])||{};
+  b.innerHTML=`<div class="bph-bar"></div><div class="bph-n">${esc(nm.split(" — ")[0].toUpperCase())} · ${esc((em.n||"").toUpperCase())}</div><h2>GIAI ĐOẠN II</h2>${BPH_LINE[id]?`<div class="bph-l">${esc(BPH_LINE[id])}</div>`:""}${em.d?`<div class="bph-d">${esc(em.d)}</div>`:""}`;
+  document.body.appendChild(b);b.animate([{opacity:0,transform:"scale(1.4)"},{opacity:0,transform:"scale(1.4)",offset:.22},{opacity:1,transform:"scale(1)",offset:.32,easing:"cubic-bezier(.2,.9,.3,1)"},{opacity:1,offset:.82},{opacity:0,transform:"scale(1.02)"}],{duration:2600,fill:"forwards"}).onfinish=()=>b.remove();
+  const bar=b.querySelector(".bph-bar");bar.animate([{transform:"translateY(-50%) scaleX(0)"},{transform:"translateY(-50%) scaleX(0)",offset:.25},{transform:"translateY(-50%) scaleX(1)",offset:.4}],{duration:2600,fill:"forwards"});
+  await new Promise(r=>setTimeout(r,1500*Math.max(.7,SLEEP_MUL||1)));}catch(x){}}
+// thay dòng chữ nổi nhỏ "PHASE 2 — ..." bằng màn điện ảnh; giữ nguyên cơ chế
+{const _ep=emPhase;emPhase=function(e){const fa=floatAt;floatAt=function(){};let r;try{r=_ep.apply(this,arguments);}finally{floatAt=fa;}if(SLEEP_MUL)bossPhaseFx(e);return r;};}
+// trùm còn dưới 20% máu: một lần "TỬ CHIẾN" — viền đỏ đập + tiếng tim
+{const _hB=hitEnemy;hitEnemy=function(e,n){const h0=e?e.hp:0;const r=_hB.apply(this,arguments);try{if(e&&e.d&&e.d.boss&&!e._ls&&e.hp>0&&e.hp<=e.max*.2&&h0>e.max*.2){e._ls=1;
+    hfxEdge("255,30,40",600,1);setTimeout(()=>hfxEdge("255,30,40",600,.7),650);SFX.play("heartbeat",1);setTimeout(()=>SFX.play("heartbeat",1),650);
+    const ef=enEl(e)?.querySelector(".ef");const p=ef&&vxAt(ef);const t=document.createElement("div");t.className="lastst";t.textContent="TỬ CHIẾN";t.style.top=((p?p.r.top:innerHeight*.2)+8)+"px";document.body.appendChild(t);
+    t.animate([{opacity:0,transform:"translateX(-50%) scale(1.5)"},{opacity:1,transform:"translateX(-50%) scale(1)",offset:.2},{opacity:1,offset:.75},{opacity:0}],{duration:1600,fill:"forwards"}).onfinish=()=>t.remove();}}catch(x){}return r;};}
+
+// bỏ dòng thông báo "nổi giận" cũ (đã nằm trong màn GIAI ĐOẠN II)
+(function(){for(const k of Object.keys(BPH_LINE)){const d=ENEMIES[k];if(d&&d.enrage&&d.enrage.t)d.enrage.t="";}
+  const _t=toast;toast=function(m){if(m===""||m==null)return;return _t.apply(this,arguments);};})();
 
 // ===================== 5.21 — XƯỞNG ẢNH: NHÃN CÔNG CỤ (WAI / ChatGPT) + KÍCH THƯỚC =====================
 function slotTool(s){return (s.gpt||s.ui)?"gpt":"wai";}
