@@ -17530,8 +17530,11 @@ function rectOf(el){if(!el)return null;const r=el.getBoundingClientRect();if(!r.
 function colOf(e){return safe(()=>ph2Col(e))||"255,90,60";}
 const stc=document.createElement("style");stc.textContent=`
 .cvk-dim{position:fixed;inset:0;z-index:44;pointer-events:none;opacity:0;background:radial-gradient(circle at var(--kx) var(--ky),rgba(0,0,0,0) 0,rgba(0,0,0,0) var(--kr),rgba(4,2,4,.86) calc(var(--kr) * 1.9))}
-.cvk-crk{position:absolute;inset:0;z-index:9;pointer-events:none;overflow:visible}
-.cvk-crk path{fill:none;stroke:#fff3c8;stroke-width:2.4;stroke-linecap:round;filter:drop-shadow(0 0 3px rgba(255,190,90,1)) drop-shadow(0 0 8px rgba(255,120,40,.9))}
+.cvk-crk{position:absolute;inset:0;z-index:9;pointer-events:none;overflow:hidden}
+.cvk-crk path{fill:none;stroke:#fff6dc;stroke-width:1.1;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round}
+.cvk-crk{filter:drop-shadow(0 0 1.5px rgba(255,200,120,.95)) drop-shadow(0 0 5px rgba(255,120,40,.55))}
+.cvk-crk path.k1{stroke-width:.7;stroke:#ffe3b0}
+.cvk-crk path.k2{stroke-width:1.3}
 .cvx-stamp.big b{font-size:clamp(26px,9.5vw,52px);letter-spacing:.1em}
 .cvx-stamp.boss b{font-size:clamp(26px,9vw,48px)}
 .cvx-stamp .sub2{display:block;margin-top:6px;font:italic 600 13px/1.3 var(--fd,serif);color:#f1dfc2;letter-spacing:.04em;text-shadow:0 1px 3px #000}
@@ -17548,10 +17551,15 @@ function bars(ms){const t=document.createElement("i"),b=document.createElement("
   for(const el of [t,b])el.animate([{transform:"scaleY(0)"},{transform:"scaleY(1)",offset:.15},{transform:"scaleY(1)",offset:.85},{transform:"scaleY(0)"}],{duration:ms,fill:"forwards",easing:"cubic-bezier(.2,.8,.3,1)"}).onfinish=()=>el.remove();}
 // vết nứt lửa: các đường gấp khúc toả ra từ điểm trúng đòn
 function cracks(ef,ms){const s=document.createElementNS("http://www.w3.org/2000/svg","svg");s.setAttribute("class","cvk-crk");s.setAttribute("viewBox","0 0 100 150");s.setAttribute("preserveAspectRatio","none");
-  const cx=40+Math.random()*20,cy=45+Math.random()*25;let h="";for(let i=0;i<9;i++){const a=i/9*Math.PI*2+Math.random()*.5;let x=cx,y=cy,d=`M${x.toFixed(1)},${y.toFixed(1)}`;const L=40+Math.random()*60;
-    for(let k=0;k<5;k++){const st=L/5;x+=Math.cos(a+(Math.random()-.5)*.9)*st;y+=Math.sin(a+(Math.random()-.5)*.9)*st*1.3;d+=` L${x.toFixed(1)},${y.toFixed(1)}`;}h+=`<path d="${d}" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/>`;}
-  s.innerHTML=h;ef.appendChild(s);s.querySelectorAll("path").forEach((p,i)=>p.animate([{strokeDashoffset:1},{strokeDashoffset:0}],{duration:ms,delay:i*18,fill:"forwards",easing:"cubic-bezier(.3,.7,.2,1)"}));
-  setTimeout(()=>s.remove(),2600);return s;}
+  // vết nứt mảnh, lan tới tận mép khung, có nhánh rẽ và một vòng vỡ quanh điểm trúng
+  const cx=38+Math.random()*24,cy=50+Math.random()*30;const P=[];const jag=(x,y,a,L,seg,spread)=>{let d=`M${x.toFixed(1)},${y.toFixed(1)}`;const pts=[[x,y]];for(let k=0;k<seg;k++){const st=L/seg*(.7+Math.random()*.6);a+=(Math.random()-.5)*spread;x+=Math.cos(a)*st;y+=Math.sin(a)*st*1.25;d+=` L${x.toFixed(1)},${y.toFixed(1)}`;pts.push([x,y]);}return {d,pts,a};};
+  const N=11;for(let i=0;i<N;i++){const a=i/N*Math.PI*2+(Math.random()-.5)*.4;const m=jag(cx,cy,a,95+Math.random()*60,9,.55);P.push([m.d,0]);
+    for(let b=0;b<2;b++){const pt=m.pts[2+Math.floor(Math.random()*(m.pts.length-3))];const br=jag(pt[0],pt[1],m.a+(Math.random()<.5?-1:1)*(.5+Math.random()*.6),18+Math.random()*28,4,.7);P.push([br.d,1]);}}
+  let ring="";const rr=6+Math.random()*4;for(let i=0;i<=10;i++){const a=i/10*Math.PI*2;const r=rr*(.8+Math.random()*.45);ring+=(i?" L":"M")+(cx+Math.cos(a)*r).toFixed(1)+","+(cy+Math.sin(a)*r*1.25).toFixed(1);}P.push([ring,2]);
+  s.innerHTML=P.map(([d,k])=>`<path class="k${k}" d="${d}" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/>`).join("");ef.appendChild(s);
+  s.querySelectorAll("path").forEach((p,i)=>{const k=+p.getAttribute("class").slice(1);p.animate([{strokeDashoffset:1},{strokeDashoffset:0}],{duration:k===0?ms:ms*.6,delay:k===0?i*12:ms*.45+Math.random()*ms*.3,fill:"forwards",easing:"cubic-bezier(.3,.7,.2,1)"});});
+  s.animate([{opacity:1},{opacity:1,offset:.7},{opacity:0}],{duration:2600,fill:"forwards"});setTimeout(()=>s.remove(),2700);return s;}
+window.__cvCracks=(ef,ms)=>cracks(ef,ms);
 function quake(el,amp,ms){if(!el)return;const k=[];for(let i=0;i<10;i++){const a=amp*(1-i/10);k.push({transform:`translate(${(Math.random()-.5)*2*a}px,${(Math.random()-.5)*2*a}px)`});}k.push({transform:"translate(0,0)"});
   try{el.animate(k,{duration:ms,easing:"linear"});}catch(x){}}
 const sleepFx=ms=>new Promise(r=>setTimeout(r,ms*Math.max(.6,(typeof SLEEP_MUL!=="undefined"&&SLEEP_MUL)||1)));
@@ -17713,6 +17721,42 @@ if(typeof AU!=="undefined"&&AU.play){const _pl=AU.play.bind(AU);
      [220,261.6,329.6,392].forEach((f,i)=>tn(f,2,{type:"sawtooth",lp:1700,g:.045,a:.06,at:.05,rev:.9,det:(i%2?5:-5)}));metal(880,1.1,.06,0,.6);};
    // tiếng "bị hạ" khi trúng đòn cuối không lên giọng chát; chuỗi đòn chỉ cao lên nhẹ
   }
+
+  // ================= BỘ TIẾNG 5.33: phần còn lại cùng hướng (rõ chất liệu, đúng ngữ cảnh) =================
+  {const tn=(f,d,o)=>AU.tone(f,d,o||{}),z=(d,o)=>AU.nz(d,o||{});const J=()=>.96+Math.random()*.08;const rnd=Math.random;
+   const metal=(f,d,g,at=0,rev=.35)=>[[1,1],[2.76,.5],[5.4,.28],[8.93,.14]].forEach(([k,w])=>tn(f*k,d*(1.1-k/14),{g:g*w,a:.001,at,rev}));
+   const thump=(f,d,g,at=0)=>{tn(f,d,{to:f*.35,g,a:.002,at});tn(f*2,d*.45,{to:f*.7,type:"triangle",g:g*.28,a:.002,at});};
+   const whoosh=(d,f0,f1,g,at=0)=>z(d,{fr:f0,to:f1,q:1.3,g,a:d*.55,at});
+   const S=AU.S;
+   // ra lá theo loại: rút kiếm · phép chú · sức mạnh · lời nguyền
+   S.relAtk=m=>{whoosh(.14,700,6000,.2);metal(2600*J(),.22,.035,.05,.4);};
+   S.relSkl=m=>{[1320,1760].forEach((f,i)=>tn(f*J(),.35,{g:.045,at:i*.04,a:.004,rev:.6}));whoosh(.2,1200,5000,.08);};
+   S.relPow=m=>{tn(98,.6,{to:147,type:"sawtooth",lp:700,g:.09,a:.08,rev:.4});thump(70,.35,.45,.05);z(.4,{fr:300,to:2200,q:1,g:.08,a:.2,rev:.4});};
+   S.relCur=m=>{z(.35,{fr:2400,to:500,q:3,g:.12,a:.15,rev:.6});tn(185,.5,{to:150,type:"sawtooth",lp:800,g:.05,a:.1,rev:.7});};
+   // kẻ địch gồng đòn: hít vào + gầm trầm (báo hiệu nguy hiểm)
+   S.windup=m=>{z(.45,{fr:250,to:1600,q:2,g:.16,a:.4});tn(62,.5,{to:95,type:"sawtooth",lp:420,g:.16,a:.3});tn(64,.5,{to:98,type:"sawtooth",lp:420,g:.12,a:.3,det:12});};
+   S.charge=m=>{z(1,{fr:220,to:3200,q:1.4,g:.16,a:.9,rev:.4});tn(70,1,{to:280,type:"sawtooth",lp:900,g:.1,a:.85});thump(60,.3,.5,.95);};
+   // hết lượt: lướt gió + chiêng trầm
+   S.endT=m=>{whoosh(.35,2600,300,.16);metal(130,1.4,.08,.08,.8);thump(70,.3,.35,.08);};
+   // tiền / vật phẩm / giao diện
+   S.coin=m=>{const j=(m||1)*J();metal(2100*j,.25,.05,0,.35);metal(2800*j,.3,.04,.06,.35);z(.02,{f:"highpass",fr:6000,g:.12,at:.06});};
+   S.ui=m=>{tn(1500,.03,{type:"triangle",g:.045,a:.001});z(.012,{f:"highpass",fr:5000,g:.05});};
+   S.potion=m=>{tn(1800,.12,{g:.05,a:.001});for(let i=0;i<6;i++)tn(300+rnd()*500,.06,{to:900+rnd()*400,g:.06,at:.08+i*.06,a:.004});tn(140,.18,{to:90,g:.25,at:.45});[660,990].forEach((f,i)=>tn(f,.9,{g:.04,at:.5+i*.06,rev:.8}));};
+   S.relic=m=>{[880,1109,1319,1760].forEach((f,i)=>tn(f,1.1,{type:"triangle",g:.05,at:i*.06,rev:.85}));z(.8,{f:"highpass",fr:5000,to:9000,g:.04,a:.3,rev:.8});thump(90,.3,.35);};
+   S.twinkle=m=>{[2093,2637,3136].forEach((f,i)=>tn(f,.5,{g:.035,at:i*.05,rev:.8}));};
+   // đòn nặng / chí mạng
+   S.heavy=m=>{thump(62,.75,1);z(.5,{f:"lowpass",fr:2800,to:120,g:.42,a:.003,rev:.4});metal(330,.5,.05,0,.4);};
+   S.crit=m=>{S.heavy();z(.03,{f:"highpass",fr:7000,g:.35});[2637,3520,4186].forEach((f,i)=>tn(f,.55,{g:.04,at:.03+i*.025,a:.002,rev:.6}));};
+   // chiến thắng / thất bại
+   S.win=m=>{thump(70,.5,.7);[[261.6,329.6,392],[293.7,370,440],[392,493.9,587.3,784]].forEach((ch,k)=>ch.forEach(f=>tn(f,k===2?1.8:.5,{type:"sawtooth",lp:2200,g:.05,a:.02,at:k*.28,rev:.7})));metal(523,1.6,.05,.56,.8);};
+   S.lose=m=>{metal(98,4,.18,0,.95);tn(55,3,{to:40,type:"sawtooth",lp:300,g:.16,a:.4,rev:.8});tn(58,3,{to:42,type:"sawtooth",lp:300,g:.1,a:.4,rev:.8});};
+   // bỏ lá / triệu hồi / vỡ
+   S.exhaust=m=>{z(.5,{f:"highpass",fr:1500,to:6000,g:.08,a:.05});for(let i=0;i<10;i++)z(.01,{f:"highpass",fr:2500+rnd()*4000,g:.08,at:rnd()*.4});};
+   S.summon=m=>{z(.7,{fr:180,to:900,q:3,g:.22,a:.2,rev:.6});tn(73,.9,{type:"sawtooth",lp:500,g:.12,a:.2,rev:.5});thump(55,.4,.5,.6);};
+   S.shatter=m=>{z(.35,{f:"highpass",fr:2500,to:7000,g:.28,rev:.3});for(let i=0;i<8;i++)tn(1800+rnd()*3800,.18,{g:.035,at:rnd()*.15,a:.001,rev:.4});thump(160,.12,.35);};
+   S.sel=m=>{tn(1760,.05,{type:"triangle",g:.05,a:.001});tn(2637,.07,{g:.03,at:.02,rev:.4});};
+   S.lift=m=>{z(.07,{f:"highpass",fr:3500,g:.06,a:.02});tn(700,.08,{to:1000,type:"triangle",g:.03});};
+  }
   // sửa ngữ cảnh: bản tiếng Việt đổi khoá hiệu ứng "fire" thành "lửa" → lá lửa trước đây kêu tiếng chém thường
   safe(()=>{if(typeof VFX_SND!=="undefined"){VFX_SND["lửa"]="fireV";VFX_SND.fire="fireV";}});
   // chém/đánh lá: rõ tiếng vút trước đòn
@@ -17725,7 +17769,7 @@ if(typeof AU!=="undefined"&&AU.play){const _pl=AU.play.bind(AU);
     if(n>=4){tone(170,.16,{to:60,g:.6,a:.001});nz(.35,{f:"highpass",fr:6000,to:9000,g:.12,a:.003,rev:.5});}
     if(n>=6){[1,1.26,1.5,2].forEach((r,j)=>tone(f*r/2,.6,{type:"sawtooth",lp:2600,g:.05,a:.01,at:.03+j*.012,rev:.6}));nz(.5,{f:"lowpass",fr:1400,to:150,g:.25,a:.003,rev:.5});}};
   // chọn lá / nhấc lá: giòn, rõ
-  const sel0=S.sel;S.sel=m=>{sel0&&sel0(m);tone(1320,.05,{type:"triangle",g:.07,a:.001});nz(.03,{f:"highpass",fr:4500,g:.08});};
+  
 }
 // âm lượng hiệu ứng tổng: mặc định to hơn; nhạc tự "nhún" xuống mỗi đòn (đã có musDuck)
 })();
@@ -19101,7 +19145,7 @@ const cssS=document.createElement("style");cssS.textContent=`
 .cxs-pg .cx_th{flex:none;width:70px;height:105px;border-radius:8px;overflow:hidden;background:radial-gradient(120% 80% at 50% 25%,#3a1c0c,#0b0809 70%);border:1px solid rgba(201,164,106,.3);display:grid;place-items:center;color:#a8957a;font:800 18px var(--fd,serif)}
 .cxs-pg .cx_th img{width:100%;height:100%;object-fit:cover}
 .cxs-pg .cx_bd{flex:1;min-width:0}.cxs-pg .cx_h{font:700 15px var(--fd,serif);color:#f3e3c4}.cxs-pg .cx_sm{font-size:11.5px;line-height:1.45;color:#a8957a;margin:4px 0 8px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.cxs-pg .cx_bt{display:flex;flex-wrap:wrap;gap:6px}.cxs-pg textarea{width:100%;margin-top:8px;font-size:11px;min-height:160px}
+.cxs-pg .cx_bt{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.cxs-pg .cx_bt .sbtn{white-space:nowrap;font-size:12.5px;padding:8px 2px;min-width:0;overflow:hidden;text-overflow:ellipsis}.cxs-pg textarea{width:100%;margin-top:8px;font-size:11px;min-height:160px}
 .cxs-st{font:800 9.5px/1 var(--fb,sans-serif);padding:4px 7px;border-radius:7px;margin-left:6px;vertical-align:middle}
 .cxs-st.cx_ok{color:#9fd59a;border:1px solid rgba(159,213,154,.45)}.cxs-st.cx_no{color:#e8c99a;border:1px dashed rgba(232,201,154,.5)}`;document.head.appendChild(cssS);
 const nArt=e=>e.pages.filter((_,i)=>pageImgId(e,i)).length;
@@ -19120,13 +19164,15 @@ async function comicStudio(cid){
     ${ep.pages.map((pg,i)=>{const id=pageImgId(ep,i);return `<div class="cxs-pg"><div class="cx_th">${id?`<img data-t="${id}" alt="">`:i+1}</div><div class="cx_bd">
       <div class="cx_h">${T("Trang","Page")} ${i+1}<span class="cxs-st ${id?"cx_ok":"cx_no"}">${id?"✓ "+T("CÓ TRANH","ART"):T("CHƯA CÓ","NO ART")}</span></div>
       <div class="cx_sm">${escH(pg.panels.map(x=>x.vd).join(" · "))}</div>
-      <div class="cx_bt"><button class="sbtn add" data-cp="${i}">📋 ${T("Sao chép prompt","Copy prompt")}</button><button class="sbtn" data-ad="${i}">${id?"↻ "+T("Thay tranh","Replace"):"＋ "+T("Thêm tranh","Add art")}</button><button class="sbtn" data-vw="${i}">👁 Prompt</button>${id?`<button class="sbtn" data-rd="${i}">📖 ${T("Đọc","Read")}</button>`:""}</div>
+      <div class="cx_bt"><button class="sbtn add" data-cp="${i}">📋 Prompt</button><button class="sbtn" data-ad="${i}">${id?"↻ "+T("Thay","Replace"):"＋ "+T("Thêm","Add")}</button><button class="sbtn" data-vw="${i}">👁 ${T("Xem","View")}</button>${id?`<button class="sbtn" data-rd="${i}">📖 ${T("Đọc","Read")}</button><button class="sbtn" data-dl="${i}">🗑 ${T("Xoá","Delete")}</button>`:""}</div>
       <div class="cx_pv" data-pv="${i}"></div></div></div>`;}).join("")}`);
   b.querySelectorAll("img[data-t]").forEach(im=>IMG.url(im.dataset.t,true).then(u=>{if(u)im.src=u;}));
   b.querySelector("#cxsb").onclick=()=>comicStudio();b.querySelector("#cxrd").onclick=()=>{closeModal();openEp(ep,0);};
   b.querySelectorAll("[data-cp]").forEach(x=>x.onclick=()=>copyTxt(comicPrompt(ep,+x.dataset.cp)));
   b.querySelectorAll("[data-vw]").forEach(x=>x.onclick=()=>{const v=b.querySelector(`[data-pv="${x.dataset.vw}"]`);v.innerHTML=v.innerHTML?"":`<textarea readonly>${escH(comicPrompt(ep,+x.dataset.vw))}</textarea>`;});
   b.querySelectorAll("[data-rd]").forEach(x=>x.onclick=()=>{closeModal();openEp(ep,+x.dataset.rd,0);});
+  b.querySelectorAll("[data-dl]").forEach(x=>x.onclick=async()=>{const i=+x.dataset.dl;if(!await cvConfirm(T(`Xoá tranh của trang ${i+1}? Kịch bản và prompt vẫn giữ nguyên, bạn có thể vẽ lại sau.`,`Delete the art for page ${i+1}? The script and prompt stay, so you can redraw it later.`),T("Xoá","Delete")))return;
+    for(const id of [...DB.ids(slotId(ep,i))])await DB.del(id);toast(T("Đã xoá tranh trang ","Deleted art of page ")+(i+1),1500);const m=q("#mbody");const sc2=m?m.scrollTop:0;comicStudio(ep.id);setTimeout(()=>{const m2=q("#mbody");if(m2)m2.scrollTop=sc2;},50);});
   b.querySelectorAll("[data-ad]").forEach(x=>x.onclick=()=>{const i=+x.dataset.ad;pickFiles(false,async fs=>{try{toast(T("Đang xử lý…","Processing…"),3000);await importFiles(slotId(ep,i),fs,()=>{});
       const ids=DB.ids(slotId(ep,i));for(const old of ids.slice(0,-1))await DB.del(old);toast(T("Đã lưu tranh trang ","Saved page ")+(i+1),1600);comicStudio(ep.id);setTimeout(()=>{const m=q("#mbody");if(m)m.scrollTop=sc;},50);}catch(e){toast(""+e);}});});
   setTimeout(()=>{const m=q("#mbody");if(m&&sc)m.scrollTop=sc;},30);}
