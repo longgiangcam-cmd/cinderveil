@@ -7125,7 +7125,7 @@ function gotShow(it){return new Promise(res=>{const cs=it.cs.slice(0,4),more=it.
   const lab=it.k==="add"?(cs.some(c=>{const d=CARDS[c.id];return d&&d.t==="cur";})?"CURSE ADDED TO YOUR DECK":(cs.length>1?"NEW CARDS ADDED TO YOUR DECK":"NEW CARD ADDED TO YOUR DECK")):it.k==="up"?"CARD UPGRADED":"CARD REMOVED FROM YOUR DECK";
   const d=document.createElement("div");d.className="gotc k-"+it.k+(cs.length>1?" multi":"");
   d.innerHTML=`<div class="gc-lab">${lab}</div><div class="gc-row">${cs.map(c=>`<div class="gc-c">${cardHTML(c)}</div>`).join("")}</div>${more>0?`<div class="gc-more">+${more} more</div>`:""}<div class="gc-names">${cs.map(c=>esc((cdef(c).d||{}).n||"")+(c.up?"+":"")).join(" · ")}</div>`;
-  document.body.appendChild(d);try{if(window.fitAll)fitAll(d);}catch(e){}try{AU.play(it.k==="rem"?"shatter":it.k==="up"?"buff":"card",1);}catch(e){}
+  document.body.appendChild(d);try{hydrateArts(d);}catch(e){}try{if(window.fitAll)fitAll(d);}catch(e){}try{AU.play(it.k==="rem"?"shatter":it.k==="up"?"buff":"card",1);}catch(e){}
   let done=false;const fin=()=>{if(done)return;done=true;
     // bay vào biểu tượng bộ bài nếu đang thấy
     const tgt=[...document.querySelectorAll(".scr.on .ico, .scr.on [data-deck], .scr.on #deckb")].find(b=>b.offsetParent&&/deck|bộ bài/i.test((b.title||b.getAttribute("aria-label")||"")+b.innerHTML.slice(0,200)));
@@ -8721,6 +8721,240 @@ const MF_TF="(transformation:1.15), glowing embers rising around her, light part
     try{if(C&&typeof s.desc==="string"){const who=MON_SCENES[k].who;const old=ENEMY_LOOK[who];if(old)s.desc=s.desc.split(old).join(C.look);}}catch(e){}
     if(pStage&&typeof s.desc==="string")s.desc+=" "+"Show her in the middle of turning human: warm embers rising around her, the curse burning away.";}
   try{PROMPT_CHG.push([{test:sid=>/^(mon_dryad|mon_dullahan|boss_ornisa|mon_arachne_p|mon_lamia_p)/.test(sid)},Date.UTC(2026,10,27,19,0)]);}catch(e){}})();
+
+// ===================== 5.25 — THÊM HIỆU ỨNG ĐƠN GIẢN · TO · ĐẸP · KHÔNG NÓNG =====================
+// Tất cả bắn MỘT LẦN theo sự kiện (không vòng lặp nền), dùng lớp WebGL có sẵn + 1 div viền màu (chỉ đổi opacity).
+function fxOn(){try{return typeof vxOn==="function"&&vxOn();}catch(e){return false;}}
+function fxP(el){try{if(typeof hfxPoke==="function")hfxPoke();}catch(e){}return el&&typeof vxAt==="function"?vxAt(el):null;}
+// ---------- 1) Bước vào ô bản đồ: nổ sáng theo màu loại ô ----------
+const MAPCOL={combat:"255,120,90",elite:"255,150,60",event:"190,130,255",rest:"255,190,110",shop:"255,215,90",treasure:"255,225,120",boss:"255,60,70"};
+document.addEventListener("click",ev=>{try{const b=ev.target.closest&&ev.target.closest(".mnode.can");if(!b||!fxOn())return;const p=fxP(b);if(!p)return;
+  const t=Object.keys(MAPCOL).find(k=>b.classList.contains(k))||(b.id==="mboss"?"boss":"combat");const c=MAPCOL[t];
+  vxRing(p.x,p.y,70,c,.45);vxRing(p.x,p.y,130,"255,240,220",.55,.08);vxFlare(p.x,p.y,170,c,.4);vxSparks(p.x,p.y,16,c,{speed:520,grav:300});
+  if(t==="boss"||t==="elite"){vxPillar(p.x,p.y+40,70,c,.7);hfxEdge(c,600,t==="boss"?.9:.5);}}catch(e){}},true);
+// ---------- 2) Nhận vàng / linh hồn: tia sáng bắn ra từ bộ đếm + số bật lên ----------
+const CUR={g:null,s:null};
+function curPop(sel,col,txt){const el=document.querySelector(".scr.on .top "+sel)||document.querySelector(".top "+sel);if(!el||!el.offsetParent)return;
+  if(fxOn()){const p=fxP(el);if(p){vxFlare(p.x,p.y,110,col,.35);vxRing(p.x,p.y,45,col,.35);vxSparks(p.x,p.y,12,col,{speed:380,grav:500});}}
+  try{const b=el.querySelector("b");if(b)b.animate([{transform:"scale(1)"},{transform:"scale(1.45)",offset:.3},{transform:"scale(1)"}],{duration:420,easing:"ease-out"});}catch(e){}
+  try{const f=document.createElement("div");f.className="curpop";f.style.setProperty("--cc",col);f.textContent=txt;const r=el.getBoundingClientRect();f.style.left=(r.left+r.width/2)+"px";f.style.top=(r.bottom+2)+"px";document.body.appendChild(f);
+    f.animate([{opacity:0,transform:"translate(-50%,-4px) scale(.8)"},{opacity:1,transform:"translate(-50%,6px) scale(1.1)",offset:.25},{opacity:0,transform:"translate(-50%,22px) scale(1)"}],{duration:900,fill:"forwards"}).onfinish=()=>f.remove();}catch(e){}}
+setInterval(()=>{try{if(!R){CUR.g=CUR.s=null;return;}if(document.hidden)return;
+  if(CUR.g!=null&&R.gold>CUR.g)curPop(".gc","255,210,80","+"+(R.gold-CUR.g));if(CUR.s!=null&&R.souls>CUR.s)curPop(".sc","170,150,255","+"+(R.souls-CUR.s));
+  CUR.g=R.gold;CUR.s=R.souls;}catch(e){}},400);
+// ---------- 3) Hồi máu: tàn lửa xanh bay lên + vòng sáng ----------
+{const _hp=healP;healP=function(n){const r=_hp.apply(this,arguments);try{if(n>=2&&fxOn()){const p=fxP($("#combat .pbar"));if(p){vxRing(p.x,p.y,90+Math.min(60,n*4),"120,255,160",.5,0,.5);vxEmbers(p.x,p.y,Math.min(22,6+n),"140,255,170",p.w*.35,110,1.1);vxFlash(p.x,p.y,120,"140,255,170",.25);}}}catch(e){}return r;};}
+// ---------- 4) Máu thấp: viền đỏ đập 2 nhịp như tim (chỉ khi vừa trúng đòn) ----------
+{const _hP=hitPlayer;hitPlayer=function(n){const h0=R?R.hp:0;const r=_hP.apply(this,arguments);try{if(R&&R.hp<h0&&R.hp>0&&R.hp/R.max<.3){hfxEdge("255,30,40",520,.9);setTimeout(()=>hfxEdge("255,30,40",520,.6),560);try{haptic(14);setTimeout(()=>haptic(10),560);}catch(e){}}}catch(e){}return r;};}
+// ---------- 5) Kết liễu dư sát thương: "OVERKILL" + sóng chấn động ----------
+{const _hE=hitEnemy;hitEnemy=function(e,n){const h0=e?e.hp:0;const r=_hE.apply(this,arguments);try{if(e&&h0>0&&e.hp<=0&&n-h0>=10&&fxOn()){const el=enEl(e);const p=fxP(el&&el.querySelector(".ef")||el);
+    if(p){vxShock(p.x,p.y,innerWidth*.45,.45);vxFlare(p.x,p.y,300,"255,200,120",.45);vxSparks(p.x,p.y,30,"255,180,90",{speed:900,grav:500});}
+    const t=document.createElement("div");t.className="okill";t.textContent="OVERKILL";document.body.appendChild(t);if(p){t.style.left=p.x+"px";t.style.top=(p.y-p.h*.25)+"px";}
+    t.animate([{opacity:0,transform:"translate(-50%,-50%) scale(1.8) rotate(-6deg)"},{opacity:1,transform:"translate(-50%,-50%) scale(1) rotate(-6deg)",offset:.2,easing:"cubic-bezier(.2,.9,.3,1)"},{opacity:1,offset:.7},{opacity:0,transform:"translate(-50%,-80%) scale(1) rotate(-6deg)"}],{duration:900,fill:"forwards"}).onfinish=()=>t.remove();}}catch(x){}return r;};}
+// ---------- 6) Gây hiệu ứng xấu lên địch: vòng màu theo trạng thái ----------
+const STCOL={v:"200,110,255",w:"120,220,140",bl:"255,60,60"};
+{let snap=null;const take=()=>C&&C.en?C.en.map(e=>({e,v:e.st.v||0,w:e.st.w||0,bl:e.st.bl||0})):[];
+  const _ac=applyCard;applyCard=async function(){snap=take();const r=await _ac.apply(this,arguments);try{if(fxOn()&&snap)for(const s of snap){if(s.e.hp<=0)continue;const el=enEl(s.e);const p=fxP(el&&el.querySelector(".ef")||el);if(!p)continue;let k=0;
+      for(const key of ["v","w","bl"]){if((s.e.st[key]||0)>s[key]){vxRing(p.x,p.y,80+k*30,STCOL[key],.5,k*.08,.55);vxSparks(p.x,p.y,10,STCOL[key],{speed:300,grav:-200});k++;}}}}catch(e){}snap=null;return r;};}
+// ---------- 7) Đầu lượt: năng lượng nạp đầy — tia sáng chạy quanh quả cầu ----------
+{const _st=startTurn;startTurn=async function(){const r=await _st.apply(this,arguments);try{if(fxOn()&&C){const o=document.querySelector("#combat .orb");const p=fxP(o);if(p){vxFlare(p.x,p.y,150,"255,190,90",.4);vxSparks(p.x,p.y,14,"255,200,110",{speed:420,grav:0});}}}catch(e){}return r;};}
+(function(){const s=document.createElement("style");s.textContent=`
+.curpop{position:fixed;z-index:9500;pointer-events:none;font-weight:800;font-size:15px;color:#fff;text-shadow:0 0 8px rgba(var(--cc),1),0 1px 2px #000;white-space:nowrap}
+.okill{position:fixed;left:50%;top:35%;z-index:80;pointer-events:none;font-family:var(--serif,serif);font-weight:900;font-size:34px;letter-spacing:.06em;color:#fff3d8;
+ text-shadow:0 0 12px rgba(255,170,80,1),0 0 30px rgba(255,90,40,.8),0 3px 3px #000;white-space:nowrap}`;document.head.appendChild(s);})();
+
+// ---------- sửa hiển thị: danh sách Nữ Nhân chưa có ảnh → chữ cái đầu thay cho chữ "empty" ----------
+{const _sh=showHeroes;showHeroes=function(){const r=_sh.apply(this,arguments);try{document.querySelectorAll("#modal .hcard[data-h] .hp").forEach(el=>{if(el.querySelector("img")||el.children.length||!el.textContent.trim())return;el.classList.add("hpe");const card=el.closest(".hcard");const h=card&&HEROES[card.dataset.h];
+  el.innerHTML=`<span class="hpi">${h?esc(h.n[0]):"?"}</span>`;});}catch(e){}return r;};}
+(function(){const s=document.createElement("style");s.textContent=`.hcard .hp.hpe{display:flex;align-items:center;justify-content:center}.hcard .hp .hpi{font-family:var(--serif,serif);font-size:30px;font-weight:700;color:var(--gold,#d8b06a);opacity:.85}`;document.head.appendChild(s);})();
+// ---------- Có gì mới ----------
+try{CONTENT.push({v:"5.25",notes:[
+ "Each heroine’s card now has her own signature effect when you play it.",
+ "Picking a reward card: the rarer the card, the grander the effect. Heroine cards are the grandest.",
+ "Monster women turn human in their intimate scenes: the flame you carry remembers who they once were.",
+ "Arachne redesigned: a human woman with spider legs on her back.",
+ "New effects: map steps, gold and souls, healing, low HP heartbeat, debuffs, OVERKILL, energy refill.",
+ "Card art now shows on the new card popup. All WAI prompts rewritten for accuracy."]});}catch(e){}
+
+// ===================== 5.26 — ẢNH GIAI ĐOẠN 2 + ẢNH BỊ THƯƠNG CHO MỌI KẺ ĐỊCH =====================
+// Trước: ô "_alt" chỉ là "tư thế thứ hai" chọn ngẫu nhiên, ô "_hurt" ghi chung chung → ảnh ra đứng yên, không giống bị thương.
+// Giờ: "_alt" = GIAI ĐOẠN 2 — hiện khi nàng còn nửa máu (boss: lúc kích hoạt giai đoạn 2; Hollow Soldier: lúc đứng dậy lần 2),
+// hoành tráng hơn ảnh thường (đang tung đòn, hào quang, tia lửa). "_hurt" = chớp lên khi trúng đòn nặng: quỳ/loạng choạng, máu, mặt đau đớn.
+try{PROMPT_CHG.push([{test:sid=>/^en_nyx(_cutin)?$/.test(sid)},Date.UTC(2026,10,28,2,30)]);}catch(e){}
+const P2COM="(attacking:1.15), dynamic pose, dynamic angle, (glowing aura:1.15), power up, embers, sparks, motion blur, intense, (menacing:1.2), red rim light, dark atmosphere";
+const H2COM="(injured:1.2), (pained expression:1.2), wince, clenched teeth, blood on face, bruise, torn clothes, sweat, panting";
+const P2={
+ hollow:"full body, from below, (sword slash:1.2), slashing at viewer, leaping, broken sword glowing red, (red aura:1.15), shouting, burning ruins",
+ ghoul:"full body, from above, (lunging at viewer:1.2), mid-air, claws outstretched, open mouth, sharp teeth, red glowing eyes, blood splatter, moonlit graveyard",
+ ratgirl:"full body, from below, (pouncing:1.2), claws slashing, (feral snarl:1.2), glowing red eyes, swarm of rats, sewer water splash",
+ crow:"full body, from below, (diving at viewer:1.2), spread wings, talons out, (glowing red eyes:1.2), screaming, black feathers storm, red moon",
+ boneknight:"full body, from below, (halberd thrust:1.2), charging, (blue fire aura:1.15), skull helmet, bones flying, crypt gate",
+ cultist:"full body, from below, arms raised, (summoning:1.2), magic circle under feet, (blood magic:1.15), red lightning, eyes glowing red, manic grin, altar",
+ wraith:"full body, (rushing at viewer:1.2), floating, (screaming:1.2), long hair flowing upward, ghost hands, cold blue fire, shattered candles",
+ gargoyle:"full body, from below, (stone wings spread:1.2), leaping from ledge, claws slashing, (glowing red eyes:1.2), lightning, rain, cathedral",
+ watcher:"full body, (spinning slash:1.2), dual wielding, (blue cape whirling:1.1), blue wolf-shaped flames, cracked mask, blue fire trails",
+ voidspawn:"full body, from below, (tentacles lashing:1.2), floating, giant eye behind her, (black sclera:1.15), void lightning, reality shards",
+ nightmare:"full body, from below, (bat wings spread:1.2), (shadow hands reaching at viewer:1.15), (unnaturally wide grin:1.15), black sclera, nightmare mist",
+ arachne:"full body, from below, (spider legs striking:1.2), lunging, (venom dripping:1.1), web strands flying, (glowing red eyes:1.15), cave",
+ lamia:"full body, (lunging at viewer:1.2), snake-like strike, (empty hands:1.15), clawed hands outstretched, fangs bared, venom dripping from fangs, hypnotic glowing eyes, tail lashing, crypt",
+ succubus:"full body, from below, (bat wings spread:1.2), floating, (pink magic:1.15), heart-shaped pupils glowing, seductive grin, pink lightning",
+ swordgirl:"full body, (iaido:1.2), drawing sword, (slash effect:1.2), cloak whipping, (killing intent:1.15), glowing eyes, ruins, rain",
+ necro:"full body, from below, skull staff raised, (green fire storm:1.2), skeletons rising, (glowing green eyes:1.15), cruel smile, crypt",
+ abyssknight:"full body, from below, (greatsword slash:1.2), charging, (black aura:1.2), glowing red eyes, cracked ground, light trail",
+ dryad:"full body, from below, (thorn vines lashing:1.2), roots erupting from ground, (hollow glowing green eyes:1.15), dead leaves storm, withered forest",
+ dullahan:"full body, riding horse, black horse, ghost horse, (charging:1.2), sword raised, holding own head aloft, (blue fire trail:1.2), graveyard road",
+ vampire:"full body, from below, (blood magic:1.2), floating, red cape spread, blood whips, (glowing red eyes:1.15), fangs, blood moon",
+ gwyndra:"full body, from below, (flaming greatsword slash:1.2), (fire aura:1.2), cape burning, burning eyes, flames everywhere, throne room",
+ ornisa:"full body, from below, floating, holy staff raised, (blazing halo:1.2), (sickly holy light:1.15), maggots raining, rotting congregation, cathedral",
+ nyx:"full body, from below, (huge wings spread:1.2), (purple fire aura:1.2), crown blazing, glowing yellow eyes, cruel smile, eclipse, throne of bones",
+ morrigan:"full body, from below, (crow storm:1.2), feather cloak becoming wings, (glowing red eyes:1.15), black lightning, ruined tower, full moon",
+ seline:"full body, from below, (black wings spread:1.2), (shattered halo blazing:1.2), chains whipping, black blood tears, holy fire, ruined cathedral"};
+const H2={
+ hollow:"full body, (kneeling:1.1), one knee, leaning on broken sword, armor cracked, ash falling from wounds, holding wound",
+ ghoul:"full body, curled up, (flinching:1.1), one arm torn, shrieking, crawling back",
+ ratgirl:"full body, (cowering:1.1), ears flat, tail between legs, scrambling backward, teary eyes",
+ crow:"full body, falling, one wing broken, feathers scattering, crying out, gravestone",
+ boneknight:"full body, (kneeling:1.1), cracked skull helmet, bones exposed, leaning on halberd, blue flame flickering",
+ cultist:"full body, (kneeling:1.1), hood torn off, dropping dagger, clutching bleeding tattoo, terrified",
+ wraith:"full body, fading, (body flickering:1.1), holding head, distorted, screaming",
+ gargoyle:"full body, (kneeling:1.1), stone skin cracking apart, chunks falling, one horn broken",
+ watcher:"full body, staggering, broken mask, one eye visible, one sword broken, blood on cape",
+ voidspawn:"full body, writhing, tentacles severed, void leaking like ink, body glitching",
+ nightmare:"full body, wings torn, mist scattering, holding horn, dizzy, pout",
+ arachne:"full body, (kneeling:1.1), broken spider legs, web torn",
+ lamia:"full body, tail coiling defensively, scales cracked, hissing",
+ succubus:"full body, wings ragged, makeup smeared, clutching torn clothes, angry pout",
+ swordgirl:"full body, (one knee:1.1), hood torn, cloak shredded, sword chipped, steadying breath",
+ necro:"full body, staggering, skull staff cracked, bone jewelry scattering, coughing green smoke",
+ abyssknight:"full body, (kneeling:1.1), armor split open, dark aura bleeding away, greatsword planted",
+ dryad:"full body, bark cracking, leaves wilting, sap dripping, curling inward",
+ dullahan:"full body, staggering, dropping head, flames sputtering",
+ vampire:"full body, cape torn, covering wound, fangs bared, hissing, eyes blazing red",
+ gwyndra:"full body, (one knee:1.1), greatsword stuck in ground, armor dented, flames sputtering",
+ ornisa:"full body, (kneeling:1.1), mitre fallen, veil torn, staff cracked, praying desperately",
+ nyx:"full body, crown cracked, one wing torn, purple blood, laughing madly",
+ morrigan:"full body, (kneeling:1.1), crows scattering, feather cloak shredded, clutching chest",
+ seline:"full body, (kneeling:1.1), halo shattering, chains snapping, feathers falling, tears of light"};
+// ---------- Boss Nyx: dạng THẬT của Nữ Hoàng Vực Thẳm (khác hẳn lúc nàng đi theo ngươi) ----------
+// Cùng một nhân vật, nhưng khi là trùm cuối nàng hiện nguyên hình: sừng lớn, nhiều cánh, mắt đen tròng, vương miện lửa đen, giáp-váy vàng đen, hình xăm hư không.
+// Ảnh "hạ gục" giữ dáng gần với bản thường → thấy nàng trở lại là chính mình.
+const NYX_OLD=["succubus queen","demon girl","curled horns","large demon wings","demon tail","very long purple hair","yellow eyes","slit pupils","crown","black dress","gold jewelry","throne of bones"];
+const NYX_TRUE="tall female, (abyss queen:1.1), demon, (huge ram horns:1.2), (multiple wings:1.2), huge demon wings, very long purple hair, floating hair, (black sclera:1.15), (glowing yellow eyes:1.2), (crown of black fire:1.2), (black and gold armored gown:1.15), (glowing void tattoos:1.1), purple flames, abyss";
+(function(){for(const id of ["en_nyx","en_nyx_cutin"]){const s=SLOT_BY_ID[id];if(!s)continue;let T=waiSplit(s.pos);const at=T.findIndex(t=>NYX_OLD.includes(t));T=T.filter(t=>!NYX_OLD.includes(t)&&t!=="glowing yellow eyes"&&t!=="crown blazing");
+  T.splice(at<0?3:at,0,...waiSplit(NYX_TRUE));s.pos=w2post(T.join(", "),s);if(typeof s.neg==="string"&&!/succubus/.test(s.neg))s.neg+=", succubus, small horns, pink";
+  s.desc=(s.desc||"")+" Boss form: her TRUE form as Queen of the Abyss, clearly different from the heroine version: huge ram horns, several wings, black sclera, crown of black fire, black and gold armored gown, glowing void tattoos.";}})();
+function enIdent(k){const s=SLOT_BY_ID["en_"+k];if(!s)return "";if(k==="hollow")return enIdent0(k).replace("grey skin","black hair, messy hair, (grey skin:1.15)");return enIdent0(k);}
+function enIdent0(k){const s=SLOT_BY_ID["en_"+k];if(!s)return "";const T=waiSplit(s.pos);const a=T.findIndex(t=>t==="mature female");const b=T.findIndex(t=>t==="full body");
+  return (a>=0&&b>a?T.slice(a+1,b):[]).join(", ");}
+(function(){for(const k of Object.keys(P2)){const id=enIdent(k);if(!id)continue;const head=W2_Q+", 1girl, solo, mature female, "+id;
+    const a=SLOT_BY_ID["en_"+k+"_alt"];if(a){a.pos=w2post(head+", "+P2[k]+", "+P2COM+", "+W2_STY,a);const P2N="Phase 2";a.n=(ENEMIES[k]?ENEMIES[k].n.split(" — ")[0]:k)+" — "+P2N;
+      a.desc="Phase 2: shown when she drops to half HP (bosses: when phase 2 triggers; Hollow Soldier: when she rises again). Make it MORE epic than her first image: attacking, power aura, sparks. Same framing: full body, centered, face in the upper third.";a.note="";
+      if(typeof a.neg==="string"&&!/standing still/.test(a.neg))a.neg+=", standing still, idle, sitting, calm";}
+    const h=SLOT_BY_ID["en_"+k+"_hurt"];if(h){h.pos=w2post(head+", "+H2[k]+", "+H2COM+", dark atmosphere, "+W2_STY,h);
+      h.desc="Hurt: flashes for a moment when she takes a heavy hit. She must clearly look hurt: kneeling or staggering, wounds, blood, pained face. Same framing as her regular image (full body, centered, face in the upper third).";
+      if(typeof h.neg==="string"&&!/smile/.test(h.neg))h.neg+=", smile, smirk, calm, standing straight, uninjured";}}
+  try{PROMPT_CHG.push([{test:sid=>/^en_[a-z]+_(alt|hurt)$/.test(sid)},Date.UTC(2026,10,28,2,30)]);PROMPT_CHG.push([{test:sid=>/^en_[a-z]+_hurt$/.test(sid)&&!/^en_(crow|ghoul|cultist)_/.test(sid)},Date.UTC(2026,10,28,4,5)]);}catch(e){}})();
+
+
+// ---------- ẢNH BỊ HẠ (ô _hurt của quái thường): chỉ hiện lúc nàng gục ngã, không chớp mỗi lần trúng đòn ----------
+const DF={hollow:"cracked armor falling apart, ash drifting from wounds",ghoul:"stitches torn open, tattered dress in shreds",
+ ratgirl:"drooping ears, limp tail, sewer water",crow:"broken wings spread on ground, scattered black feathers, blood pool",
+ boneknight:"shattered bone armor, skull helmet beside her, broken halberd",cultist:"torn hood, fallen dagger, snuffed candles, fading blood tattoos",
+ wraith:"fading translucent body, dissolving into wisps",gargoyle:"crumbling cracked stone skin, broken horn, broken stone wings",
+ watcher:"broken mask beside her, broken swords, torn blue cape",voidspawn:"limp tentacles, void leaking from wounds, fading starry skin",
+ nightmare:"torn wings, fading mist",arachne:"broken spider legs curled, torn spider web",lamia:"limp tail, cracked scales",
+ succubus:"torn wings, smeared makeup, tears",swordgirl:"broken sword, torn hood, shredded cloak, rain",necro:"broken skull staff, scattered bones, dying green fire",
+ abyssknight:"shattered black armor, cracked greatsword, fading dark aura",dryad:"withering, cracked bark, falling petals",
+ dullahan:"head resting beside her, dying blue flames, cracked black armor",vampire:"torn red cape, turning to ash at the edges",
+ gwyndra:"shattered silver armor, cracked flaming greatsword, dying fire, torn red cape",ornisa:"broken holy staff, fallen mitre, torn robes, fading halo",
+ nyx:"cracked crown of black fire, broken wings drooping, dying purple flames",morrigan:"shredded feather cloak, crows circling above, scattered black feathers",
+ seline:"shattered halo, broken chains, torn white dress"};
+// tư thế hấp hối RIÊNG cho từng nàng (nằm, ngồi, quỳ, đứng gượng, treo, bay lơ lửng…)
+const DP={hollow:"(collapsing forward:1.15), knees buckling, broken sword slipping from hand, head lolling",ghoul:"(crawling:1.15), face down, reaching out weakly, from above",
+ ratgirl:"(slumped against wall:1.15), head lolling to side, limp arms, blood smear on wall, legs sprawled",crow:"(lying on back:1.15), from above, arms spread",
+ boneknight:"(falling forward:1.15), knees buckling, halberd falling from hand, bones scattering",cultist:"(lying on side:1.15), on altar steps, arm hanging down",
+ wraith:"(floating:1.1), limp body, arms hanging, head tilted back",gargoyle:"(fallen on side:1.15), half turned to stone, limp",
+ watcher:"(slumped against pillar:1.15), head lolling, blood smear on pillar, limp hands, swords on ground",voidspawn:"(floating upside down:1.15), limp, tentacles hanging, from below",
+ nightmare:"(lying on side:1.15), limp, torn wings spread",arachne:"(tangled in web:1.15), hanging limp, silk wrapped around arms",
+ lamia:"(slumped over own tail:1.15), lying on floor, arm stretched out",succubus:"(lying on side:1.15), wings limp over her body, arm outstretched, face visible",
+ swordgirl:"(lying face down:1.15), in puddle, rain, broken sword out of reach, arm outstretched",necro:"(lying on side:1.15), on pile of bones, face visible, from above",
+ abyssknight:"(lying on side:1.15), on top of her greatsword, arm outstretched, face visible, from above",dryad:"(slumped at base of tree:1.15), head lolling, limp arms, roots wrapping her legs",
+ dullahan:"(lying on side:1.15), fingers barely touching her head",vampire:"(lying on back:1.15), cape spread around her, from above",
+ gwyndra:"(kneeling:1.1), slumped forward, forehead resting on greatsword hilt, motionless, arms limp",ornisa:"(lying on back:1.15), arms spread, from above, cathedral floor",
+ nyx:"(slumped on throne:1.15), head lolling to side, arm hanging off armrest, limp",morrigan:"(falling:1.15), midair, limp, feathers trailing, from below",
+ seline:"(lying on back:1.15), broken wings spread on ground, arms spread, from above"};
+const DFCOM="(dying:1.2), (defeated:1.2), (brutal aftermath:1.2), (heavily wounded:1.3), (deep wounds:1.2), (bleeding heavily:1.2), blood dripping from mouth, blood splatter, (broken armor:1.15), (shattered armor:1.2), armor pieces scattered, (torn clothes:1.3), ripped clothes, soot, dirt on face, blood on face, (unconscious:1.15), limp, (lifeless eyes:1.15), empty eyes, eyes half-open, blank stare, mouth slightly open, pale face, burning debris, smoke, embers, ash falling, harsh shadows, red rim light";
+// Crow, Ghoul, Zealot: giữ nguyên bản bạn đã duyệt
+const DF_OK=new Set(["crow","ghoul","cultist"]);const DFCOM_OK="(dying:1.2), (defeated:1.2), (brutal aftermath:1.2), (heavily wounded:1.3), (deep wounds:1.2), (bleeding heavily:1.2), blood dripping from mouth, blood splatter, (broken armor:1.15), (shattered armor:1.2), armor pieces scattered, (torn clothes:1.3), ripped clothes, soot, dirt on face, blood on face, (agony:1.15), gritted teeth, half-closed eyes, burning debris, smoke, embers, ash falling, harsh shadows, red rim light";
+(function(){for(const k of Object.keys(DF)){const id=enIdent(k);const h=SLOT_BY_ID["en_"+k+"_hurt"];if(!id||!h)continue;
+  {const cm=(DF_OK.has(k)?DFCOM_OK:DFCOM);const cm2=/armor/.test(id)?cm:cm.replace("(broken armor:1.15), (shattered armor:1.2), armor pieces scattered, ","");const idd=DF_OK.has(k)?id:id.split(", ").filter(t=>!/smile|grin|smirk/.test(t)).join(", ");
+  h.pos=w2post(W2_Q+", 1girl, solo, mature female, "+idd+", full body, "+DP[k]+", "+DF[k]+", "+cm2+", dark atmosphere, "+W2_STY,h);}
+  const DFN="Defeated";h.n=(ENEMIES[k]?ENEMIES[k].n.split(" — ")[0]:k)+" — "+DFN;
+  h.desc="Defeated: she has already lost and is DYING: armor broken, clothes torn, many wounds and blood, eyes half-closed. Each enemy has her own pose (lying, kneeling, slumped, barely standing, hanging…). Shown for a moment when the final blow lands, before she fades. Whole body in the frame, centered.";
+  if(typeof h.neg==="string"&&!/alert, tired/.test(h.neg))h.neg+=", fighting stance, attacking, intact armor, clean clothes, uninjured, smile, breath, steam, sweat, tired, clean skin, soft lighting, gritted teeth, determined, alert, tired, grin";}
+})();
+
+// ---------- trong trận: ảnh thường → ảnh giai đoạn 2; ảnh bị thương chỉ chớp khi trúng đòn nặng ----------
+// ảnh thường chỉ lấy từ ô chính (không trộn ảnh giai đoạn 2 vào nữa)
+{const _sr2=IMG.slotRand.bind(IMG);IMG.slotRand=async function(slot,thumb){try{const m=/^en_([a-z]+)$/.exec(slot);if(m&&C&&DB.ids(slot).length){C._pic=C._pic||{};const all=DB.ids(slot);
+  if(!C._pic[slot]||!all.includes(C._pic[slot]))C._pic[slot]=pick(all);return this.url(C._pic[slot],thumb);}}catch(e){}return _sr2(slot,thumb);};}
+function p2Due(e){const d=typeof EM!=="undefined"&&EM[e.id];if(d&&d.ph)return !!e._ph;if(e.id==="hollow")return !!e._rev;return e.hp<=e.max*.5;}
+async function p2Url(e){const ids=DB.ids("en_"+e.id+"_alt");if(!ids.length)return null;return IMG.url(e._p2Id||(e._p2Id=pick(ids)));}
+async function enBaseUrl(e,im){if(e._p2){const u=await p2Url(e);if(u)return u;}return im.dataset.base||null;}
+enSetHurt=async function(e,on){const im=enImgEl(e);if(!im)return;if(!im.dataset.base&&im.src&&!e._p2)im.dataset.base=im.src;
+  if(on){return;}else{if(e._dead)return;const b=await enBaseUrl(e,im);if(b&&im.src!==b)im.src=b;}};
+async function enPhase2(e,fx){e._p2=1;const im=enImgEl(e);if(!im)return;if(!im.dataset.base&&im.src)im.dataset.base=im.src;const u=await p2Url(e);if(!u)return;
+  if(!e._fl)im.src=u;
+  if(fx){try{hfxPoke();const p=vxAt(im.closest(".ef")||im);if(p&&vxOn()){vxPillar(p.x,p.y+p.h*.5,p.w*.6,"255,70,50",.8);vxRing(p.x,p.y,p.w*.9,"255,90,60",.55);vxRing(p.x,p.y,p.w*1.4,"255,200,150",.65,.1);vxFlare(p.x,p.y,p.w*1.3,"255,120,80",.5);vxSparks(p.x,p.y,30,"255,120,60",{speed:800,grav:300});}
+    hfxEdge("255,50,40",600,.6);SFX.play("windup",1);haptic(16);
+    im.animate([{transform:"scale(1.12)",filter:"brightness(2)"},{transform:"scale(1)",filter:"brightness(1)"}],{duration:500,easing:"ease-out"});}catch(x){}}}
+{const _hE2=hitEnemy;hitEnemy=function(e,n){const r=_hE2.apply(this,arguments);try{if(e&&e.hp>0&&!e._p2&&p2Due(e))enPhase2(e,true);}catch(x){}return r;};}
+{const _rc2=renderCombat;renderCombat=function(){const r=_rc2.apply(this,arguments);try{if(C&&C.en)setTimeout(()=>{try{C&&C.en&&C.en.forEach(e=>{if(e.hp<=0)return;if(e._p2||p2Due(e))enPhase2(e,false);});}catch(x){}},420);}catch(x){}return r;};}
+
+const DFKEEP=1000;
+(function(){const st=document.createElement("style");st.textContent=`.en.dead.dfx{opacity:1!important;filter:none!important;transform:none!important;transition:none}`;document.head.appendChild(st);})();
+{const _hE3=hitEnemy;hitEnemy=function(e,n){const h0=e?e.hp:0;const r=_hE3.apply(this,arguments);try{if(e&&h0>0&&e.hp<=0&&DB.ids("en_"+e.id+"_hurt").length){e._dead=1;
+    e._dT=performance.now()+DFKEEP;const im=enImgEl(e);const el=im&&im.closest(".en");
+    hurtUrl(e).then(u=>{try{if(u&&im)im.src=u;if(el){el.classList.add("dfx");try{el.animate([{filter:"brightness(1.8)"},{filter:"brightness(1)"}],{duration:300});}catch(x){}
+      setTimeout(()=>{try{el.classList.remove("dfx");}catch(x){}},DFKEEP);}}catch(x){}});}}catch(x){}return r;};}
+{const _rc3=renderCombat;renderCombat=function(){const r=_rc3.apply(this,arguments);try{if(C&&C.en)for(const e of C.en){if(e._dead&&e._dT&&performance.now()<e._dT){const el=$(`#combat .en[data-u="${e.u}"]`);if(el)el.classList.add("dfx");}}}catch(x){}return r;};}
+
+// trùm: cho ảnh "bị hạ" hiện đủ ~1 giây rồi mới sang màn HẠ GỤC
+{const _vic3=victory;victory=async function(){try{if(C&&C.en&&SLEEP_MUL){const t=Math.max(0,...C.en.filter(e=>e._dead&&e._dT).map(e=>e._dT-performance.now()));if(t>0)await new Promise(r=>setTimeout(r,Math.min(t,DFKEEP)));}}catch(e){}return _vic3.apply(this,arguments);};}
+// ---------- Abyss Warden: bỏ tag "abyss watcher" (trùm nhiều người trong Dark Souls → WAI vẽ 2 người) ----------
+(function(){const fix=p=>{if(!p)return p;let T=waiSplit(p).map(t=>t==="abyss watcher"?"knight, wolf-themed armor":t==="broken mask beside her"?"cracked mask on her face":t);return w2post(T.join(", "),{id:"w",g:"x"});};
+  for(const s of SLOTS){if(s.ui||s.gpt)continue;if(/^en_watcher/.test(s.id)){s.pos=fix(s.pos);if(s.pos2)s.pos2=fix(s.pos2);if(s.variants)s.variants.forEach(v=>v.pos=fix(v.pos));}
+    if(/^en_/.test(s.id)&&typeof s.neg==="string"&&!/multiple persons/.test(s.neg))s.neg+=", 2girls, multiple girls, multiple persons, clone, twins";}
+  try{PROMPT_CHG.push([{test:sid=>sid==="en_watcher_hurt"},Date.UTC(2026,10,28,4,22)]);}catch(e){}})();
+// Abyss Warden — ảnh Bị hạ viết lại riêng: mặt nạ + "khuôn mặt người" trong cùng prompt làm WAI vẽ 1 người đeo mặt nạ + 1 người lộ mặt.
+// → bỏ mặt nạ (đã vỡ, rơi mất), bỏ "wolf knight" (dễ sinh thêm sói/hiệp sĩ), tư thế nằm hẳn xuống đất.
+(function(){const h=SLOT_BY_ID.en_watcher_hurt;if(!h)return;
+  h.pos=w2post([W2_Q,"1girl, solo, mature female, (beautiful woman:1.1), knight, wolf-themed armor, tattered blue cape, (no mask:1.2), face visible, long dark hair",
+   "full body, from above, (lying on ground:1.2), on side, one arm outstretched, two broken swords on ground",
+   "(dying:1.2), (defeated:1.2), (brutal aftermath:1.2), (heavily wounded:1.2), (deep wounds:1.2), (bleeding heavily:1.2), blood pool, blood dripping from mouth, blood splatter, (broken armor:1.15), (shattered armor:1.2), armor pieces scattered, (torn clothes:1.2), torn blue cape, soot, blood on face",
+   "(unconscious:1.15), limp, (lifeless eyes:1.15), eyes half-open, blank stare, pale face, burning debris, smoke, embers, ash falling, harsh shadows, red rim light, dark atmosphere",W2_STY].join(", "),h);
+  if(!/\(mask/.test(h.neg))h.neg+=", (mask:1.2), helmet, wolf, standing, kneeling, sitting";
+  try{PROMPT_CHG.push([{test:sid=>sid==="en_watcher_hurt"},Date.UTC(2026,10,28,4,25)]);}catch(e){}})();
+
+// Lost Swordswoman — ảnh Bị hạ viết lại riêng (cùng lỗi với Warden: mũ trùm che mặt + nằm úp mặt + nhiều tag tả khuôn mặt → WAI vẽ thành 2 người, hoặc vẫn đứng)
+(function(){const h=SLOT_BY_ID.en_swordgirl_hurt;if(!h)return;
+  h.pos=w2post([W2_Q,"1girl, solo, mature female, swordswoman, tattered cloak, scarf, (hood down:1.2), face visible, glowing eyes, ruins",
+   "full body, from above, (lying on back:1.2), in puddle, rain, one arm outstretched, broken sword on ground beside her hand",
+   "(dying:1.2), (defeated:1.2), (brutal aftermath:1.2), (heavily wounded:1.2), (deep wounds:1.2), (bleeding heavily:1.2), blood pool, blood mixing with rain water, blood dripping from mouth, blood splatter, (torn clothes:1.2), shredded cloak, blood on face",
+   "(unconscious:1.15), limp, (lifeless eyes:1.15), eyes half-open, blank stare, pale face, smoke, harsh shadows, red rim light, dark atmosphere",W2_STY].join(", "),h);
+  if(!/hood up/.test(h.neg))h.neg+=", hood up, hooded, standing, kneeling, sitting, walking";
+  try{PROMPT_CHG.push([{test:sid=>/^en_(swordgirl|abyssknight|necro|succubus)_hurt$/.test(sid)},Date.UTC(2026,10,28,4,31)]);}catch(e){}})();
+// Arachne: luôn có ĐÔI CHÂN NGƯỜI (chân nhện chỉ mọc sau lưng) — Giai đoạn 2 và Bị hạ hay bị mất chân người
+(function(){const add={en_arachne_alt:"(two human legs:1.2), (standing on human legs:1.15), long black and red dress, side slit, bare legs, high heels",
+  en_arachne_hurt:"(two human legs:1.2), legs dangling, long black and red dress, side slit, bare legs"};
+  for(const [id,t] of Object.entries(add)){const s=SLOT_BY_ID[id];if(!s)continue;let T=waiSplit(s.pos);const i=T.findIndex(x=>/spider legs from back/.test(x));T.splice(i+1,0,...waiSplit(t));s.pos=w2post(T.join(", "),{id:"w",g:"x"});
+    if(!/no legs/.test(s.neg))s.neg+=", (no legs:1.2), spider body, spider abdomen, legs replaced by spider legs, lower body hidden";}
+  try{PROMPT_CHG.push([{test:sid=>/^en_arachne_(alt|hurt)$/.test(sid)},Date.UTC(2026,10,28,4,38)]);}catch(e){}})();
+
+// ảnh Giai đoạn 2: chặn vũ khí/đồ vật lạ (tag "attacking" làm WAI tự nhét vũ khí vào tay quái không cầm gì)
+(function(){for(const s of SLOTS){if(!/^en_[a-z]+_alt$/.test(s.id)||typeof s.neg!=="string"||/laser/.test(s.neg))continue;s.neg+=", gun, laser, grenade, cone, bottle, holding object, futuristic weapon";
+  if(/^en_lamia_alt$/.test(s.id))s.neg+=", holding weapon, sword, spear";}
+  try{PROMPT_CHG.push([{test:sid=>sid==="en_lamia_alt"},Date.UTC(2026,10,28,4,42)]);}catch(e){}})();
 
 // ===================== 5.21 — XƯỞNG ẢNH: NHÃN CÔNG CỤ (WAI / ChatGPT) + KÍCH THƯỚC =====================
 function slotTool(s){return (s.gpt||s.ui)?"gpt":"wai";}
@@ -13715,7 +13949,7 @@ function vxShock(x,y,R,dur=.45){const T=vxTex("ring","0,0,0");const L=vxTex("rin
 // ===================== 4.3b — VX: CẢNH ĐIỆN ẢNH =====================
 // • Lá Giao ước / đòn cực lớn: hai dải đen điện ảnh trượt vào khi dồn lực rồi rút ra.
 // • Đòn nặng & kết liễu: tàn lửa to mờ bay vụt qua sát "ống kính" (tiền cảnh), tạo chiều sâu.
-// • Đòn nện nặng: vết nứt sáng toả trên mặt đất.  • Dư sát thương lớn khi kết liễu: dấu "QUÁ SÁT".
+// • Đòn nện nặng: vết nứt sáng toả trên mặt đất.  • Dư sát thương lớn khi kết liễu: dấu "KẾT LIỄU".
 function vxBars(ms=700){if(!vxOn())return;const mk=top=>{const d=document.createElement("div");d.className="vxbar "+(top?"t":"b");document.body.appendChild(d);
   d.animate([{transform:`scaleY(0)`},{transform:"scaleY(1)",offset:.2,easing:"cubic-bezier(.2,.9,.3,1)"},{transform:"scaleY(1)",offset:.8},{transform:"scaleY(0)"}],{duration:vxT(ms),easing:"ease-in"}).onfinish=()=>d.remove();};mk(1);mk(0);}
 function vxBokeh(x,y,n,col){const G=vxTex("glow",col);for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,v=500+Math.random()*700;const s=26+Math.random()*46;
@@ -13729,7 +13963,7 @@ function vxStamp(txt,x,y,col="255,90,40"){const d=document.createElement("div");
 {const _ch43=vxCharge;vxCharge=function(x,y,col,dur,R){if(dur>=.3)vxBars(dur*1000+700);return _ch43(x,y,col,dur,R);};}
 {const _h43=hitEnemy;hitEnemy=function(e,n){const hp0=e.hp;const r=_h43(e,n);try{if(!vxOn()||!C||n<=0)return r;const dealt=hp0-Math.max(0,e.hp),killed=hp0>0&&e.hp<=0;const over=killed?n-hp0:0;const p=vxAt(enEl(e)?.querySelector(".ef"));if(!p)return r;const col=VX_COL[C._vt]||"255,190,120";
   setTimeout(()=>{if(dealt>=14||killed)vxBokeh(p.x,p.y,killed?7:4,col);if((C._vt==="blunt"&&dealt>=8)||dealt>=20)vxCracks(p.x,p.r.bottom-p.h*.08,p.w*1.6,col);
-    if(killed&&over>=10)vxStamp("QUÁ SÁT",p.x,p.y-p.h*.1);},vxT(90));}catch(x){}return r;};}
+    if(killed&&over>=10)vxStamp("KẾT LIỄU",p.x,p.y-p.h*.1);},vxT(90));}catch(x){}return r;};}
 
 // ===================== 4.4b — VX: vệt loá ống kính & cột sáng =====================
 // Vệt loá ngang kiểu điện ảnh (anamorphic) ở mọi va chạm lớn; cột sáng từ trời rọi xuống khi hồi máu/khiên/buff; màn chiến thắng có loá + tàn lửa rơi.
@@ -14502,7 +14736,7 @@ function gotShow(it){return new Promise(res=>{const cs=it.cs.slice(0,4),more=it.
   const lab=it.k==="add"?(cs.some(c=>{const d=CARDS[c.id];return d&&d.t==="cur";})?"LỜI NGUYỀN ĐÃ VÀO BỘ BÀI":(cs.length>1?"CÁC THẺ MỚI ĐÃ VÀO BỘ BÀI":"THẺ MỚI ĐÃ VÀO BỘ BÀI")):it.k==="up"?"THẺ ĐƯỢC NÂNG CẤP":"ĐÃ LOẠI THẺ KHỎI BỘ BÀI";
   const d=document.createElement("div");d.className="gotc k-"+it.k+(cs.length>1?" multi":"");
   d.innerHTML=`<div class="gc-lab">${lab}</div><div class="gc-row">${cs.map(c=>`<div class="gc-c">${cardHTML(c)}</div>`).join("")}</div>${more>0?`<div class="gc-more">+${more} lá nữa</div>`:""}<div class="gc-names">${cs.map(c=>esc((cdef(c).d||{}).n||"")+(c.up?"+":"")).join(" · ")}</div>`;
-  document.body.appendChild(d);try{if(window.fitAll)fitAll(d);}catch(e){}try{AU.play(it.k==="rem"?"shatter":it.k==="up"?"buff":"card",1);}catch(e){}
+  document.body.appendChild(d);try{hydrateArts(d);}catch(e){}try{if(window.fitAll)fitAll(d);}catch(e){}try{AU.play(it.k==="rem"?"shatter":it.k==="up"?"buff":"card",1);}catch(e){}
   let done=false;const fin=()=>{if(done)return;done=true;
     // bay vào biểu tượng bộ bài nếu đang thấy
     const tgt=[...document.querySelectorAll(".scr.on .ico, .scr.on [data-deck], .scr.on #deckb")].find(b=>b.offsetParent&&/deck|bộ bài/i.test((b.title||b.getAttribute("aria-label")||"")+b.innerHTML.slice(0,200)));
@@ -16098,6 +16332,240 @@ const MF_TF="(transformation:1.15), glowing embers rising around her, light part
     try{if(C&&typeof s.desc==="string"){const who=MON_SCENES[k].who;const old=ENEMY_LOOK[who];if(old)s.desc=s.desc.split(old).join(C.look);}}catch(e){}
     if(pStage&&typeof s.desc==="string")s.desc+=" "+"Vẽ nàng đang hóa thành người: tàn lửa ấm bay lên quanh nàng, lời nguyền đang cháy rụi.";}
   try{PROMPT_CHG.push([{test:sid=>/^(mon_dryad|mon_dullahan|boss_ornisa|mon_arachne_p|mon_lamia_p)/.test(sid)},Date.UTC(2026,10,27,19,0)]);}catch(e){}})();
+
+// ===================== 5.25 — THÊM HIỆU ỨNG ĐƠN GIẢN · TO · ĐẸP · KHÔNG NÓNG =====================
+// Tất cả bắn MỘT LẦN theo sự kiện (không vòng lặp nền), dùng lớp WebGL có sẵn + 1 div viền màu (chỉ đổi opacity).
+function fxOn(){try{return typeof vxOn==="function"&&vxOn();}catch(e){return false;}}
+function fxP(el){try{if(typeof hfxPoke==="function")hfxPoke();}catch(e){}return el&&typeof vxAt==="function"?vxAt(el):null;}
+// ---------- 1) Bước vào ô bản đồ: nổ sáng theo màu loại ô ----------
+const MAPCOL={combat:"255,120,90",elite:"255,150,60",event:"190,130,255",rest:"255,190,110",shop:"255,215,90",treasure:"255,225,120",boss:"255,60,70"};
+document.addEventListener("click",ev=>{try{const b=ev.target.closest&&ev.target.closest(".mnode.can");if(!b||!fxOn())return;const p=fxP(b);if(!p)return;
+  const t=Object.keys(MAPCOL).find(k=>b.classList.contains(k))||(b.id==="mboss"?"boss":"combat");const c=MAPCOL[t];
+  vxRing(p.x,p.y,70,c,.45);vxRing(p.x,p.y,130,"255,240,220",.55,.08);vxFlare(p.x,p.y,170,c,.4);vxSparks(p.x,p.y,16,c,{speed:520,grav:300});
+  if(t==="boss"||t==="elite"){vxPillar(p.x,p.y+40,70,c,.7);hfxEdge(c,600,t==="boss"?.9:.5);}}catch(e){}},true);
+// ---------- 2) Nhận vàng / linh hồn: tia sáng bắn ra từ bộ đếm + số bật lên ----------
+const CUR={g:null,s:null};
+function curPop(sel,col,txt){const el=document.querySelector(".scr.on .top "+sel)||document.querySelector(".top "+sel);if(!el||!el.offsetParent)return;
+  if(fxOn()){const p=fxP(el);if(p){vxFlare(p.x,p.y,110,col,.35);vxRing(p.x,p.y,45,col,.35);vxSparks(p.x,p.y,12,col,{speed:380,grav:500});}}
+  try{const b=el.querySelector("b");if(b)b.animate([{transform:"scale(1)"},{transform:"scale(1.45)",offset:.3},{transform:"scale(1)"}],{duration:420,easing:"ease-out"});}catch(e){}
+  try{const f=document.createElement("div");f.className="curpop";f.style.setProperty("--cc",col);f.textContent=txt;const r=el.getBoundingClientRect();f.style.left=(r.left+r.width/2)+"px";f.style.top=(r.bottom+2)+"px";document.body.appendChild(f);
+    f.animate([{opacity:0,transform:"translate(-50%,-4px) scale(.8)"},{opacity:1,transform:"translate(-50%,6px) scale(1.1)",offset:.25},{opacity:0,transform:"translate(-50%,22px) scale(1)"}],{duration:900,fill:"forwards"}).onfinish=()=>f.remove();}catch(e){}}
+setInterval(()=>{try{if(!R){CUR.g=CUR.s=null;return;}if(document.hidden)return;
+  if(CUR.g!=null&&R.gold>CUR.g)curPop(".gc","255,210,80","+"+(R.gold-CUR.g));if(CUR.s!=null&&R.souls>CUR.s)curPop(".sc","170,150,255","+"+(R.souls-CUR.s));
+  CUR.g=R.gold;CUR.s=R.souls;}catch(e){}},400);
+// ---------- 3) Hồi máu: tàn lửa xanh bay lên + vòng sáng ----------
+{const _hp=healP;healP=function(n){const r=_hp.apply(this,arguments);try{if(n>=2&&fxOn()){const p=fxP($("#combat .pbar"));if(p){vxRing(p.x,p.y,90+Math.min(60,n*4),"120,255,160",.5,0,.5);vxEmbers(p.x,p.y,Math.min(22,6+n),"140,255,170",p.w*.35,110,1.1);vxFlash(p.x,p.y,120,"140,255,170",.25);}}}catch(e){}return r;};}
+// ---------- 4) Máu thấp: viền đỏ đập 2 nhịp như tim (chỉ khi vừa trúng đòn) ----------
+{const _hP=hitPlayer;hitPlayer=function(n){const h0=R?R.hp:0;const r=_hP.apply(this,arguments);try{if(R&&R.hp<h0&&R.hp>0&&R.hp/R.max<.3){hfxEdge("255,30,40",520,.9);setTimeout(()=>hfxEdge("255,30,40",520,.6),560);try{haptic(14);setTimeout(()=>haptic(10),560);}catch(e){}}}catch(e){}return r;};}
+// ---------- 5) Kết liễu dư sát thương: "KẾT LIỄU" + sóng chấn động ----------
+{const _hE=hitEnemy;hitEnemy=function(e,n){const h0=e?e.hp:0;const r=_hE.apply(this,arguments);try{if(e&&h0>0&&e.hp<=0&&n-h0>=10&&fxOn()){const el=enEl(e);const p=fxP(el&&el.querySelector(".ef")||el);
+    if(p){vxShock(p.x,p.y,innerWidth*.45,.45);vxFlare(p.x,p.y,300,"255,200,120",.45);vxSparks(p.x,p.y,30,"255,180,90",{speed:900,grav:500});}
+    const t=document.createElement("div");t.className="okill";t.textContent="KẾT LIỄU";document.body.appendChild(t);if(p){t.style.left=p.x+"px";t.style.top=(p.y-p.h*.25)+"px";}
+    t.animate([{opacity:0,transform:"translate(-50%,-50%) scale(1.8) rotate(-6deg)"},{opacity:1,transform:"translate(-50%,-50%) scale(1) rotate(-6deg)",offset:.2,easing:"cubic-bezier(.2,.9,.3,1)"},{opacity:1,offset:.7},{opacity:0,transform:"translate(-50%,-80%) scale(1) rotate(-6deg)"}],{duration:900,fill:"forwards"}).onfinish=()=>t.remove();}}catch(x){}return r;};}
+// ---------- 6) Gây hiệu ứng xấu lên địch: vòng màu theo trạng thái ----------
+const STCOL={v:"200,110,255",w:"120,220,140",bl:"255,60,60"};
+{let snap=null;const take=()=>C&&C.en?C.en.map(e=>({e,v:e.st.v||0,w:e.st.w||0,bl:e.st.bl||0})):[];
+  const _ac=applyCard;applyCard=async function(){snap=take();const r=await _ac.apply(this,arguments);try{if(fxOn()&&snap)for(const s of snap){if(s.e.hp<=0)continue;const el=enEl(s.e);const p=fxP(el&&el.querySelector(".ef")||el);if(!p)continue;let k=0;
+      for(const key of ["v","w","bl"]){if((s.e.st[key]||0)>s[key]){vxRing(p.x,p.y,80+k*30,STCOL[key],.5,k*.08,.55);vxSparks(p.x,p.y,10,STCOL[key],{speed:300,grav:-200});k++;}}}}catch(e){}snap=null;return r;};}
+// ---------- 7) Đầu lượt: năng lượng nạp đầy — tia sáng chạy quanh quả cầu ----------
+{const _st=startTurn;startTurn=async function(){const r=await _st.apply(this,arguments);try{if(fxOn()&&C){const o=document.querySelector("#combat .orb");const p=fxP(o);if(p){vxFlare(p.x,p.y,150,"255,190,90",.4);vxSparks(p.x,p.y,14,"255,200,110",{speed:420,grav:0});}}}catch(e){}return r;};}
+(function(){const s=document.createElement("style");s.textContent=`
+.curpop{position:fixed;z-index:9500;pointer-events:none;font-weight:800;font-size:15px;color:#fff;text-shadow:0 0 8px rgba(var(--cc),1),0 1px 2px #000;white-space:nowrap}
+.okill{position:fixed;left:50%;top:35%;z-index:80;pointer-events:none;font-family:var(--serif,serif);font-weight:900;font-size:34px;letter-spacing:.06em;color:#fff3d8;
+ text-shadow:0 0 12px rgba(255,170,80,1),0 0 30px rgba(255,90,40,.8),0 3px 3px #000;white-space:nowrap}`;document.head.appendChild(s);})();
+
+// ---------- sửa hiển thị: danh sách Nữ Nhân chưa có ảnh → chữ cái đầu thay cho chữ "trống" ----------
+{const _sh=showHeroes;showHeroes=function(){const r=_sh.apply(this,arguments);try{document.querySelectorAll("#modal .hcard[data-h] .hp").forEach(el=>{if(el.querySelector("img")||el.children.length||!el.textContent.trim())return;el.classList.add("hpe");const card=el.closest(".hcard");const h=card&&HEROES[card.dataset.h];
+  el.innerHTML=`<span class="hpi">${h?esc(h.n[0]):"?"}</span>`;});}catch(e){}return r;};}
+(function(){const s=document.createElement("style");s.textContent=`.hcard .hp.hpe{display:flex;align-items:center;justify-content:center}.hcard .hp .hpi{font-family:var(--serif,serif);font-size:30px;font-weight:700;color:var(--gold,#d8b06a);opacity:.85}`;document.head.appendChild(s);})();
+// ---------- Có gì mới ----------
+try{CONTENT.push({v:"5.25",notes:[
+ "Lá bài của mỗi nàng giờ có hiệu ứng riêng khi đánh ra.",
+ "Chọn bài thưởng: lá càng hiếm hiệu ứng càng hoành tráng. Lá của các nàng là hoành tráng nhất.",
+ "Các nàng quái vật hóa thành người trong cảnh thân mật: ngọn lửa ngươi mang nhớ họ từng là ai.",
+ "Arachne thiết kế lại: một người phụ nữ với chân nhện mọc sau lưng.",
+ "Hiệu ứng mới: bước trên bản đồ, nhận vàng và linh hồn, hồi máu, nhịp tim khi máu thấp, gây hiệu ứng xấu, KẾT LIỄU, nạp năng lượng.",
+ "Bảng nhận lá bài giờ hiện ảnh minh họa. Toàn bộ prompt WAI được viết lại cho đúng ý."]});}catch(e){}
+
+// ===================== 5.26 — ẢNH GIAI ĐOẠN 2 + ẢNH BỊ THƯƠNG CHO MỌI KẺ ĐỊCH =====================
+// Trước: ô "_alt" chỉ là "tư thế thứ hai" chọn ngẫu nhiên, ô "_hurt" ghi chung chung → ảnh ra đứng yên, không giống bị thương.
+// Giờ: "_alt" = GIAI ĐOẠN 2 — hiện khi nàng còn nửa máu (boss: lúc kích hoạt giai đoạn 2; Hollow Soldier: lúc đứng dậy lần 2),
+// hoành tráng hơn ảnh thường (đang tung đòn, hào quang, tia lửa). "_hurt" = chớp lên khi trúng đòn nặng: quỳ/loạng choạng, máu, mặt đau đớn.
+try{PROMPT_CHG.push([{test:sid=>/^en_nyx(_cutin)?$/.test(sid)},Date.UTC(2026,10,28,2,30)]);}catch(e){}
+const P2COM="(attacking:1.15), dynamic pose, dynamic angle, (glowing aura:1.15), power up, embers, sparks, motion blur, intense, (menacing:1.2), red rim light, dark atmosphere";
+const H2COM="(injured:1.2), (pained expression:1.2), wince, clenched teeth, blood on face, bruise, torn clothes, sweat, panting";
+const P2={
+ hollow:"full body, from below, (sword slash:1.2), slashing at viewer, leaping, broken sword glowing red, (red aura:1.15), shouting, burning ruins",
+ ghoul:"full body, from above, (lunging at viewer:1.2), mid-air, claws outstretched, open mouth, sharp teeth, red glowing eyes, blood splatter, moonlit graveyard",
+ ratgirl:"full body, from below, (pouncing:1.2), claws slashing, (feral snarl:1.2), glowing red eyes, swarm of rats, sewer water splash",
+ crow:"full body, from below, (diving at viewer:1.2), spread wings, talons out, (glowing red eyes:1.2), screaming, black feathers storm, red moon",
+ boneknight:"full body, from below, (halberd thrust:1.2), charging, (blue fire aura:1.15), skull helmet, bones flying, crypt gate",
+ cultist:"full body, from below, arms raised, (summoning:1.2), magic circle under feet, (blood magic:1.15), red lightning, eyes glowing red, manic grin, altar",
+ wraith:"full body, (rushing at viewer:1.2), floating, (screaming:1.2), long hair flowing upward, ghost hands, cold blue fire, shattered candles",
+ gargoyle:"full body, from below, (stone wings spread:1.2), leaping from ledge, claws slashing, (glowing red eyes:1.2), lightning, rain, cathedral",
+ watcher:"full body, (spinning slash:1.2), dual wielding, (blue cape whirling:1.1), blue wolf-shaped flames, cracked mask, blue fire trails",
+ voidspawn:"full body, from below, (tentacles lashing:1.2), floating, giant eye behind her, (black sclera:1.15), void lightning, reality shards",
+ nightmare:"full body, from below, (bat wings spread:1.2), (shadow hands reaching at viewer:1.15), (unnaturally wide grin:1.15), black sclera, nightmare mist",
+ arachne:"full body, from below, (spider legs striking:1.2), lunging, (venom dripping:1.1), web strands flying, (glowing red eyes:1.15), cave",
+ lamia:"full body, (lunging at viewer:1.2), snake-like strike, (empty hands:1.15), clawed hands outstretched, fangs bared, venom dripping from fangs, hypnotic glowing eyes, tail lashing, crypt",
+ succubus:"full body, from below, (bat wings spread:1.2), floating, (pink magic:1.15), heart-shaped pupils glowing, seductive grin, pink lightning",
+ swordgirl:"full body, (iaido:1.2), drawing sword, (slash effect:1.2), cloak whipping, (killing intent:1.15), glowing eyes, ruins, rain",
+ necro:"full body, from below, skull staff raised, (green fire storm:1.2), skeletons rising, (glowing green eyes:1.15), cruel smile, crypt",
+ abyssknight:"full body, from below, (greatsword slash:1.2), charging, (black aura:1.2), glowing red eyes, cracked ground, light trail",
+ dryad:"full body, from below, (thorn vines lashing:1.2), roots erupting from ground, (hollow glowing green eyes:1.15), dead leaves storm, withered forest",
+ dullahan:"full body, riding horse, black horse, ghost horse, (charging:1.2), sword raised, holding own head aloft, (blue fire trail:1.2), graveyard road",
+ vampire:"full body, from below, (blood magic:1.2), floating, red cape spread, blood whips, (glowing red eyes:1.15), fangs, blood moon",
+ gwyndra:"full body, from below, (flaming greatsword slash:1.2), (fire aura:1.2), cape burning, burning eyes, flames everywhere, throne room",
+ ornisa:"full body, from below, floating, holy staff raised, (blazing halo:1.2), (sickly holy light:1.15), maggots raining, rotting congregation, cathedral",
+ nyx:"full body, from below, (huge wings spread:1.2), (purple fire aura:1.2), crown blazing, glowing yellow eyes, cruel smile, eclipse, throne of bones",
+ morrigan:"full body, from below, (crow storm:1.2), feather cloak becoming wings, (glowing red eyes:1.15), black lightning, ruined tower, full moon",
+ seline:"full body, from below, (black wings spread:1.2), (shattered halo blazing:1.2), chains whipping, black blood tears, holy fire, ruined cathedral"};
+const H2={
+ hollow:"full body, (kneeling:1.1), one knee, leaning on broken sword, armor cracked, ash falling from wounds, holding wound",
+ ghoul:"full body, curled up, (flinching:1.1), one arm torn, shrieking, crawling back",
+ ratgirl:"full body, (cowering:1.1), ears flat, tail between legs, scrambling backward, teary eyes",
+ crow:"full body, falling, one wing broken, feathers scattering, crying out, gravestone",
+ boneknight:"full body, (kneeling:1.1), cracked skull helmet, bones exposed, leaning on halberd, blue flame flickering",
+ cultist:"full body, (kneeling:1.1), hood torn off, dropping dagger, clutching bleeding tattoo, terrified",
+ wraith:"full body, fading, (body flickering:1.1), holding head, distorted, screaming",
+ gargoyle:"full body, (kneeling:1.1), stone skin cracking apart, chunks falling, one horn broken",
+ watcher:"full body, staggering, broken mask, one eye visible, one sword broken, blood on cape",
+ voidspawn:"full body, writhing, tentacles severed, void leaking like ink, body glitching",
+ nightmare:"full body, wings torn, mist scattering, holding horn, dizzy, pout",
+ arachne:"full body, (kneeling:1.1), broken spider legs, web torn",
+ lamia:"full body, tail coiling defensively, scales cracked, hissing",
+ succubus:"full body, wings ragged, makeup smeared, clutching torn clothes, angry pout",
+ swordgirl:"full body, (one knee:1.1), hood torn, cloak shredded, sword chipped, steadying breath",
+ necro:"full body, staggering, skull staff cracked, bone jewelry scattering, coughing green smoke",
+ abyssknight:"full body, (kneeling:1.1), armor split open, dark aura bleeding away, greatsword planted",
+ dryad:"full body, bark cracking, leaves wilting, sap dripping, curling inward",
+ dullahan:"full body, staggering, dropping head, flames sputtering",
+ vampire:"full body, cape torn, covering wound, fangs bared, hissing, eyes blazing red",
+ gwyndra:"full body, (one knee:1.1), greatsword stuck in ground, armor dented, flames sputtering",
+ ornisa:"full body, (kneeling:1.1), mitre fallen, veil torn, staff cracked, praying desperately",
+ nyx:"full body, crown cracked, one wing torn, purple blood, laughing madly",
+ morrigan:"full body, (kneeling:1.1), crows scattering, feather cloak shredded, clutching chest",
+ seline:"full body, (kneeling:1.1), halo shattering, chains snapping, feathers falling, tears of light"};
+// ---------- Boss Nyx: dạng THẬT của Nữ Hoàng Vực Thẳm (khác hẳn lúc nàng đi theo ngươi) ----------
+// Cùng một nhân vật, nhưng khi là trùm cuối nàng hiện nguyên hình: sừng lớn, nhiều cánh, mắt đen tròng, vương miện lửa đen, giáp-váy vàng đen, hình xăm hư không.
+// Ảnh "hạ gục" giữ dáng gần với bản thường → thấy nàng trở lại là chính mình.
+const NYX_OLD=["succubus queen","demon girl","curled horns","large demon wings","demon tail","very long purple hair","yellow eyes","slit pupils","crown","black dress","gold jewelry","throne of bones"];
+const NYX_TRUE="tall female, (abyss queen:1.1), demon, (huge ram horns:1.2), (multiple wings:1.2), huge demon wings, very long purple hair, floating hair, (black sclera:1.15), (glowing yellow eyes:1.2), (crown of black fire:1.2), (black and gold armored gown:1.15), (glowing void tattoos:1.1), purple flames, abyss";
+(function(){for(const id of ["en_nyx","en_nyx_cutin"]){const s=SLOT_BY_ID[id];if(!s)continue;let T=waiSplit(s.pos);const at=T.findIndex(t=>NYX_OLD.includes(t));T=T.filter(t=>!NYX_OLD.includes(t)&&t!=="glowing yellow eyes"&&t!=="crown blazing");
+  T.splice(at<0?3:at,0,...waiSplit(NYX_TRUE));s.pos=w2post(T.join(", "),s);if(typeof s.neg==="string"&&!/succubus/.test(s.neg))s.neg+=", succubus, small horns, pink";
+  s.desc=(s.desc||"")+" Dạng trùm: nguyên hình THẬT của Nữ Hoàng Vực Thẳm, khác hẳn bản nữ nhân: sừng cừu lớn, nhiều cánh, tròng mắt đen, vương miện lửa đen, váy giáp đen vàng, hình xăm hư không phát sáng.";}})();
+function enIdent(k){const s=SLOT_BY_ID["en_"+k];if(!s)return "";if(k==="hollow")return enIdent0(k).replace("grey skin","black hair, messy hair, (grey skin:1.15)");return enIdent0(k);}
+function enIdent0(k){const s=SLOT_BY_ID["en_"+k];if(!s)return "";const T=waiSplit(s.pos);const a=T.findIndex(t=>t==="mature female");const b=T.findIndex(t=>t==="full body");
+  return (a>=0&&b>a?T.slice(a+1,b):[]).join(", ");}
+(function(){for(const k of Object.keys(P2)){const id=enIdent(k);if(!id)continue;const head=W2_Q+", 1girl, solo, mature female, "+id;
+    const a=SLOT_BY_ID["en_"+k+"_alt"];if(a){a.pos=w2post(head+", "+P2[k]+", "+P2COM+", "+W2_STY,a);const P2N="Giai đoạn 2";a.n=(ENEMIES[k]?ENEMIES[k].n.split(" — ")[0]:k)+" — "+P2N;
+      a.desc="Giai đoạn 2: hiện khi nàng còn nửa máu (boss: lúc vào giai đoạn 2; Hollow Soldier: lúc đứng dậy lần hai). Phải HOÀNH TRÁNG hơn ảnh thường: đang tung đòn, hào quang, tia lửa. Cùng bố cục: toàn thân, ở giữa, mặt ở 1/3 trên.";a.note="";
+      if(typeof a.neg==="string"&&!/standing still/.test(a.neg))a.neg+=", standing still, idle, sitting, calm";}
+    const h=SLOT_BY_ID["en_"+k+"_hurt"];if(h){h.pos=w2post(head+", "+H2[k]+", "+H2COM+", dark atmosphere, "+W2_STY,h);
+      h.desc="Bị thương: chớp lên trong chốc lát khi nàng trúng đòn nặng. Phải nhìn rõ là bị thương: quỳ hoặc loạng choạng, vết thương, máu, mặt đau đớn. Cùng bố cục với ảnh thường (toàn thân, ở giữa, mặt ở 1/3 trên).";
+      if(typeof h.neg==="string"&&!/smile/.test(h.neg))h.neg+=", smile, smirk, calm, standing straight, uninjured";}}
+  try{PROMPT_CHG.push([{test:sid=>/^en_[a-z]+_(alt|hurt)$/.test(sid)},Date.UTC(2026,10,28,2,30)]);PROMPT_CHG.push([{test:sid=>/^en_[a-z]+_hurt$/.test(sid)&&!/^en_(crow|ghoul|cultist)_/.test(sid)},Date.UTC(2026,10,28,4,5)]);}catch(e){}})();
+
+
+// ---------- ẢNH BỊ HẠ (ô _hurt của quái thường): chỉ hiện lúc nàng gục ngã, không chớp mỗi lần trúng đòn ----------
+const DF={hollow:"cracked armor falling apart, ash drifting from wounds",ghoul:"stitches torn open, tattered dress in shreds",
+ ratgirl:"drooping ears, limp tail, sewer water",crow:"broken wings spread on ground, scattered black feathers, blood pool",
+ boneknight:"shattered bone armor, skull helmet beside her, broken halberd",cultist:"torn hood, fallen dagger, snuffed candles, fading blood tattoos",
+ wraith:"fading translucent body, dissolving into wisps",gargoyle:"crumbling cracked stone skin, broken horn, broken stone wings",
+ watcher:"broken mask beside her, broken swords, torn blue cape",voidspawn:"limp tentacles, void leaking from wounds, fading starry skin",
+ nightmare:"torn wings, fading mist",arachne:"broken spider legs curled, torn spider web",lamia:"limp tail, cracked scales",
+ succubus:"torn wings, smeared makeup, tears",swordgirl:"broken sword, torn hood, shredded cloak, rain",necro:"broken skull staff, scattered bones, dying green fire",
+ abyssknight:"shattered black armor, cracked greatsword, fading dark aura",dryad:"withering, cracked bark, falling petals",
+ dullahan:"head resting beside her, dying blue flames, cracked black armor",vampire:"torn red cape, turning to ash at the edges",
+ gwyndra:"shattered silver armor, cracked flaming greatsword, dying fire, torn red cape",ornisa:"broken holy staff, fallen mitre, torn robes, fading halo",
+ nyx:"cracked crown of black fire, broken wings drooping, dying purple flames",morrigan:"shredded feather cloak, crows circling above, scattered black feathers",
+ seline:"shattered halo, broken chains, torn white dress"};
+// tư thế hấp hối RIÊNG cho từng nàng (nằm, ngồi, quỳ, đứng gượng, treo, bay lơ lửng…)
+const DP={hollow:"(collapsing forward:1.15), knees buckling, broken sword slipping from hand, head lolling",ghoul:"(crawling:1.15), face down, reaching out weakly, from above",
+ ratgirl:"(slumped against wall:1.15), head lolling to side, limp arms, blood smear on wall, legs sprawled",crow:"(lying on back:1.15), from above, arms spread",
+ boneknight:"(falling forward:1.15), knees buckling, halberd falling from hand, bones scattering",cultist:"(lying on side:1.15), on altar steps, arm hanging down",
+ wraith:"(floating:1.1), limp body, arms hanging, head tilted back",gargoyle:"(fallen on side:1.15), half turned to stone, limp",
+ watcher:"(slumped against pillar:1.15), head lolling, blood smear on pillar, limp hands, swords on ground",voidspawn:"(floating upside down:1.15), limp, tentacles hanging, from below",
+ nightmare:"(lying on side:1.15), limp, torn wings spread",arachne:"(tangled in web:1.15), hanging limp, silk wrapped around arms",
+ lamia:"(slumped over own tail:1.15), lying on floor, arm stretched out",succubus:"(lying on side:1.15), wings limp over her body, arm outstretched, face visible",
+ swordgirl:"(lying face down:1.15), in puddle, rain, broken sword out of reach, arm outstretched",necro:"(lying on side:1.15), on pile of bones, face visible, from above",
+ abyssknight:"(lying on side:1.15), on top of her greatsword, arm outstretched, face visible, from above",dryad:"(slumped at base of tree:1.15), head lolling, limp arms, roots wrapping her legs",
+ dullahan:"(lying on side:1.15), fingers barely touching her head",vampire:"(lying on back:1.15), cape spread around her, from above",
+ gwyndra:"(kneeling:1.1), slumped forward, forehead resting on greatsword hilt, motionless, arms limp",ornisa:"(lying on back:1.15), arms spread, from above, cathedral floor",
+ nyx:"(slumped on throne:1.15), head lolling to side, arm hanging off armrest, limp",morrigan:"(falling:1.15), midair, limp, feathers trailing, from below",
+ seline:"(lying on back:1.15), broken wings spread on ground, arms spread, from above"};
+const DFCOM="(dying:1.2), (defeated:1.2), (brutal aftermath:1.2), (heavily wounded:1.3), (deep wounds:1.2), (bleeding heavily:1.2), blood dripping from mouth, blood splatter, (broken armor:1.15), (shattered armor:1.2), armor pieces scattered, (torn clothes:1.3), ripped clothes, soot, dirt on face, blood on face, (unconscious:1.15), limp, (lifeless eyes:1.15), empty eyes, eyes half-open, blank stare, mouth slightly open, pale face, burning debris, smoke, embers, ash falling, harsh shadows, red rim light";
+// Crow, Ghoul, Zealot: giữ nguyên bản bạn đã duyệt
+const DF_OK=new Set(["crow","ghoul","cultist"]);const DFCOM_OK="(dying:1.2), (defeated:1.2), (brutal aftermath:1.2), (heavily wounded:1.3), (deep wounds:1.2), (bleeding heavily:1.2), blood dripping from mouth, blood splatter, (broken armor:1.15), (shattered armor:1.2), armor pieces scattered, (torn clothes:1.3), ripped clothes, soot, dirt on face, blood on face, (agony:1.15), gritted teeth, half-closed eyes, burning debris, smoke, embers, ash falling, harsh shadows, red rim light";
+(function(){for(const k of Object.keys(DF)){const id=enIdent(k);const h=SLOT_BY_ID["en_"+k+"_hurt"];if(!id||!h)continue;
+  {const cm=(DF_OK.has(k)?DFCOM_OK:DFCOM);const cm2=/armor/.test(id)?cm:cm.replace("(broken armor:1.15), (shattered armor:1.2), armor pieces scattered, ","");const idd=DF_OK.has(k)?id:id.split(", ").filter(t=>!/smile|grin|smirk/.test(t)).join(", ");
+  h.pos=w2post(W2_Q+", 1girl, solo, mature female, "+idd+", full body, "+DP[k]+", "+DF[k]+", "+cm2+", dark atmosphere, "+W2_STY,h);}
+  const DFN="Bị hạ";h.n=(ENEMIES[k]?ENEMIES[k].n.split(" — ")[0]:k)+" — "+DFN;
+  h.desc="Bị hạ: nàng đã thua và đang HẤP HỐI: giáp vỡ, quần áo rách, nhiều vết thương và máu, mắt lim dim. Mỗi kẻ địch một tư thế riêng (nằm, quỳ, ngồi gục, đứng gượng, treo lơ lửng…). Hiện trong chốc lát lúc đòn kết liễu trúng, trước khi nàng mờ đi. Cả người trong khung, ở giữa.";
+  if(typeof h.neg==="string"&&!/alert, tired/.test(h.neg))h.neg+=", fighting stance, attacking, intact armor, clean clothes, uninjured, smile, breath, steam, sweat, tired, clean skin, soft lighting, gritted teeth, determined, alert, tired, grin";}
+})();
+
+// ---------- trong trận: ảnh thường → ảnh giai đoạn 2; ảnh bị thương chỉ chớp khi trúng đòn nặng ----------
+// ảnh thường chỉ lấy từ ô chính (không trộn ảnh giai đoạn 2 vào nữa)
+{const _sr2=IMG.slotRand.bind(IMG);IMG.slotRand=async function(slot,thumb){try{const m=/^en_([a-z]+)$/.exec(slot);if(m&&C&&DB.ids(slot).length){C._pic=C._pic||{};const all=DB.ids(slot);
+  if(!C._pic[slot]||!all.includes(C._pic[slot]))C._pic[slot]=pick(all);return this.url(C._pic[slot],thumb);}}catch(e){}return _sr2(slot,thumb);};}
+function p2Due(e){const d=typeof EM!=="undefined"&&EM[e.id];if(d&&d.ph)return !!e._ph;if(e.id==="hollow")return !!e._rev;return e.hp<=e.max*.5;}
+async function p2Url(e){const ids=DB.ids("en_"+e.id+"_alt");if(!ids.length)return null;return IMG.url(e._p2Id||(e._p2Id=pick(ids)));}
+async function enBaseUrl(e,im){if(e._p2){const u=await p2Url(e);if(u)return u;}return im.dataset.base||null;}
+enSetHurt=async function(e,on){const im=enImgEl(e);if(!im)return;if(!im.dataset.base&&im.src&&!e._p2)im.dataset.base=im.src;
+  if(on){return;}else{if(e._dead)return;const b=await enBaseUrl(e,im);if(b&&im.src!==b)im.src=b;}};
+async function enPhase2(e,fx){e._p2=1;const im=enImgEl(e);if(!im)return;if(!im.dataset.base&&im.src)im.dataset.base=im.src;const u=await p2Url(e);if(!u)return;
+  if(!e._fl)im.src=u;
+  if(fx){try{hfxPoke();const p=vxAt(im.closest(".ef")||im);if(p&&vxOn()){vxPillar(p.x,p.y+p.h*.5,p.w*.6,"255,70,50",.8);vxRing(p.x,p.y,p.w*.9,"255,90,60",.55);vxRing(p.x,p.y,p.w*1.4,"255,200,150",.65,.1);vxFlare(p.x,p.y,p.w*1.3,"255,120,80",.5);vxSparks(p.x,p.y,30,"255,120,60",{speed:800,grav:300});}
+    hfxEdge("255,50,40",600,.6);SFX.play("windup",1);haptic(16);
+    im.animate([{transform:"scale(1.12)",filter:"brightness(2)"},{transform:"scale(1)",filter:"brightness(1)"}],{duration:500,easing:"ease-out"});}catch(x){}}}
+{const _hE2=hitEnemy;hitEnemy=function(e,n){const r=_hE2.apply(this,arguments);try{if(e&&e.hp>0&&!e._p2&&p2Due(e))enPhase2(e,true);}catch(x){}return r;};}
+{const _rc2=renderCombat;renderCombat=function(){const r=_rc2.apply(this,arguments);try{if(C&&C.en)setTimeout(()=>{try{C&&C.en&&C.en.forEach(e=>{if(e.hp<=0)return;if(e._p2||p2Due(e))enPhase2(e,false);});}catch(x){}},420);}catch(x){}return r;};}
+
+const DFKEEP=1000;
+(function(){const st=document.createElement("style");st.textContent=`.en.dead.dfx{opacity:1!important;filter:none!important;transform:none!important;transition:none}`;document.head.appendChild(st);})();
+{const _hE3=hitEnemy;hitEnemy=function(e,n){const h0=e?e.hp:0;const r=_hE3.apply(this,arguments);try{if(e&&h0>0&&e.hp<=0&&DB.ids("en_"+e.id+"_hurt").length){e._dead=1;
+    e._dT=performance.now()+DFKEEP;const im=enImgEl(e);const el=im&&im.closest(".en");
+    hurtUrl(e).then(u=>{try{if(u&&im)im.src=u;if(el){el.classList.add("dfx");try{el.animate([{filter:"brightness(1.8)"},{filter:"brightness(1)"}],{duration:300});}catch(x){}
+      setTimeout(()=>{try{el.classList.remove("dfx");}catch(x){}},DFKEEP);}}catch(x){}});}}catch(x){}return r;};}
+{const _rc3=renderCombat;renderCombat=function(){const r=_rc3.apply(this,arguments);try{if(C&&C.en)for(const e of C.en){if(e._dead&&e._dT&&performance.now()<e._dT){const el=$(`#combat .en[data-u="${e.u}"]`);if(el)el.classList.add("dfx");}}}catch(x){}return r;};}
+
+// trùm: cho ảnh "bị hạ" hiện đủ ~1 giây rồi mới sang màn HẠ GỤC
+{const _vic3=victory;victory=async function(){try{if(C&&C.en&&SLEEP_MUL){const t=Math.max(0,...C.en.filter(e=>e._dead&&e._dT).map(e=>e._dT-performance.now()));if(t>0)await new Promise(r=>setTimeout(r,Math.min(t,DFKEEP)));}}catch(e){}return _vic3.apply(this,arguments);};}
+// ---------- Abyss Warden: bỏ tag "abyss watcher" (trùm nhiều người trong Dark Souls → WAI vẽ 2 người) ----------
+(function(){const fix=p=>{if(!p)return p;let T=waiSplit(p).map(t=>t==="abyss watcher"?"knight, wolf-themed armor":t==="broken mask beside her"?"cracked mask on her face":t);return w2post(T.join(", "),{id:"w",g:"x"});};
+  for(const s of SLOTS){if(s.ui||s.gpt)continue;if(/^en_watcher/.test(s.id)){s.pos=fix(s.pos);if(s.pos2)s.pos2=fix(s.pos2);if(s.variants)s.variants.forEach(v=>v.pos=fix(v.pos));}
+    if(/^en_/.test(s.id)&&typeof s.neg==="string"&&!/multiple persons/.test(s.neg))s.neg+=", 2girls, multiple girls, multiple persons, clone, twins";}
+  try{PROMPT_CHG.push([{test:sid=>sid==="en_watcher_hurt"},Date.UTC(2026,10,28,4,22)]);}catch(e){}})();
+// Abyss Warden — ảnh Bị hạ viết lại riêng: mặt nạ + "khuôn mặt người" trong cùng prompt làm WAI vẽ 1 người đeo mặt nạ + 1 người lộ mặt.
+// → bỏ mặt nạ (đã vỡ, rơi mất), bỏ "wolf knight" (dễ sinh thêm sói/hiệp sĩ), tư thế nằm hẳn xuống đất.
+(function(){const h=SLOT_BY_ID.en_watcher_hurt;if(!h)return;
+  h.pos=w2post([W2_Q,"1girl, solo, mature female, (beautiful woman:1.1), knight, wolf-themed armor, tattered blue cape, (no mask:1.2), face visible, long dark hair",
+   "full body, from above, (lying on ground:1.2), on side, one arm outstretched, two broken swords on ground",
+   "(dying:1.2), (defeated:1.2), (brutal aftermath:1.2), (heavily wounded:1.2), (deep wounds:1.2), (bleeding heavily:1.2), blood pool, blood dripping from mouth, blood splatter, (broken armor:1.15), (shattered armor:1.2), armor pieces scattered, (torn clothes:1.2), torn blue cape, soot, blood on face",
+   "(unconscious:1.15), limp, (lifeless eyes:1.15), eyes half-open, blank stare, pale face, burning debris, smoke, embers, ash falling, harsh shadows, red rim light, dark atmosphere",W2_STY].join(", "),h);
+  if(!/\(mask/.test(h.neg))h.neg+=", (mask:1.2), helmet, wolf, standing, kneeling, sitting";
+  try{PROMPT_CHG.push([{test:sid=>sid==="en_watcher_hurt"},Date.UTC(2026,10,28,4,25)]);}catch(e){}})();
+
+// Lost Swordswoman — ảnh Bị hạ viết lại riêng (cùng lỗi với Warden: mũ trùm che mặt + nằm úp mặt + nhiều tag tả khuôn mặt → WAI vẽ thành 2 người, hoặc vẫn đứng)
+(function(){const h=SLOT_BY_ID.en_swordgirl_hurt;if(!h)return;
+  h.pos=w2post([W2_Q,"1girl, solo, mature female, swordswoman, tattered cloak, scarf, (hood down:1.2), face visible, glowing eyes, ruins",
+   "full body, from above, (lying on back:1.2), in puddle, rain, one arm outstretched, broken sword on ground beside her hand",
+   "(dying:1.2), (defeated:1.2), (brutal aftermath:1.2), (heavily wounded:1.2), (deep wounds:1.2), (bleeding heavily:1.2), blood pool, blood mixing with rain water, blood dripping from mouth, blood splatter, (torn clothes:1.2), shredded cloak, blood on face",
+   "(unconscious:1.15), limp, (lifeless eyes:1.15), eyes half-open, blank stare, pale face, smoke, harsh shadows, red rim light, dark atmosphere",W2_STY].join(", "),h);
+  if(!/hood up/.test(h.neg))h.neg+=", hood up, hooded, standing, kneeling, sitting, walking";
+  try{PROMPT_CHG.push([{test:sid=>/^en_(swordgirl|abyssknight|necro|succubus)_hurt$/.test(sid)},Date.UTC(2026,10,28,4,31)]);}catch(e){}})();
+// Arachne: luôn có ĐÔI CHÂN NGƯỜI (chân nhện chỉ mọc sau lưng) — Giai đoạn 2 và Bị hạ hay bị mất chân người
+(function(){const add={en_arachne_alt:"(two human legs:1.2), (standing on human legs:1.15), long black and red dress, side slit, bare legs, high heels",
+  en_arachne_hurt:"(two human legs:1.2), legs dangling, long black and red dress, side slit, bare legs"};
+  for(const [id,t] of Object.entries(add)){const s=SLOT_BY_ID[id];if(!s)continue;let T=waiSplit(s.pos);const i=T.findIndex(x=>/spider legs from back/.test(x));T.splice(i+1,0,...waiSplit(t));s.pos=w2post(T.join(", "),{id:"w",g:"x"});
+    if(!/no legs/.test(s.neg))s.neg+=", (no legs:1.2), spider body, spider abdomen, legs replaced by spider legs, lower body hidden";}
+  try{PROMPT_CHG.push([{test:sid=>/^en_arachne_(alt|hurt)$/.test(sid)},Date.UTC(2026,10,28,4,38)]);}catch(e){}})();
+
+// ảnh Giai đoạn 2: chặn vũ khí/đồ vật lạ (tag "attacking" làm WAI tự nhét vũ khí vào tay quái không cầm gì)
+(function(){for(const s of SLOTS){if(!/^en_[a-z]+_alt$/.test(s.id)||typeof s.neg!=="string"||/laser/.test(s.neg))continue;s.neg+=", gun, laser, grenade, cone, bottle, holding object, futuristic weapon";
+  if(/^en_lamia_alt$/.test(s.id))s.neg+=", holding weapon, sword, spear";}
+  try{PROMPT_CHG.push([{test:sid=>sid==="en_lamia_alt"},Date.UTC(2026,10,28,4,42)]);}catch(e){}})();
 
 // ===================== 5.21 — XƯỞNG ẢNH: NHÃN CÔNG CỤ (WAI / ChatGPT) + KÍCH THƯỚC =====================
 function slotTool(s){return (s.gpt||s.ui)?"gpt":"wai";}
