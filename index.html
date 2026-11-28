@@ -17695,6 +17695,8 @@ const escH=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;"
 
 // ---------------- BẢNG NHÂN VẬT (khớp ảnh trong game) ----------------
 const CAST={
+ brunY:{n:"Brunhild",d:"BRUNHILD, young (the past) — very tall muscular adult woman, sharp face, red eyes, long white hair in a high ponytail, black plate armor with a silver wolf-head emblem on the chest and a grey wolf-fur mantle, huge black two-handed greatsword. Her face has NO scar unless the panel says so."},
+ keeper:{n:"Người Giữ Lửa",d:"THE FIRE KEEPER of that age — adult woman, gentle face, warm golden eyes, very long dark-violet hair loosely braided over one shoulder, simple dark hooded robe with an ember-orange lining, a silver ring shaped like two folded night wings on her LEFT hand."},
  queen:{n:"Nữ hoàng Aldrenn",d:"QUEEN ALDRENN — adult woman, tall and slender, oval face, calm pale-grey eyes, long straight silver-white hair down to her waist, very pale skin, crown of black iron with one small flame-shaped red gem in the center, long white gown with gold embroidery and wide flowing sleeves."},
  gwyp:{n:"Gwyndra (thời trẻ)",d:"GWYNDRA, young — tall athletic adult female knight, strong jaw, amber eyes, long straight golden-blonde hair down to mid-back, a thin vertical scar on her LEFT cheek, polished silver plate armor (breastplate, pauldrons, gauntlets), long blood-red cape, long black skirt under the armor, a huge plain steel two-handed greatsword. Never wears a helmet."},
  gwyh:{n:"Gwyndra (Rỗng)",d:"GWYNDRA, hollow (present day) — the same tall athletic adult female knight centuries later: same strong jaw, the thin vertical scar on her LEFT cheek, long golden-blonde hair dulled grey by ash, glowing orange eyes, silver plate armor scratched and blackened, the blood-red cape torn to rags, long black skirt, her huge greatsword now burning with orange-red fire. Never wears a helmet."},
@@ -17711,12 +17713,11 @@ const CAST={
  hand:{n:"Người chơi",d:"THE PLAYER — never shown; only a gloved hand seen from a first-person point of view."},
 };
 // ---------------- PHONG CÁCH (khớp ảnh WAI trong game — không "nhựa") ----------------
-const STYLE=`ART STYLE — must match the game's existing illustrations:
-- Dark-fantasy anime illustration with a PAINTERLY, gritty, MATTE finish. NOT glossy, NOT plastic, NOT 3D, NOT smooth airbrushed gradients, NOT clean vector cel-shading.
-- Very high contrast: big areas of pure black shadow; figures carved out by strong rim light from the fire.
-- Limited palette in every panel: near-black + cold desaturated blue-grey + ONE hot accent (ember orange-red fire; violet-pink magic only in Abyss scenes).
-- Rough visible dry-brush strokes and ink-splatter texture; jagged, sharp flame shapes; sparks and embers flying like paint flecks.
-- Anime faces with sharp eyes; dramatic low or high camera angles; cinematic composition.`;
+const STYLE=`ART STYLE:
+- Premium dark-fantasy manga / manhwa illustration, beautiful and cinematic, like a top-tier serialized comic.
+- Detailed anime-style characters with expressive faces and clear acting; dynamic camera angles; strong storytelling in every panel.
+- Dramatic lighting: deep shadows, warm firelight and embers, cold grey ash; atmospheric ruined-gothic backgrounds.
+- Clean readable panels; each panel shows exactly what is described, nothing more.`;
 const LETTER=`LETTERING — very important:
 - All lettering is in ENGLISH. Write every text EXACTLY as given, word for word, correct spelling and punctuation. Do not shorten, rephrase, or add any other words.
 - Speech balloon: white oval, thin black outline, black bold serif font, text centered, plenty of padding. The tail points clearly to the SPEAKER'S MOUTH. Put the balloon right next to the speaker's head, never near another character.
@@ -17730,116 +17731,312 @@ PRIORITY if anything conflicts: 1) the exact text, 2) the panel count and layout
 // u: điều kiện mở — {start}|{seen:"id"}|{kill:"id"}|{met:"hero"}|{act:n}|{wins:n}|{runs:n}; nhiều điều kiện = phải đủ tất cả
 // page.rows: chiều cao từng hàng (% trang); panel.r = hàng (1..), panel.c = "full"|"left"|"right"
 // tx.k: cap (dẫn truyện) | say (lời nói) | wh (thì thầm); tx.at: vị trí ô chữ trong khung
-const SEASONS=[{id:1,n:{vi:"Mùa 1 — Tro Của Aldrenn",en:"Season 1 — Ashes of Aldrenn"}}];
-const EPS=[
-{id:"e01",s:1,no:1,n:{vi:"Đêm Aldrenn Tắt Lửa",en:"The Night Aldrenn Went Dark"},kind:{vi:"Chính sử",en:"Main history"},u:{start:1},
- sum:{vi:"Nữ hoàng dâng hơi ấm của cả kinh thành cho ngọn lửa — và để lại một mệnh lệnh.",en:"The queen gives the warmth of an entire city to the flame — and leaves one order behind."},
- pages:[{rows:[18,17,14,22,13,16],cast:["queen","gwyp","gwyh","hand"],panels:[
-  {r:1,c:"full",shot:"EXTREME WIDE SHOT, high aerial angle, night",d:"A vast gothic capital glowing with thousands of hearths and lanterns. In the center, a colossal furnace-tower with glowing cracks.",vd:"Kinh đô Aldrenn về đêm, ngàn bếp lửa sáng rực quanh tháp Lò Lửa.",
-   tx:[{k:"cap",at:"top-left corner",vi:"Rất lâu trước khi tro phủ kín trời, Aldrenn là kinh đô của ánh sáng.",en:"Long before ash covered the sky, Aldrenn was the capital of light."}]},
-  {r:2,c:"full",shot:"MEDIUM-WIDE SHOT, low angle",d:"Throne hall. QUEEN ALDRENN stands on the LEFT side, facing right, one hand raised; ribbons of fire stream in through tall windows into her open palm.",vd:"Nữ hoàng giơ tay, những dải lửa từ khắp thành bay về lòng bàn tay.",
-   tx:[{k:"say",who:"queen",at:"upper right, beside the queen's head",vi:"Nếu ngọn lửa cần cả một kinh thành… thì ta trao cả kinh thành.",en:"If the flame needs a whole city… then I give it the whole city."}]},
-  {r:3,c:"full",shot:"MEDIUM SHOT",d:"An ordinary townswoman (adult, brown hair in a bun, plain grey wool dress) stands at a window on the LEFT, holding a candlestick; its flame is pulled out of the window like a glowing thread. Outside on the RIGHT, the streets go dark one by one.",vd:"Một người dân bên cửa sổ, ngọn nến bị hút ra ngoài; phố xá tắt dần.",
-   tx:[{k:"cap",at:"top-right corner",vi:"Từng ngọn đèn, từng bếp lửa… đều bị gọi về.",en:"Every lamp, every hearth… was called home."}]},
-  {r:4,c:"left",shot:"MEDIUM SHOT",d:"Young GWYNDRA kneels on one knee on the RIGHT, head bowed, her greatsword planted point-down beside her. QUEEN ALDRENN stands on the LEFT looking down at her.",vd:"Gwyndra quỳ trước nữ hoàng.",
-   tx:[{k:"say",who:"queen",at:"top-left, beside the queen's head",vi:"Gwyndra. Canh cổng. Đừng để ai bước vào — kể cả ta.",en:"Gwyndra. Guard the gate. Let no one enter — not even me."}]},
-  {r:4,c:"right",shot:"CLOSE-UP",d:"Young GWYNDRA's face, eyes closed, a tear on her cheek; the queen's hand rests gently on top of her blonde head.",vd:"Cận mặt Gwyndra nhắm mắt, tay nữ hoàng đặt trên đầu nàng.",
-   tx:[{k:"say",who:"gwyp",at:"lower right, beside Gwyndra's mouth",vi:"Theo lệnh người, thưa nữ hoàng.",en:"As you command, my queen."}]},
-  {r:5,c:"full",shot:"WIDE SHOT",d:"Silhouette of QUEEN ALDRENN walking away from the viewer into the blinding light of the furnace; the edges of her gown dissolve into embers and ash.",vd:"Nữ hoàng bước vào ánh sáng lò lửa, tan thành tàn tro.",tx:[]},
-  {r:6,c:"full",shot:"WIDE SHOT, eye level, present day, grey dawn",d:"The same city gate in ruins, buried in grey ash. Hollow GWYNDRA stands in the CENTER-LEFT guarding the gate, burning greatsword held across her body. In the RIGHT foreground, the player's gloved hand reaches toward her holding a small flame.",vd:"Hiện tại: Gwyndra Rỗng vẫn canh cổng đổ nát; bàn tay người chơi cầm đốm lửa.",
-   tx:[{k:"say",who:"gwyh",at:"top-left, directly beside Gwyndra's head",vi:"…Lùi lại. Nữ hoàng chưa cho phép.",en:"…Stand back. The queen has not given leave."},
-       {k:"cap",at:"top-right corner",vi:"Nàng vẫn canh. Chưa ai nói với nàng rằng nữ hoàng đã chết.",en:"She still stands guard. No one has told her the queen is dead."}]},
- ]}]},
-{id:"e02",s:1,no:2,n:{vi:"Người Gác Cổng Bắc",en:"The Keeper of the North Gate"},kind:{vi:"Nàng từng là ai",en:"Who she was"},u:{seen:"gwyndra"},
- sum:{vi:"Ba trăm năm canh một cánh cổng không còn ai cần vào.",en:"Three hundred years guarding a gate no one needs anymore."},
- pages:[{rows:[19,17,15,19,30],cast:["gwyp","gwyh","kaede"],panels:[
-  {r:1,c:"full",shot:"WIDE SHOT",d:"The dark, empty north gate of Aldrenn just after the city went dark, first ash beginning to fall. Young GWYNDRA (armor still polished, sword not burning) stands alone in the CENTER, a small figure before the huge closed gate.",vd:"Năm đầu: Gwyndra (chưa Rỗng) một mình trước cổng bắc vừa tắt lửa.",
-   tx:[{k:"cap",at:"top-left corner",vi:"Năm đầu tiên, nàng đợi nữ hoàng trở về.",en:"The first year, she waited for the queen to return."}]},
-  {r:2,c:"full",shot:"MEDIUM-WIDE SHOT",d:"Decades later: a small group of ragged refugees with lanterns on the RIGHT approaches the gate. Hollow GWYNDRA (now with ash-dulled hair and glowing eyes) on the LEFT raises her burning greatsword horizontally to block them.",vd:"Đoàn người tị nạn cầm đèn tới cổng; Gwyndra giơ kiếm chặn.",
-   tx:[{k:"say",who:"gwyh",at:"top-left, beside Gwyndra's head",vi:"Lùi lại. Nữ hoàng chưa cho phép.",en:"Stand back. The queen has not given leave."}]},
-  {r:3,c:"full",shot:"MEDIUM SHOT",d:"The refugees walk away into the ash. An old woman (adult, hooded) bends to leave one small lit candle at the foot of the gate.",vd:"Họ bỏ đi; một bà lão để lại ngọn nến dưới chân cổng.",
-   tx:[{k:"cap",at:"top-right corner",vi:"Năm thứ năm mươi, không còn ai đến xin vào nữa.",en:"By the fiftieth year, no one came to ask anymore."}]},
-  {r:4,c:"left",shot:"CLOSE-UP",d:"Hollow GWYNDRA kneels and gently relights the small candle with the tip of her burning greatsword. Her face is soft.",vd:"Gwyndra quỳ xuống, dùng mũi kiếm lửa thắp lại ngọn nến.",
-   tx:[{k:"cap",at:"bottom-left corner",vi:"Nhưng ngọn nến ấy, nàng thắp lại mỗi đêm.",en:"But that candle — she relit it every night."}]},
-  {r:4,c:"right",shot:"MEDIUM SHOT",d:"KAEDE arrives on the road, standing on the RIGHT, one hand on her katana hilt with the red ribbon, looking determined.",vd:"Một nữ kiếm khách áo trắng lá phong xuất hiện, tay đặt trên chuôi kiếm.",
-   tx:[{k:"say",who:"kaede",at:"top-right, beside Kaede's head",vi:"Ta phải vào trong. Có người ta cần tìm.",en:"I must go in. There is someone I have to find."}]},
-  {r:5,c:"full",shot:"WIDE SHOT, low angle, moonlight through ash",d:"Hollow GWYNDRA on the LEFT and KAEDE on the RIGHT face each other in front of the gate, both swords drawn, embers swirling between them. Tense standoff, no blood.",vd:"Hai người đối mặt trước cổng, kiếm đã tuốt.",
-   tx:[{k:"say",who:"gwyh",at:"top-left, beside Gwyndra's head",vi:"Lùi lại.",en:"Stand back."},
-       {k:"cap",at:"bottom-right corner",vi:"Năm thứ hai trăm chín mươi mốt.",en:"The two hundred and ninety-first year."}]},
- ]}]},
-{id:"e03",s:1,no:3,n:{vi:"Sói Mang Theo Một Cái Tên",en:"The Wolf Who Carried a Name"},kind:{vi:"Nguồn gốc: Brunhild",en:"Origin: Brunhild"},u:{met:"brun"},
- sum:{vi:"Vì sao người cận vệ trung thành nhất lại là kẻ duy nhất bỏ chạy.",en:"Why the most loyal guard was the only one who ran."},
- pages:[{rows:[18,18,16,16,32],cast:["queen","brun","dull","hollow"],panels:[
-  {r:1,c:"full",shot:"WIDE SHOT, inside the throne hall at night",d:"A row of female royal guards in black wolf armor stand around an empty throne; through the tall windows, the city lights are dying.",vd:"Đội Cận Vệ Sói đứng quanh ngai vàng; ngoài cửa sổ thành phố tắt dần.",
-   tx:[{k:"cap",at:"top-left corner",vi:"Đêm Tắt Lửa. Đội Cận Vệ Sói đứng quanh ngai vàng lần cuối.",en:"The Night of Ashes. The Wolf Guard stood around the throne one last time."}]},
-  {r:2,c:"left",shot:"MEDIUM SHOT",d:"QUEEN ALDRENN on the LEFT places a small sealed scroll into BRUNHILD's gauntleted hands; BRUNHILD stands on the RIGHT.",vd:"Nữ hoàng trao cho Brunhild một cuộn thư niêm phong.",
-   tx:[{k:"say",who:"queen",at:"top-left, beside the queen's head",vi:"Brunhild. Ngươi không ở lại.",en:"Brunhild. You will not stay."}]},
-  {r:2,c:"right",shot:"CLOSE-UP",d:"BRUNHILD's shocked face, red eyes wide, the scar across her nose clearly visible.",vd:"Cận mặt Brunhild sững sờ.",
-   tx:[{k:"say",who:"brun",at:"top-right, beside Brunhild's mouth",vi:"Thần là cận vệ của người. Thần chết ở đây.",en:"I am your guard. I die here."}]},
-  {r:3,c:"full",shot:"EXTREME CLOSE-UP",d:"QUEEN ALDRENN's lips and eyes, whispering, lit by orange firelight from below.",vd:"Nữ hoàng thì thầm.",
-   tx:[{k:"wh",who:"queen",at:"right side, beside the queen's mouth",vi:"Ai còn nhớ tên ta, ta chưa chết hẳn. Hãy nhớ hộ ta.",en:"While someone remembers my name, I am not wholly gone. Remember it for me."}]},
-  {r:4,c:"full",shot:"WIDE SHOT, dynamic diagonal",d:"BRUNHILD runs through dark streets clutching the scroll. Behind her, kneeling guards turn grey and hollow. High on the city wall in the far background, DULLAHAN on her black horse keeps her face turned away.",vd:"Brunhild chạy qua phố tối; sau lưng các chị em hoá Rỗng.",
-   tx:[{k:"cap",at:"top-right corner",vi:"Nàng chạy. Sau lưng, các chị em quay lại nhìn — rồi rỗng đi.",en:"She ran. Behind her, her sisters turned to look — and went hollow."}]},
-  {r:5,c:"full",shot:"MEDIUM-WIDE SHOT, present day, by a small bonfire in a ruined shrine",d:"BRUNHILD sits alone by the fire sharpening her black greatsword, her lips moving silently. Ash falls.",vd:"Hiện tại: Brunhild mài kiếm bên đống lửa, môi thì thầm một cái tên.",
-   tx:[{k:"wh",who:"brun",at:"top-left, beside Brunhild's mouth",vi:"…",en:"…"},
-       {k:"cap",at:"bottom-right corner",vi:"Ba trăm năm. Người ta gọi nàng là kẻ hèn. Nàng chưa từng cãi lại.",en:"Three hundred years. They call her a coward. She has never argued."}]},
- ]}]},
-{id:"e04",s:1,no:4,n:{vi:"Kỵ Sĩ Không Nhìn Lại",en:"The Knight Who Never Looked Back"},kind:{vi:"Nàng từng là ai",en:"Who she was"},u:{seen:"dullahan"},
- sum:{vi:"Đội trưởng Cận Vệ nhận lệnh cuối cùng: không được nhìn lại.",en:"The Guard Captain's last order: do not look back."},
- pages:[{rows:[20,16,16,18,30],cast:["dull","dullh"],panels:[
-  {r:1,c:"full",shot:"WIDE SHOT, night",d:"DULLAHAN on a black warhorse leads a column of mounted female knights along the top of the city's huge outer wall; the glowing city is BELOW and BEHIND them, and they all face OUTWARD toward the dark plains.",vd:"Dullahan dẫn kỵ binh tuần trên tường thành ngoài, quay mặt ra đồng tối.",
-   tx:[{k:"cap",at:"top-left corner",vi:"Dullahan, đội trưởng Cận Vệ, nhận lệnh cuối: canh tường thành ngoài, mặt hướng ra đồng.",en:"Dullahan, Captain of the Guard, received her last order: hold the outer wall, facing the plains."}]},
-  {r:2,c:"full",shot:"MEDIUM SHOT from behind the riders",d:"Behind them, down inside the walls, the city lights die. The riders twist in their saddles to look back. DULLAHAN in front raises one arm without turning.",vd:"Phía sau, thành tắt lửa; các kỵ sĩ ngoái lại.",
-   tx:[{k:"say",who:"dull",at:"top-right, beside Dullahan's head",vi:"Không ai được nhìn lại.",en:"No one looks back."}]},
-  {r:3,c:"left",shot:"CLOSE-UP",d:"DULLAHAN's face, eyes shut tight, one tear.",vd:"Cận mặt Dullahan nhắm chặt mắt.",
-   tx:[{k:"cap",at:"bottom-left corner",vi:"Nhưng nàng biết vì sao mình bị gửi đi.",en:"But she knew why she had been sent away."}]},
-  {r:3,c:"right",shot:"MEDIUM SHOT",d:"DULLAHAN kneels alone on the wall walkway beside a glowing crack in the stones (a vein of fire), her sword across her knees.",vd:"Nàng quỳ bên khe đất phát sáng của Mạch Lửa.",
-   tx:[{k:"say",who:"dull",at:"top-right, beside Dullahan's head",vi:"Đã không được nhìn… thì ta không cần đôi mắt nữa.",en:"If I may not look… then I have no need of eyes."}]},
-  {r:4,c:"full",shot:"WIDE SHOT",d:"A burst of pale blue ghost-flame swallows DULLAHAN's kneeling silhouette. No blood, no wound visible — only blue fire and flying embers.",vd:"Lửa ma xanh nuốt lấy bóng nàng.",
-   tx:[{k:"cap",at:"top-right corner",vi:"Nàng giữ lời thề bằng cách duy nhất mình biết.",en:"She kept her oath the only way she knew."}]},
-  {r:5,c:"full",shot:"WIDE SHOT, present day, ash plains",d:"Headless DULLAHAN rides along the top of the RUINED outer wall of Aldrenn, carrying her own head under her arm; the head's eyes are closed and turned OUTWARD, away from the dead city below.",vd:"Hiện tại: Dullahan không đầu vẫn tuần trên tường thành đổ, đôi mắt nhắm quay ra ngoài.",
-   tx:[{k:"cap",at:"top-left corner",vi:"Đến giờ, nàng vẫn tuần trên tường ấy — đôi mắt nhắm chặt, không bao giờ nhìn vào thành.",en:"She still rides that wall — eyes shut tight, never once looking at the city."}]},
- ]}]},
-{id:"e05",s:1,no:5,n:{vi:"Người Giữ Tên",en:"The Keeper of Names"},kind:{vi:"Nàng từng là ai",en:"Who she was"},u:{seen:"morrigan"},
- sum:{vi:"Ở Tháp Quạ, không ai chết hẳn — chỉ bị quên.",en:"In the Crow Tower, no one truly dies — they are only forgotten."},
- pages:[{rows:[20,17,15,20,28],cast:["morr","hollow"],panels:[
-  {r:1,c:"full",shot:"WIDE SHOT, low angle",d:"A ruined black tower under a full moon, hundreds of crows circling it.",vd:"Tháp Quạ dưới trăng tròn.",
-   tx:[{k:"cap",at:"top-left corner",vi:"Ở Tháp Quạ, không ai chết hẳn — chỉ bị quên.",en:"In the Crow Tower, no one truly dies — they are only forgotten."}]},
-  {r:2,c:"left",shot:"MEDIUM SHOT",d:"MORRIGAN on a broken balcony on the LEFT, a crow perched on her finger; the crow holds a thin glowing golden thread in its beak.",vd:"Morrigan với con quạ ngậm sợi chỉ sáng.",
-   tx:[{k:"say",who:"morr",at:"top-left, beside Morrigan's head",vi:"Tên ngươi là gì, hở người lính?",en:"What was your name, soldier?"}]},
-  {r:2,c:"right",shot:"MEDIUM SHOT",d:"A HOLLOW SOLDIER woman stands with an empty face while a crow gently pulls a faint golden light out of her chest.",vd:"Con quạ rút ánh sáng mờ khỏi ngực một binh Rỗng.",
-   tx:[{k:"cap",at:"bottom-right corner",vi:"Khi người Rỗng quên tên mình, quạ mang cái tên ấy về.",en:"When a Hollow forgets her name, the crows carry it home."}]},
-  {r:3,c:"full",shot:"WIDE SHOT, interior",d:"Inside the tower: tall walls covered with thousands of tiny hanging golden threads, each glowing softly like a library of light. MORRIGAN walks among them with a candle.",vd:"Bên trong tháp: hàng ngàn sợi chỉ vàng treo kín tường.",
-   tx:[{k:"say",who:"morr",at:"top-right, beside Morrigan's head",vi:"Mỗi sợi là một người. Ta giữ, để thế giới còn nợ họ.",en:"Each thread is a person. I keep them, so the world still owes them."}]},
-  {r:4,c:"full",shot:"CLOSE-UP",d:"At the center of the wall, one ornate golden hook hangs EMPTY. MORRIGAN's pale hand touches it.",vd:"Một móc vàng ở giữa tường trống trơn.",
-   tx:[{k:"say",who:"morr",at:"top-left, inside the panel near the top",vi:"Chỉ thiếu một cái tên. Tên của nữ hoàng.",en:"Only one name is missing. The queen's."}]},
-  {r:5,c:"full",shot:"WIDE SHOT from behind MORRIGAN",d:"MORRIGAN on the tower top looks at a tiny warm glow on the far horizon (a distant bonfire); crows fly off toward it.",vd:"Morrigan nhìn về đốm lửa xa; bầy quạ bay đi.",
-   tx:[{k:"say",who:"morr",at:"top-left, beside Morrigan's head",vi:"Có ai đó vẫn đang giữ nó… Ta sẽ tìm ra.",en:"Someone is still keeping it… I will find them."}]},
- ]}]},
-{id:"e06",s:1,no:6,n:{vi:"Thanh Kiếm Không Rút",en:"The Sword Left Sheathed"},kind:{vi:"Nguồn gốc: Tsubaki",en:"Origin: Tsubaki"},u:{met:"tsub",seen:"gwyndra"},
- sum:{vi:"Tsubaki vượt Biển Tro để chém kẻ đã giết sư tỷ.",en:"Tsubaki crosses the Ash Sea to avenge her sword-sister."},
- pages:[{rows:[16,14,18,16,14,22],cast:["tsub","kaede","gwyh"],panels:[
-  {r:1,c:"full",shot:"WIDE SHOT",d:"A small wooden boat on a grey sea of ash under a dead sky; TSUBAKI stands at the prow, red scarf blowing.",vd:"Tsubaki đứng mũi thuyền trên Biển Tro.",
-   tx:[{k:"cap",at:"top-left corner",vi:"Tsubaki vượt Biển Tro với một lời thề: chém kẻ đã giết sư tỷ.",en:"Tsubaki crossed the Ash Sea with one vow: cut down the one who killed her sword-sister."}]},
-  {r:2,c:"full",shot:"MEDIUM SHOT, flashback, soft warm light, falling cherry petals",d:"KAEDE on the LEFT smiles at TSUBAKI on the RIGHT under a blossoming tree. Muted, faded colors to show it is a memory.",vd:"Hồi tưởng: Kaede mỉm cười với Tsubaki dưới tán anh đào.",
-   tx:[{k:"say",who:"kaede",at:"top-left, beside Kaede's head",vi:"Kiếm để bảo vệ, Tsubaki. Không phải để thắng.",en:"A sword is for protecting, Tsubaki. Not for winning."}]},
-  {r:3,c:"full",shot:"WIDE SHOT, present day",d:"TSUBAKI on the RIGHT arrives at the ruined north gate, gripping her katana. Hollow GWYNDRA stands on the LEFT before the gate.",vd:"Tsubaki tới cổng bắc, đối mặt Gwyndra.",
-   tx:[{k:"say",who:"tsub",at:"top-right, beside Tsubaki's head",vi:"Ngươi là kẻ gác cổng.",en:"You are the gatekeeper."},
-       {k:"say",who:"gwyh",at:"top-left, beside Gwyndra's head",vi:"Lùi lại. Nữ hoàng chưa cho phép.",en:"Stand back. The queen has not given leave."}]},
-  {r:4,c:"left",shot:"EXTREME CLOSE-UP",d:"TSUBAKI's red eyes widen as she notices something.",vd:"Mắt Tsubaki mở to.",tx:[]},
-  {r:4,c:"right",shot:"CLOSE-UP",d:"Beside the gate: a small grave of stacked stones; a katana with a white hilt is planted in it, a RED ribbon fluttering; a freshly lit candle burns at its foot.",vd:"Ngôi mộ đá nhỏ, cắm thanh kiếm buộc ruy băng đỏ, nến mới thắp.",tx:[]},
-  {r:5,c:"full",shot:"CLOSE-UP",d:"Hollow GWYNDRA looks down at the grave; her glowing eyes are sad.",vd:"Gwyndra nhìn ngôi mộ.",
-   tx:[{k:"say",who:"gwyh",at:"top-right, beside Gwyndra's head",vi:"Nàng ấy muốn vào. Ta bảo lùi lại. Nàng ấy không lùi.",en:"She wanted in. I told her to stand back. She did not."}]},
-  {r:6,c:"full",shot:"WIDE SHOT",d:"TSUBAKI turns away from the gate, her hand slowly leaving the katana hilt, a tear on her cheek. Ash falls softly between her and GWYNDRA.",vd:"Tsubaki quay đi, tay rời chuôi kiếm, rơi nước mắt.",
-   tx:[{k:"cap",at:"bottom-left corner",vi:"Kẻ giết sư tỷ vẫn thắp nến cho sư tỷ mỗi đêm. Tsubaki không rút kiếm.",en:"The one who killed her sword-sister still lit a candle for her every night. Tsubaki did not draw."}]},
- ]}]},
+// ---------------- MÙA 1 — "KẺ MANG TÊN" (nhân vật chính: Brunhild) ----------------
+// Định dạng gọn: trang {L:"F3 LR2 F2", c:"nhân vật không nói", p:[[cảnh, mô tả EN, mô tả VI, ...chữ]]}
+// L: mỗi hàng F=1 khung cả bề ngang, LR=2 khung trái/phải; số = độ cao tương đối. Chữ: ["c",vị trí,EN,VI] dẫn truyện · ["s",ai,vị trí,EN,VI] nói · ["w",...] thì thầm
+const SEASONS=[{id:1,n:{vi:"Mùa 1 — Kẻ Mang Tên",en:"Season 1 — The Name-Bearer"}}];
+const CH=[
+{id:"c01",s:1,no:1,n:{vi:"Đêm Aldrenn Tắt Lửa",en:"The Night Aldrenn Went Dark"},u:{start:1},
+ sum:{vi:"Ba trăm năm trước, nữ hoàng Aldrenn đổi cả kinh thành lấy ánh sáng cho thế giới — và giao cho người cận vệ trẻ nhất một nhiệm vụ không ai hiểu.",en:"Three hundred years ago, Queen Aldrenn traded her whole city for the world's light — and gave her youngest guard a task no one understood."},
+ pages:[
+ {L:"F3 F2 LR2",c:"brun sera hand",p:[
+  ["WIDE SHOT, night, present day","A small bonfire inside a roofless ruined shrine. BRUNHILD sits alone on the LEFT sharpening her black greatsword; SERAPHINE sits on the RIGHT, facing the fire. Ash falls.","Hiện tại: Brunhild mài kiếm bên đống lửa, Seraphine ngồi đối diện.",["c","top-left corner","The Last Bonfire. Now.","Đống Lửa Cuối Cùng. Hiện tại."]],
+  ["CLOSE-UP","BRUNHILD's lips moving silently, eyes closed, the firelight on her scarred face.","Cận môi Brunhild thì thầm.",["w","brun","top-right, beside Brunhild's mouth","…","…"]],
+  ["MEDIUM SHOT","SERAPHINE tilts her blindfolded head toward Brunhild with a gentle smile.","Seraphine nghiêng đầu về phía Brunhild.",["s","sera","top-left, beside Seraphine's head","Every night you whisper the same name.","Đêm nào ngươi cũng thì thầm cùng một cái tên."]],
+  ["MEDIUM SHOT","BRUNHILD stops sharpening and looks into the fire; in the flames, faint golden towers of a city appear like a memory.","Brunhild dừng tay, nhìn vào lửa; trong lửa hiện bóng một kinh thành.",["s","brun","top-right, beside Brunhild's head","It is not mine to say. I only keep it.","Không phải tên của ta để nói. Ta chỉ giữ nó."]]]},
+ {L:"F4 F2",c:"",p:[
+  ["SPLASH PANEL, extreme wide aerial shot, golden evening","The great gothic capital ALDRENN in its glory: thousands of warm hearths and lanterns, bridges and spires, and at its heart a colossal furnace-tower glowing like a second sun. Veins of light run from the tower under the streets.","Kinh đô Aldrenn huy hoàng, tháp Lò Lửa rực như mặt trời thứ hai.",["c","top-left corner","Three hundred years ago. Aldrenn, the capital of light.","Ba trăm năm trước. Aldrenn, kinh đô của ánh sáng."]],
+  ["WIDE SHOT, street level","A lively night market under lanterns; people laughing, bread ovens glowing, children's shadows only (no children shown clearly).","Chợ đêm nhộn nhịp dưới đèn lồng.",["c","bottom-right corner","No one there had ever known cold.","Ở đó, chưa ai từng biết đến cái lạnh."]]]},
+ {L:"F2 LR3 F2",c:"brunY",p:[
+  ["MEDIUM-WIDE SHOT, palace courtyard","A row of female royal guards in black wolf armor stands at attention. Young BRUNHILD, the youngest, stands at the end of the line, chin up proudly.","Đội Cận Vệ Sói xếp hàng; Brunhild trẻ nhất đứng cuối hàng.",["c","top-left corner","The Wolf Guard. Sworn to the queen's flame.","Đội Cận Vệ Sói. Thề bảo vệ ngọn lửa của nữ hoàng."]],
+  ["CLOSE-UP","Young BRUNHILD's determined face, red eyes, no scar yet.","Cận mặt Brunhild trẻ, chưa có sẹo.",["c","bottom-left corner","Brunhild. Nineteen winters. Youngest of them all.","Brunhild. Mười chín mùa đông. Trẻ nhất đội."]],
+  ["MEDIUM SHOT","DULLAHAN, the guard captain, walks past the line inspecting it, a faint approving smile at Brunhild.","Đội trưởng Dullahan đi kiểm tra hàng, khẽ cười với Brunhild.",["s","dull","top-right, beside Dullahan's head","Stand straight, pup. The queen is watching.","Đứng thẳng lên, sói con. Nữ hoàng đang nhìn."]],
+  ["WIDE SHOT, looking up","On a high balcony above the courtyard, QUEEN ALDRENN looks not at the guards but toward the furnace-tower, worried.","Trên ban công, nữ hoàng không nhìn đội cận vệ mà nhìn về tháp Lò Lửa, lo âu.",[]]]},
+ {L:"F3 LR2 F2",c:"queen",p:[
+  ["WIDE SHOT, inside the furnace-tower","A vast round chamber with a gigantic brazier. Its fire is visibly SHRINKING, flickering low; robed scholars stare at it in fear.","Trong tháp Lò Lửa: ngọn lửa khổng lồ đang co lại.",["c","top-left corner","But that winter, the fire began to shrink.","Nhưng mùa đông năm ấy, ngọn lửa bắt đầu co lại."]],
+  ["MEDIUM SHOT","An old robed scholar bows before QUEEN ALDRENN, holding a cracked glowing stone.","Một học giả già cúi trước nữ hoàng.",["s","none","top-left, beside the old scholar's head","The Last Bonfire is starving, Majesty. The whole world will go dark.","Đống Lửa Cuối Cùng đang đói, thưa Bệ hạ. Cả thế giới sẽ tối."]],
+  ["CLOSE-UP","QUEEN ALDRENN's calm face, eyes lowered, thinking.","Cận mặt nữ hoàng trầm tư.",["s","queen","top-right, beside the queen's head","Then what does it want?","Vậy nó muốn gì?"]],
+  ["EXTREME CLOSE-UP","The old scholar's trembling mouth.","Môi run rẩy của học giả.",["s","none","right side, beside the scholar's mouth","Warmth, Majesty. A great deal of warmth.","Hơi ấm, thưa Bệ hạ. Rất nhiều hơi ấm."]]]},
+ {L:"F3 LR2 F2",c:"queen",p:[
+  ["WIDE SHOT, throne hall council","A long table of grim nobles in dark robes. One noble stands and points at a map of the outer villages.","Hội đồng quý tộc; một người chỉ vào bản đồ các làng ngoại thành.",["s","none","top-left, beside the standing noble's head","Feed it the outer villages. The capital must survive.","Lấy các làng ngoại thành mà cho nó ăn. Kinh thành phải sống."]],
+  ["MEDIUM SHOT","QUEEN ALDRENN stands up from the throne, one hand flat on the table.","Nữ hoàng đứng dậy.",["s","queen","top-right, beside the queen's head","No.","Không."]],
+  ["CLOSE-UP","The nobles' shocked faces.","Các quý tộc sững sờ.",[]],
+  ["MEDIUM SHOT, low angle","QUEEN ALDRENN, regal and resolute, the furnace light behind her like a halo.","Nữ hoàng đứng uy nghi, ánh lò lửa sau lưng như vầng hào quang.",["s","queen","top-left, beside the queen's head","If a price must be paid, the capital will pay it. All of it.","Nếu phải trả giá, kinh thành sẽ trả. Trả hết."]]]},
+ {L:"F2 LR3 F2",c:"queen",p:[
+  ["MEDIUM SHOT, the queen's private chamber, candlelight","QUEEN ALDRENN writes alone at a desk late at night.","Nữ hoàng viết thư một mình trong đêm.",["c","top-left corner","That night, the queen wrote one letter.","Đêm ấy, nữ hoàng viết một lá thư."]],
+  ["CLOSE-UP","Her hand pressing a wax seal with a flame emblem onto a rolled scroll.","Bàn tay ấn dấu niêm phong hình ngọn lửa lên cuộn thư.",[]],
+  ["CLOSE-UP","QUEEN ALDRENN holds the sealed scroll to her chest, eyes closed, a single tear.","Nữ hoàng ôm cuộn thư vào ngực, rơi một giọt nước mắt.",["w","queen","top-right, beside the queen's mouth","Forgive me. You will hate me for this.","Tha thứ cho ta. Rồi ngươi sẽ hận ta vì việc này."]],
+  ["WIDE SHOT","Outside the window, the city's lights shine for the last time; a bell tower in silhouette.","Ngoài cửa sổ, kinh thành sáng lần cuối.",["c","bottom-right corner","Dawn was eight hours away.","Còn tám giờ nữa là bình minh."]]]},
+ {L:"F2 LR2 F3",c:"queen dull brunY",p:[
+  ["MEDIUM SHOT","QUEEN ALDRENN gives orders to DULLAHAN, who kneels; young BRUNHILD stands guard behind.","Nữ hoàng ra lệnh cho Dullahan; Brunhild đứng gác phía sau.",["s","queen","top-left, beside the queen's head","Dullahan. Hold the outer wall. Face the plains. Let no rider look back.","Dullahan. Giữ tường thành ngoài. Quay mặt ra đồng. Không kỵ sĩ nào được nhìn lại."]],
+  ["CLOSE-UP","DULLAHAN's face, understanding the meaning; her jaw tightens.","Dullahan hiểu ra, nghiến răng.",["s","dull","top-right, beside Dullahan's head","…As you command.","…Tuân lệnh."]],
+  ["MEDIUM SHOT","Then the queen turns to GWYNDRA, a tall blonde knight with a red cape and greatsword, who bows.","Nữ hoàng quay sang Gwyndra.",["s","queen","top-left, beside the queen's head","Gwyndra. Guard the north gate. Let no one enter — not even me.","Gwyndra. Canh cổng bắc. Đừng để ai bước vào — kể cả ta."]],
+  ["WIDE SHOT","The two knights leave the hall in opposite directions. Young BRUNHILD, confused, watches them go.","Hai hiệp sĩ đi hai ngả; Brunhild bối rối nhìn theo.",["s","brunY","bottom-right, beside Brunhild's head","Majesty… what is happening?","Bệ hạ… chuyện gì đang xảy ra?"]]]},
+ {L:"F2 LR3 F2",c:"queen brunY",p:[
+  ["MEDIUM SHOT","QUEEN ALDRENN places the sealed scroll into young BRUNHILD's gauntleted hands.","Nữ hoàng đặt cuộn thư vào tay Brunhild.",["s","queen","top-left, beside the queen's head","Brunhild. You will not stay.","Brunhild. Ngươi không ở lại."]],
+  ["CLOSE-UP","Young BRUNHILD's shocked face.","Brunhild sững sờ.",["s","brunY","top-right, beside Brunhild's mouth","I am your guard. I die here, with you.","Thần là cận vệ của người. Thần chết ở đây, cùng người."]],
+  ["EXTREME CLOSE-UP","The queen leans in and whispers into Brunhild's ear; we see only the queen's lips.","Nữ hoàng ghé tai thì thầm.",["w","queen","top-left, beside the queen's mouth","My name is ——. Remember it for me.","Tên ta là ——. Hãy nhớ hộ ta."]],
+  ["MEDIUM SHOT","Young BRUNHILD's eyes widen; behind her, through the windows, the city lights begin to flicker.","Mắt Brunhild mở to; ngoài cửa sổ, đèn thành phố bắt đầu chập chờn.",["s","queen","top-right, beside the queen's head","While someone remembers my name, I am not wholly gone. Now run.","Còn người nhớ tên ta, ta chưa chết hẳn. Giờ thì chạy đi."]]]},
+ {L:"F3 LR2 F2",c:"queen",p:[
+  ["SPLASH-LIKE WIDE SHOT, low angle","In the furnace chamber, QUEEN ALDRENN raises one hand; rivers of fire stream in through every window from the whole city into her palm.","Nữ hoàng giơ tay, lửa từ khắp thành tuôn về.",["c","top-left corner","The Rite of Ashes.","Nghi Lễ Tro Tàn."]],
+  ["MEDIUM SHOT","An ordinary townswoman (brown hair, plain grey dress) at her window watches her candle flame pulled out like a glowing thread.","Một người dân nhìn ngọn nến bị hút đi.",[]],
+  ["WIDE SHOT","Whole streets going dark one after another, like dominoes of light.","Từng con phố tắt dần như hàng domino.",["c","bottom-right corner","Every lamp. Every hearth. Every heartbeat of warmth.","Từng ngọn đèn. Từng bếp lửa. Từng nhịp hơi ấm."]],
+  ["WIDE SHOT","QUEEN ALDRENN walks into the blinding white light of the furnace; the edges of her gown turn to embers.","Nữ hoàng bước vào ánh sáng lò lửa, tà áo hoá tàn lửa.",[]]]},
+ {L:"F2 LR3 F3",c:"brunY gwyp dull hollow",p:[
+  ["WIDE SHOT, dark streets","Young BRUNHILD runs through dark streets clutching the scroll; behind her, kneeling guards in wolf armor slowly turn grey and empty-eyed.","Brunhild chạy qua phố tối; sau lưng, đồng đội hoá Rỗng.",["c","top-left corner","She ran. Her sisters turned to look at her — and went hollow.","Nàng chạy. Các chị em quay lại nhìn nàng — rồi rỗng đi."]],
+  ["MEDIUM SHOT","At the north gate, GWYNDRA steps aside to let Brunhild run OUT of the city.","Ở cổng bắc, Gwyndra tránh sang cho Brunhild chạy ra ngoài.",["s","gwyp","top-left, beside Gwyndra's head","My order is to keep people out. Not in. Go.","Lệnh của ta là không cho ai vào. Không phải ra. Đi đi."]],
+  ["WIDE SHOT, far view","High on the outer wall, DULLAHAN on her black horse sees Brunhild fleeing — and deliberately turns her face away.","Trên tường thành, Dullahan thấy Brunhild chạy trốn — và cố tình quay mặt đi.",[]],
+  ["WIDE SHOT, grey dawn","The city behind is completely dark. The first flakes of grey ash fall from the sky for the first time. Young BRUNHILD, small on a hill, looks back at the dead city.","Bình minh xám; tro rơi lần đầu tiên. Brunhild trên đồi ngoái nhìn kinh thành chết.",["c","top-right corner","At dawn, ash fell from the sky for the first time.","Lúc bình minh, tro rơi từ trời xuống lần đầu tiên."],["c","bottom-left corner","The world had bought three hundred years of light.","Thế giới đã mua được ba trăm năm ánh sáng."]]]},
+ ]},
+{id:"c02",s:1,no:2,n:{vi:"Kẻ Hèn",en:"The Coward"},u:{met:"brun"},
+ sum:{vi:"Người sống sót duy nhất của Đội Cận Vệ Sói lang thang dưới bầu trời tro, mang theo một cuộn thư không dám mở và một cái tên không được nói ra.",en:"The last of the Wolf Guard wanders under a sky of ash, carrying a letter she dares not open and a name she may not speak."},
+ pages:[
+ {L:"F3 LR2 F2",c:"brunY hollow",p:[
+  ["WIDE SHOT, grey ash plains","Young BRUNHILD walks alone across endless grey plains under falling ash, the scroll tied at her belt.","Brunhild đi một mình qua đồng tro bất tận.",["c","top-left corner","Year one after the Night of Ashes.","Năm thứ nhất sau Đêm Tro Tàn."]],
+  ["MEDIUM SHOT","In a ruined village, survivors spit at the ground as Brunhild passes in her wolf armor.","Dân làng nhổ nước bọt khi thấy giáp sói.",["s","none","top-left, beside a villager's head","The Wolf Guard ran. Cowards, all of them.","Cận Vệ Sói đã chạy. Một lũ hèn."]],
+  ["CLOSE-UP","Young BRUNHILD lowers her eyes and keeps walking, saying nothing.","Brunhild cúi mặt, im lặng bước tiếp.",[]],
+  ["MEDIUM SHOT, night","Alone by a tiny campfire, Brunhild holds the sealed scroll, thumb on the wax seal, hesitating.","Bên lửa trại, Brunhild cầm cuộn thư, ngón tay đặt lên dấu niêm.",["w","brunY","top-right, beside Brunhild's mouth","Not yet. If I open it, it's over.","Chưa được. Mở ra rồi là hết."]]]},
+ {L:"F2 LR2 F3",c:"brunY",p:[
+  ["CLOSE-UP","Brunhild's gauntlet: the metal fingertips have turned grey and cracked, like ash.","Đầu ngón tay giáp của Brunhild đã xám lại như tro.",["c","top-left corner","Under the ash veil, those without fire slowly go hollow.","Dưới màn tro, kẻ không có lửa sẽ rỗng dần."]],
+  ["CLOSE-UP","Brunhild looks at her reflection in a puddle: her eyes are dull and tired.","Brunhild nhìn bóng mình dưới vũng nước, mắt đã đục.",[]],
+  ["CLOSE-UP","She closes her eyes and whispers; a faint warm glow lights her face.","Nàng nhắm mắt thì thầm; mặt ửng sáng nhẹ.",["w","brunY","top-left, beside Brunhild's mouth","——. ——. ——.","——. ——. ——."]],
+  ["MEDIUM SHOT","The grey on her fingertips recedes slightly. Brunhild stares at her hand in surprise.","Màu xám ở đầu ngón tay lùi đi một chút. Brunhild ngạc nhiên.",["c","bottom-right corner","The name kept her warm. So she said it every night.","Cái tên giữ cho nàng ấm. Nên đêm nào nàng cũng nói."]]]},
+ {L:"F3 LR2 F2",c:"brunY mira",p:[
+  ["WIDE SHOT, a cave entrance lit by paper lanterns","A cozy merchant's stall inside a cave, full of strange goods, warm lantern light against the grey world.","Gian hàng ấm áp trong hang giữa thế giới xám.",["c","top-left corner","Year nine.","Năm thứ chín."]],
+  ["MEDIUM SHOT","MIRA leans on her counter grinning at Brunhild, fox tail swishing.","Mira tựa quầy cười với Brunhild.",["s","mira","top-left, beside Mira's head","A Wolf Guard, alive? Now that's rare merchandise.","Một Cận Vệ Sói còn sống? Hàng hiếm đấy."]],
+  ["CLOSE-UP","Young BRUNHILD, wary, hand on her sword hilt.","Brunhild cảnh giác, tay đặt lên chuôi kiếm.",["s","brunY","top-right, beside Brunhild's head","I have no gold.","Ta không có vàng."]],
+  ["MEDIUM SHOT","MIRA holds up a small iron lantern with an ember inside, offering it.","Mira giơ một chiếc đèn sắt có hòn than bên trong.",["s","mira","top-left, beside Mira's head","Then pay me later. You'll come back. Your kind always does.","Thì trả sau. Ngươi sẽ quay lại. Hạng các ngươi luôn quay lại."]]]},
+ {L:"F2 LR3 F2",c:"brunY mira",p:[
+  ["MEDIUM SHOT","MIRA's shelves behind her: a scarf, a broken helmet, a cracked mirror — each with a small tag.","Kệ hàng của Mira: khăn quàng, mũ giáp vỡ, gương nứt, món nào cũng có thẻ.",["s","brunY","top-left, beside Brunhild's head","Whose things are these?","Đồ của ai đây?"]],
+  ["CLOSE-UP","MIRA's smile fades for a moment, her green eyes sad.","Nụ cười Mira tắt đi một thoáng, mắt buồn.",["s","mira","top-right, beside Mira's head","People who didn't come back.","Của những người không quay lại."]],
+  ["CLOSE-UP","MIRA taps the scroll at Brunhild's belt with one finger.","Mira gõ ngón tay lên cuộn thư ở thắt lưng Brunhild.",["s","mira","top-left, beside Mira's head","That letter is heavy. Don't carry it forever.","Lá thư đó nặng lắm. Đừng mang nó mãi."]],
+  ["WIDE SHOT","Brunhild leaves the cave with the little ember lantern; Mira waves behind her.","Brunhild rời hang với chiếc đèn than; Mira vẫy tay.",["c","bottom-right corner","She did not know the fox had said those words before. Many times.","Nàng không biết con cáo đã từng nói câu ấy. Rất nhiều lần."]]]},
+ {L:"F3 LR2 F2",c:"brunY gwyh",p:[
+  ["WIDE SHOT","Year forty. Brunhild, older and travel-worn, returns to the north gate of dead Aldrenn under falling ash.","Năm bốn mươi. Brunhild trở về cổng bắc Aldrenn.",["c","top-left corner","Year forty. She came home.","Năm thứ bốn mươi. Nàng trở về."]],
+  ["MEDIUM SHOT","GWYNDRA stands at the gate, armor dulled, hair greying with ash, eyes beginning to glow orange; her greatsword now burns.","Gwyndra đứng ở cổng, giáp xỉn, mắt bắt đầu ánh cam, kiếm đã bốc lửa.",[]],
+  ["CLOSE-UP","Brunhild smiles with relief, stepping forward.","Brunhild mừng rỡ bước tới.",["s","brunY","top-right, beside Brunhild's head","Gwyndra! You're still here. It's me —","Gwyndra! Ngươi vẫn ở đây. Là ta —"]],
+  ["MEDIUM SHOT","GWYNDRA raises her burning greatsword between them, eyes empty.","Gwyndra giơ kiếm lửa chắn giữa hai người, mắt trống rỗng.",["s","gwyh","top-left, beside Gwyndra's head","Stand back. The queen has not given leave.","Lùi lại. Nữ hoàng chưa cho phép."]]]},
+ {L:"F2 LR2 F3",c:"brunY gwyh",p:[
+  ["CLOSE-UP","Brunhild's face crumbling with grief.","Mặt Brunhild vỡ oà.",["s","brunY","top-left, beside Brunhild's head","Don't you remember me? We trained together. You taught me the sword!","Ngươi không nhớ ta sao? Ta tập kiếm cùng nhau. Ngươi đã dạy ta cầm kiếm!"]],
+  ["CLOSE-UP","GWYNDRA's glowing empty eyes; no recognition.","Mắt Gwyndra trống rỗng, không nhận ra.",["s","gwyh","top-right, beside Gwyndra's head","Stand back.","Lùi lại."]],
+  ["MEDIUM SHOT","Brunhild opens her mouth to say the queen's name — then stops herself, gritting her teeth.","Brunhild định nói tên nữ hoàng — rồi cắn răng dừng lại.",["c","top-left corner","One word would have opened that gate. The queen's name.","Chỉ một chữ là cánh cổng ấy mở. Tên của nữ hoàng."]],
+  ["WIDE SHOT","Brunhild walks away into the ash. Behind her, GWYNDRA kneels to relight a small candle at the foot of the gate.","Brunhild bỏ đi. Sau lưng, Gwyndra quỳ xuống thắp lại ngọn nến dưới chân cổng.",["c","bottom-right corner","But it was not hers to say.","Nhưng đó không phải tên của nàng để nói."]]]},
+ {L:"F3 LR2 F2",c:"brunY dullh",p:[
+  ["WIDE SHOT, dusk","From a hill, Brunhild sees a headless rider on a black horse patrolling the top of Aldrenn's ruined outer wall, holding her own head under her arm.","Từ đồi, Brunhild thấy kỵ sĩ không đầu tuần trên tường thành.",["c","top-left corner","On the outer wall, someone was still riding.","Trên tường thành ngoài, vẫn có người đang cưỡi ngựa tuần."]],
+  ["CLOSE-UP","Dullahan's carried head: eyes closed, face calm, turned outward.","Cái đầu Dullahan ôm: mắt nhắm, quay ra ngoài.",[]],
+  ["CLOSE-UP","Brunhild's eyes fill with tears.","Mắt Brunhild ngấn lệ.",["w","brunY","top-right, beside Brunhild's mouth","Captain… you never looked back. Not even once.","Đội trưởng… người chưa từng nhìn lại. Dù chỉ một lần."]],
+  ["WIDE SHOT","Brunhild kneels on the hilltop and bows deeply toward the wall, fist on her heart.","Brunhild quỳ trên đồi, đặt tay lên ngực cúi chào về phía tường thành.",[]]]},
+ {L:"F2 LR3 F2",c:"brunY",p:[
+  ["MEDIUM SHOT, night, ruined chapel","Brunhild sits against a wall, the ember lantern nearly dead; her armor is greyer.","Trong nhà nguyện đổ, đèn than gần tắt, giáp Brunhild xám thêm.",["c","top-left corner","Year ninety-three.","Năm thứ chín mươi ba."]],
+  ["CLOSE-UP","A black crow perches on a broken window, staring at her with too-intelligent red eyes.","Một con quạ đen đậu trên cửa sổ vỡ, nhìn nàng bằng đôi mắt đỏ tinh khôn.",[]],
+  ["CLOSE-UP","Brunhild whispers the name as always; the crow tilts its head, LISTENING.","Brunhild thì thầm cái tên như mọi đêm; con quạ nghiêng đầu lắng nghe.",["w","brunY","bottom-left, beside Brunhild's mouth","——…","——…"]],
+  ["WIDE SHOT","The crow flies off into the night toward a distant black tower under the moon.","Con quạ bay về phía ngọn tháp đen xa xa dưới trăng.",["c","bottom-right corner","Someone else had been looking for that name.","Có kẻ khác cũng đang tìm cái tên ấy."]]]},
+ {L:"F4 F2",c:"morr",p:[
+  ["SPLASH PANEL, low angle, full moon","A ruined black tower under a huge full moon; hundreds of crows swirl around it. At the top, MORRIGAN stands with her feather cloak spread, a crow landing on her finger.","Tháp Quạ dưới trăng tròn; Morrigan đứng trên đỉnh, quạ đáp xuống tay nàng.",["s","morr","top-right, beside Morrigan's head","At last. The only name I am missing.","Cuối cùng. Cái tên duy nhất ta còn thiếu."]],
+  ["CLOSE-UP","MORRIGAN's red eyes and a slow, hungry smile.","Mắt đỏ của Morrigan, nụ cười thèm khát.",["c","bottom-left corner","To be continued in Chapter 3: The Crows Come for a Name.","Còn tiếp — Chương 3: Quạ Đến Đòi Tên."]]]},
+ ]},
+{id:"c03",s:1,no:3,n:{vi:"Quạ Đến Đòi Tên",en:"The Crows Come for a Name"},u:{seen:"morrigan"},
+ sum:{vi:"Morrigan, người giữ tên của mọi kẻ đã chết ở Aldrenn, muốn có cái tên cuối cùng. Brunhild thà mất tất cả còn hơn trao nó đi.",en:"Morrigan keeps the name of everyone who died in Aldrenn and wants the last one. Brunhild would rather lose everything than give it up."},
+ pages:[
+ {L:"F3 LR2 F2",c:"brunY",p:[
+  ["WIDE SHOT, night, a dead forest","Brunhild walks through a dead forest; every branch is covered with silent black crows watching her.","Rừng chết, cành nào cũng đầy quạ đen im lặng nhìn nàng.",["c","top-left corner","They followed her for seven nights.","Chúng bám theo nàng suốt bảy đêm."]],
+  ["CLOSE-UP","Dozens of red crow eyes in the dark.","Hàng chục con mắt quạ đỏ trong bóng tối.",[]],
+  ["CLOSE-UP","Brunhild's hand tightens on her greatsword hilt.","Tay Brunhild siết chuôi đại kiếm.",["s","brunY","top-right, beside Brunhild's head","Show yourself.","Ra mặt đi."]],
+  ["WIDE SHOT","The crows explode from the trees at once in a black storm of feathers.","Bầy quạ bùng lên cùng lúc như cơn bão lông đen.",[]]]},
+ {L:"F2 LR2 F3",c:"brunY morr",p:[
+  ["MEDIUM SHOT","The feather storm gathers into MORRIGAN, who steps out of it gracefully, cloak of feathers settling.","Cơn bão lông vũ tụ lại thành Morrigan.",["s","morr","top-left, beside Morrigan's head","Brunhild of the Wolf Guard. I wrote your sisters' names myself.","Brunhild của Đội Cận Vệ Sói. Chính tay ta đã ghi tên các chị em ngươi."]],
+  ["CLOSE-UP","Brunhild, startled.","Brunhild giật mình.",["s","brunY","top-right, beside Brunhild's head","…Wrote?","…Ghi tên?"]],
+  ["MEDIUM SHOT, flashback in muted sepia colors","Young MORRIGAN, a royal scribe in dark-blue robes with a neat black braid, writes names in a gigantic book by candlelight while the city goes dark outside her window.","Hồi tưởng: Morrigan trẻ, thư lại hoàng gia, ghi tên vào cuốn sổ khổng lồ khi thành tắt lửa.",["c","top-left corner","On the Night of Ashes, the royal scribe wrote down every soul as its light went out.","Đêm Tro Tàn, thư lại hoàng gia ghi tên từng linh hồn khi ánh sáng của họ tắt."]],
+  ["CLOSE-UP, flashback","Young MORRIGAN stops at the last page: a line with no name, only a crown symbol.","Morrigan trẻ dừng ở trang cuối: một dòng không tên, chỉ có hình vương miện.",["c","bottom-right corner","All but one. The queen's true name was never written anywhere.","Tất cả, trừ một. Tên thật của nữ hoàng chưa từng được viết ở đâu."]]]},
+ {L:"F3 LR2 F2",c:"brunY morr",p:[
+  ["MEDIUM SHOT","MORRIGAN extends a pale hand toward Brunhild, almost kindly.","Morrigan chìa bàn tay nhợt nhạt, gần như dịu dàng.",["s","morr","top-left, beside Morrigan's head","Give it to me. Let her rest among her people.","Đưa nó cho ta. Để bà ấy được yên nghỉ cùng dân của mình."]],
+  ["CLOSE-UP","Brunhild hesitates, eyes wavering.","Brunhild do dự.",[]],
+  ["CLOSE-UP","Brunhild's eyes harden.","Ánh mắt Brunhild cứng lại.",["s","brunY","top-right, beside Brunhild's head","She told me to remember it. Not to give it away.","Người bảo ta nhớ nó. Không phải trao nó đi."]],
+  ["MEDIUM SHOT","MORRIGAN's smile turns cold; crows begin to circle.","Nụ cười Morrigan lạnh đi; bầy quạ bắt đầu lượn vòng.",["s","morr","top-left, beside Morrigan's head","Then I will take it.","Vậy ta sẽ tự lấy."]]]},
+ {L:"F4 LR2",c:"brunY morr",p:[
+  ["SPLASH PANEL, dynamic diagonal composition","Brunhild swings her huge greatsword through a tidal wave of crows charging at her; feathers and sparks fly everywhere. No blood.","Brunhild vung đại kiếm chém xuyên đợt sóng quạ; lông vũ và tia lửa bay khắp nơi.",[]],
+  ["CLOSE-UP","A crow's talons rake across Brunhild's face, a streak of crimson light across the bridge of her nose and cheeks.","Móng quạ cào ngang mặt Brunhild, để lại vệt sáng đỏ thẫm ngang sống mũi.",[]],
+  ["CLOSE-UP","Brunhild, eyes shut in pain, still gripping her sword.","Brunhild nhắm mắt vì đau, vẫn siết chặt kiếm.",["s","brunY","bottom-right, beside Brunhild's mouth","Not… yours…!","Không phải… của ngươi…!"]]]},
+ {L:"F2 LR3 F2",c:"brunY morr",p:[
+  ["MEDIUM SHOT","Brunhild on one knee, panting, a fresh horizontal scar across her nose. MORRIGAN looms above her.","Brunhild quỳ một gối thở dốc, vết sẹo mới ngang sống mũi. Morrigan đứng trên.",[]],
+  ["CLOSE-UP","MORRIGAN's fingers glowing with a dark violet sigil.","Ngón tay Morrigan sáng ấn chú tím đen.",["s","morr","top-left, beside Morrigan's head","Stubborn wolf. Then carry it until it eats you.","Con sói cứng đầu. Vậy thì mang nó cho đến khi nó nuốt ngươi."]],
+  ["CLOSE-UP","The violet sigil sinks into Brunhild's chest; grey veins spread across her armor.","Ấn chú chìm vào ngực Brunhild; vân xám lan trên giáp.",["c","bottom-left corner","The Curse of the Hollow.","Lời Nguyền Rỗng."]],
+  ["WIDE SHOT","MORRIGAN dissolves back into crows and flies away, laughing.","Morrigan tan thành bầy quạ bay đi, cười vang.",["s","morr","top-right, beside the crow cloud","When you forget your own name, I'll come for hers.","Khi ngươi quên cả tên mình, ta sẽ đến lấy tên bà ấy."]]]},
+ {L:"F2 LR2 F3",c:"brunY",p:[
+  ["WIDE SHOT, falling ash","Brunhild staggers alone across the plains, half of her armor grey, her steps heavy.","Brunhild loạng choạng một mình, nửa giáp đã xám.",["c","top-left corner","Every day she forgot something. A song. A face. The taste of bread.","Mỗi ngày nàng quên một thứ. Một bài hát. Một khuôn mặt. Vị bánh mì."]],
+  ["CLOSE-UP","Brunhild looks at her own hand, confused.","Brunhild nhìn bàn tay mình, bối rối.",["w","brunY","top-left, beside Brunhild's mouth","My mother's name was… was…","Tên mẹ ta là… là…"]],
+  ["CLOSE-UP","Brunhild clutches the scroll and whispers fiercely.","Brunhild siết chặt cuộn thư, thì thầm dữ dội.",["w","brunY","top-right, beside Brunhild's mouth","——. I will not forget YOURS.","——. Tên của người thì ta không quên."]],
+  ["WIDE SHOT","Brunhild collapses face-down in the ash. Far on the horizon, a tiny warm light glows.","Brunhild gục xuống tro. Xa nơi chân trời, một đốm sáng ấm le lói.",[]]]},
+ {L:"F3 LR2 F2",c:"brunY keeper",p:[
+  ["MEDIUM SHOT, warm firelight","Brunhild wakes up lying beside a bonfire inside a roofless ruined shrine; a woolen blanket covers her.","Brunhild tỉnh dậy bên đống lửa trong đền đổ, đắp chăn len.",[]],
+  ["MEDIUM SHOT","THE FIRE KEEPER of that age sits by the fire, humming softly, stirring a small pot.","Người Giữ Lửa thời ấy ngồi bên lửa, ngân nga, khuấy nồi.",["s","keeper","top-left, beside the Keeper's head","You were very cold. Eat something.","Ngươi lạnh lắm đấy. Ăn chút gì đi."]],
+  ["CLOSE-UP","Brunhild, dazed.","Brunhild ngơ ngác.",["s","brunY","top-right, beside Brunhild's head","Where… is this?","Đây… là đâu?"]],
+  ["WIDE SHOT","The shrine with the great bonfire at its center, a coiled sword planted in the flames.","Ngôi đền với đống lửa lớn ở giữa, thanh kiếm cắm trong lửa.",["s","keeper","top-left, beside the Keeper's head","The Last Bonfire. Everyone who is lost ends up here.","Đống Lửa Cuối Cùng. Ai lạc lối rồi cũng tới đây."]]]},
+ {L:"F2 LR3 F2",c:"brunY keeper",p:[
+  ["MEDIUM SHOT","The Keeper gently touches the grey veins on Brunhild's arm; they fade a little in the warmth.","Người Giữ Lửa chạm vào vân xám trên tay Brunhild; chúng mờ đi.",["s","keeper","top-left, beside the Keeper's head","A curse of forgetting. You've been fighting it with something.","Lời nguyền quên lãng. Ngươi đã chống lại nó bằng thứ gì đó."]],
+  ["CLOSE-UP","Brunhild touches the scroll at her belt protectively.","Brunhild che lấy cuộn thư ở thắt lưng.",["s","brunY","top-right, beside Brunhild's head","A name. I keep it for someone.","Một cái tên. Ta giữ nó cho một người."]],
+  ["CLOSE-UP","The Keeper smiles sadly.","Người Giữ Lửa mỉm cười buồn.",["s","keeper","top-left, beside the Keeper's head","Then stay. Keep it here, where it's warm.","Vậy thì ở lại. Giữ nó ở đây, nơi có hơi ấm."]],
+  ["WIDE SHOT","Night; the two women sit on opposite sides of the bonfire, sparks rising between them.","Đêm; hai người ngồi hai bên đống lửa, tàn lửa bay lên.",["c","bottom-right corner","And so the wolf found a fire to guard again.","Và thế là con sói lại có một ngọn lửa để canh."]]]},
+ {L:"F2 F2 F3",c:"brunY keeper",p:[
+  ["CLOSE-UP","The Keeper's left hand resting on her knee near the fire: on her finger, a silver ring shaped like two folded night wings.","Bàn tay trái Người Giữ Lửa: chiếc nhẫn bạc hình đôi cánh đêm.",[]],
+  ["CLOSE-UP","Brunhild glances at the ring with curiosity.","Brunhild tò mò nhìn chiếc nhẫn.",["s","brunY","top-left, beside Brunhild's head","That ring…","Chiếc nhẫn đó…"]],
+  ["MEDIUM SHOT","The Keeper looks toward the dark entrance of the shrine, waiting for someone, her golden eyes soft and lonely.","Người Giữ Lửa nhìn về cửa đền tối, như đang chờ ai, đôi mắt vàng dịu dàng và cô đơn.",["s","keeper","top-right, beside the Keeper's head","A promise. Someone said he'd come back.","Một lời hứa. Có người đã nói sẽ quay về."],["c","bottom-left corner","End of Season 1 — Part One.","Hết Mùa 1 — Phần Một."]]]},
+ ]},
+{id:"c04",s:1,no:4,n:{vi:"Ngọn Nến Ở Cổng Bắc",en:"The Candle at the North Gate"},u:{seen:"gwyndra"},
+ sum:{vi:"Ba trăm năm canh một cánh cổng không còn ai cần vào. Gwyndra không nhớ tên mình — nhưng chưa từng quên lệnh của nữ hoàng.",en:"Three hundred years guarding a gate no one needs. Gwyndra forgot her own name — but never the queen's order."},
+ pages:[
+ {L:"F3 LR2 F2",c:"gwyp",p:[
+  ["WIDE SHOT, grey dawn","The north gate of dead Aldrenn under the first ash. Young GWYNDRA stands alone before the huge closed gate, greatsword planted point-down.","Năm đầu: Gwyndra một mình trước cổng bắc.",["c","top-left corner","Year one. The gatekeeper.","Năm thứ nhất. Người gác cổng."]],
+  ["CLOSE-UP","Young GWYNDRA polishing her armor with a cloth, humming.","Gwyndra lau giáp, ngân nga.",[]],
+  ["MEDIUM SHOT","GWYNDRA looks down the empty road toward the furnace-tower, smiling faintly.","Gwyndra nhìn con đường vắng về phía tháp Lò Lửa.",["s","gwyp","top-right, beside Gwyndra's head","You'll be back by spring, my queen. I'll keep it clean for you.","Đến xuân người sẽ về, thưa nữ hoàng. Thần sẽ giữ nơi này sạch sẽ."]],
+  ["WIDE SHOT","Seasons pass in one image: the same spot, snow of ash piling higher; Gwyndra unmoved.","Mùa nối mùa, tro chồng lên tro; Gwyndra không nhúc nhích.",["c","bottom-right corner","Spring did not come. It never would again.","Mùa xuân không đến. Sẽ không bao giờ đến nữa."]]]},
+ {L:"F2 LR3 F3",c:"gwyp",p:[
+  ["CLOSE-UP","A crack in the stones at the foot of the gate glows faintly orange — a vein of fire still alive under the city.","Khe đá dưới chân cổng còn ánh cam — Mạch Lửa vẫn sống.",["c","top-left corner","Year ten.","Năm thứ mười."]],
+  ["MEDIUM SHOT","Shivering, GWYNDRA kneels and lays the blade of her greatsword across the glowing crack.","Gwyndra run rẩy quỳ xuống, đặt lưỡi kiếm lên khe sáng.",[]],
+  ["CLOSE-UP","Fire climbs along the blade; the greatsword ignites with orange-red flame.","Lửa leo dọc lưỡi kiếm; đại kiếm bốc cháy.",[]],
+  ["MEDIUM SHOT, low angle","GWYNDRA stands with her burning greatsword, the only light in the grey world, eyes wet.","Gwyndra đứng dậy với thanh kiếm cháy, ánh sáng duy nhất giữa thế giới xám.",["s","gwyp","top-left, beside Gwyndra's head","The last of your fire, my queen. I will carry it.","Chút lửa cuối cùng của người. Thần sẽ mang nó."]]]},
+ {L:"F3 LR2 F2",c:"gwyh hollow",p:[
+  ["WIDE SHOT","Year twenty-five: hollow soldiers in rusty wolf armor shamble toward the gate, moaning, wanting in.","Năm hai mươi lăm: binh Rỗng lê bước về phía cổng.",["c","top-left corner","Year twenty-five. Her sisters came home.","Năm thứ hai mươi lăm. Các chị em nàng trở về."]],
+  ["CLOSE-UP","GWYNDRA's face — paler now, eyes beginning to glow orange — recognizing a hollow soldier's wolf emblem.","Mắt Gwyndra bắt đầu ánh cam, nhận ra huy hiệu sói.",[]],
+  ["MEDIUM SHOT","GWYNDRA raises her burning greatsword to block them, her hands trembling.","Gwyndra giơ kiếm chặn, tay run.",["s","gwyh","top-right, beside Gwyndra's head","Stand back. The queen has not given leave.","Lùi lại. Nữ hoàng chưa cho phép."]],
+  ["WIDE SHOT","The hollows turn away into the ash. GWYNDRA lowers her sword; a tear of light falls from one glowing eye.","Binh Rỗng quay đi; một giọt lệ sáng rơi từ mắt Gwyndra.",[]]]},
+ {L:"F2 LR3 F2",c:"gwyh",p:[
+  ["MEDIUM SHOT","A hooded old woman with a lantern hobbles to the gate and looks up at Gwyndra.","Một bà lão trùm mũ cầm đèn tới cổng.",["s","none","top-left, beside the old woman's head","My daughter lived inside. May I visit her grave?","Con gái ta sống trong đó. Ta vào thăm mộ nó được không?"]],
+  ["CLOSE-UP","GWYNDRA, pained, shakes her head slowly.","Gwyndra đau đớn lắc đầu.",["s","gwyh","top-right, beside Gwyndra's head","…Stand back.","…Lùi lại."]],
+  ["CLOSE-UP","The old woman kneels and places a small lit candle at the foot of the gate, then bows.","Bà lão đặt ngọn nến dưới chân cổng rồi cúi đầu.",["s","none","top-left, beside the old woman's head","Then let this go in for me.","Vậy để thứ này vào thay ta."]],
+  ["WIDE SHOT","The old woman walks away. GWYNDRA stares at the tiny flame.","Bà lão bỏ đi. Gwyndra nhìn ngọn lửa nhỏ.",["c","bottom-right corner","She never came back. The candle stayed.","Bà không bao giờ quay lại. Ngọn nến thì ở lại."]]]},
+ {L:"F2 F2 F3",c:"gwyh",p:[
+  ["CLOSE-UP, night","The candle has burned down to a stub and gone out.","Ngọn nến cháy hết và tắt.",[]],
+  ["CLOSE-UP","GWYNDRA kneels and relights the candle stub with the tip of her burning sword, very gently.","Gwyndra quỳ xuống dùng mũi kiếm thắp lại ngọn nến, rất nhẹ nhàng.",[]],
+  ["WIDE SHOT, a montage of nights","Many small images of the same moment over the years: Gwyndra relighting the candle night after night, her armor slowly blackening, her red cape fraying.","Đêm nối đêm, Gwyndra thắp lại ngọn nến; giáp đen dần, áo choàng sờn rách.",["c","top-left corner","Every night. For two hundred and fifty years.","Mỗi đêm. Suốt hai trăm năm mươi năm."],["c","bottom-right corner","She forgot her own name. Not the candle. Not the order.","Nàng quên cả tên mình. Nhưng không quên ngọn nến. Không quên mệnh lệnh."]]]},
+ {L:"F3 LR2 F2",c:"gwyh kaede",p:[
+  ["WIDE SHOT, moonlight through ash","A swordswoman in a white kimono with red maple leaves walks up the dead road to the gate, a katana with a red ribbon at her hip.","Một nữ kiếm khách áo trắng lá phong bước tới cổng.",["c","top-left corner","Year two hundred and ninety-one.","Năm thứ hai trăm chín mươi mốt."]],
+  ["CLOSE-UP","KAEDE's calm, determined face.","Gương mặt bình thản, kiên quyết của Kaede.",["s","kaede","top-left, beside Kaede's head","I've crossed the Ash Sea to speak with the queen of Aldrenn.","Ta vượt Biển Tro để gặp nữ hoàng Aldrenn."]],
+  ["CLOSE-UP","GWYNDRA's glowing empty eyes.","Đôi mắt rỗng sáng của Gwyndra.",["s","gwyh","top-right, beside Gwyndra's head","The queen receives no one. Stand back.","Nữ hoàng không tiếp ai. Lùi lại."]],
+  ["MEDIUM SHOT","KAEDE bows politely but does not step back.","Kaede cúi chào lễ phép nhưng không lùi.",["s","kaede","top-left, beside Kaede's head","The ash is reaching my homeland. I cannot go back without an answer.","Tro đang lan tới quê ta. Không có câu trả lời, ta không thể về."]]]},
+ {L:"F4 LR2",c:"gwyh kaede",p:[
+  ["SPLASH PANEL, dynamic composition","KAEDE and GWYNDRA clash in front of the gate: katana against burning greatsword, a huge burst of sparks and embers between them, ash swirling. No blood.","Kaede và Gwyndra giao kiếm trước cổng; tia lửa bùng lên.",[]],
+  ["CLOSE-UP","KAEDE's katana — she deliberately turns the blade aside at the last moment, refusing to strike Gwyndra's open neck.","Kaede cố tình lệch lưỡi kiếm, không chém vào cổ Gwyndra đang hở.",[]],
+  ["CLOSE-UP","GWYNDRA's eyes widen as her own swing cannot be stopped.","Mắt Gwyndra mở to khi đường kiếm của mình không dừng được.",[]]]},
+ {L:"F2 LR3 F2",c:"gwyh kaede",p:[
+  ["MEDIUM SHOT","KAEDE lies still in the ash, peaceful, her katana beside her; GWYNDRA kneels beside her, shocked. Only falling embers, no wounds shown.","Kaede nằm bất động trong tro; Gwyndra quỳ bên, sững sờ.",[]],
+  ["CLOSE-UP","KAEDE smiles faintly up at Gwyndra.","Kaede khẽ mỉm cười.",["w","kaede","top-left, beside Kaede's mouth","You held back too… gatekeeper.","Ngươi cũng đã nương tay… người gác cổng."]],
+  ["CLOSE-UP","KAEDE's hand touching the red ribbon on her katana.","Tay Kaede chạm vào dải ruy băng đỏ.",["w","kaede","top-right, beside Kaede's mouth","If a girl named Tsubaki comes… tell her: a sword is for protecting.","Nếu có cô gái tên Tsubaki tới… hãy nói: kiếm là để bảo vệ."]],
+  ["WIDE SHOT","GWYNDRA holds Kaede's hand as the light leaves her eyes; ash falls quietly.","Gwyndra nắm tay Kaede; tro rơi lặng lẽ.",[]]]},
+ {L:"F3 F2 F2",c:"gwyh",p:[
+  ["MEDIUM SHOT","Beside the gate, GWYNDRA stacks stones into a small grave and plants Kaede's katana in it, the red ribbon fluttering.","Gwyndra xếp đá thành ngôi mộ, cắm thanh kiếm buộc ruy băng đỏ.",[]],
+  ["CLOSE-UP","GWYNDRA places the candle beside the grave and relights it.","Gwyndra đặt ngọn nến cạnh mộ và thắp lại.",["s","gwyh","top-left, beside Gwyndra's head","Tsubaki. A sword is for protecting. I will remember.","Tsubaki. Kiếm là để bảo vệ. Ta sẽ nhớ."]],
+  ["WIDE SHOT, far view from a hill","Far away on a hill, a tall white-haired woman in black wolf armor (BRUNHILD) watches the gate in silence.","Xa trên đồi, Brunhild lặng lẽ nhìn về cổng.",["c","bottom-right corner","Someone else was watching too.","Có người khác cũng đang dõi theo."]]]},
+ ]},
+{id:"c05",s:1,no:5,n:{vi:"Lời Hứa Của Người Giữ Lửa",en:"The Keeper's Promise"},u:{seen:"nyx"},
+ sum:{vi:"Ngọn lửa ba trăm năm sắp tàn. Một Kẻ Tro Tàn tìm đến Đống Lửa Cuối Cùng — và Người Giữ Lửa lần đầu tiên biết yêu.",en:"The three-hundred-year flame is dying. An Ashen One reaches the Last Bonfire — and the Keeper falls in love for the first time."},
+ pages:[
+ {L:"F3 LR2 F2",c:"keeper brun",p:[
+  ["WIDE SHOT, the shrine at night","The Last Bonfire is much smaller now, barely knee-high. THE FIRE KEEPER feeds it twigs; BRUNHILD (now with her scar) sits guard at the entrance.","Đống lửa nhỏ hẳn; Người Giữ Lửa thêm củi, Brunhild canh cửa.",["c","top-left corner","Year two hundred and ninety-seven.","Năm thứ hai trăm chín mươi bảy."]],
+  ["CLOSE-UP","The Keeper's worried face lit from below by the weak fire.","Gương mặt lo âu của Người Giữ Lửa.",["s","keeper","top-left, beside the Keeper's head","The queen's gift is running out.","Món quà của nữ hoàng sắp cạn rồi."]],
+  ["CLOSE-UP","BRUNHILD grips the scroll at her belt, jaw tight.","Brunhild siết cuộn thư ở thắt lưng.",[]],
+  ["WIDE SHOT","At the dark doorway, a figure in a ragged ash-grey hooded cloak appears, face hidden in shadow, holding a tiny ember.","Ở cửa đền, một bóng người trùm mũ tro xuất hiện, cầm đốm than nhỏ.",["c","bottom-right corner","And then, an Ashen One came.","Rồi một Kẻ Tro Tàn tìm đến."]]]},
+ {L:"F2 LR2 F3",c:"keeper brun ashen",p:[
+  ["MEDIUM SHOT","BRUNHILD steps between the stranger and the fire, greatsword raised.","Brunhild chắn trước người lạ, giơ kiếm.",["s","brun","top-left, beside Brunhild's head","Name yourself.","Xưng tên."]],
+  ["MEDIUM SHOT","The hooded Ashen One spreads his empty hands; his face stays in shadow.","Kẻ Tro Tàn xoè tay không; mặt vẫn chìm trong bóng tối.",["s","ashen","top-right, beside the hooded figure","I don't remember it. I only remember I had to come here.","Ta không nhớ tên. Chỉ nhớ là phải đến đây."]],
+  ["CLOSE-UP","The Keeper places a hand on Brunhild's arm, smiling.","Người Giữ Lửa đặt tay lên tay Brunhild, mỉm cười.",["s","keeper","top-left, beside the Keeper's head","Let him in, Brunhild. Everyone who is lost ends up here.","Cho hắn vào đi, Brunhild. Ai lạc lối rồi cũng tới đây."]],
+  ["WIDE SHOT","The three of them by the small fire; the Ashen One adds his tiny ember, and the flame rises a little.","Ba người bên đống lửa nhỏ; Kẻ Tro Tàn thêm đốm than, ngọn lửa nhích lên.",[]]]},
+ {L:"F3 LR2 F2",c:"keeper ashen",p:[
+  ["MEDIUM SHOT, warm","The Keeper and the hooded Ashen One sit side by side; she teaches him a simple song, he tries to hum along clumsily.","Người Giữ Lửa dạy hắn hát; hắn ngân nga vụng về.",["c","top-left corner","He stayed. Days became seasons.","Hắn ở lại. Ngày thành mùa."]],
+  ["CLOSE-UP","The Keeper laughing for the first time, eyes bright.","Người Giữ Lửa bật cười lần đầu tiên.",[]],
+  ["CLOSE-UP","Her hand and his gloved hand almost touching on the stone step.","Bàn tay nàng và bàn tay đeo găng của hắn gần chạm nhau trên bậc đá.",[]],
+  ["WIDE SHOT","From the doorway, BRUNHILD watches them with a small, rare smile, then turns away to give them privacy.","Brunhild đứng ở cửa mỉm cười hiếm hoi, rồi quay đi.",["c","bottom-right corner","The wolf had never seen the Keeper laugh before.","Con sói chưa từng thấy Người Giữ Lửa cười."]]]},
+ {L:"F2 LR3 F2",c:"keeper ashen",p:[
+  ["MEDIUM SHOT, night, embers","The Keeper rests her forehead against the Ashen One's shoulder; his cloak drapes around both of them by the fire.","Người Giữ Lửa tựa trán vào vai hắn; áo choàng hắn phủ lấy cả hai.",[]],
+  ["CLOSE-UP","She slides the silver night-wing ring from her own finger onto his gloved finger.","Nàng tháo chiếc nhẫn cánh đêm đeo vào ngón tay đeo găng của hắn.",["w","keeper","top-left, beside the Keeper's mouth","So you can find your way back to me.","Để chàng tìm được đường về với em."]],
+  ["CLOSE-UP","He closes his gloved hand around the ring.","Bàn tay đeo găng nắm lấy chiếc nhẫn.",[]],
+  ["WIDE SHOT","The fire burns low and warm; the two silhouettes close together; a candle beside them goes out softly.","Lửa cháy thấp và ấm; hai bóng người tựa sát; ngọn nến bên cạnh tắt dịu dàng.",[]]]},
+ {L:"F3 LR2 F2",c:"keeper ashen brun",p:[
+  ["WIDE SHOT","Morning: the bonfire has shrunk to a few embers; the whole sky outside is black; frost on the stones.","Sáng hôm sau: đống lửa chỉ còn vài hòn than; trời đen kịt, đá đóng sương.",["c","top-left corner","Year three hundred. The light ran out.","Năm thứ ba trăm. Ánh sáng cạn."]],
+  ["CLOSE-UP","The Keeper kneeling, desperately cupping the last embers with her hands.","Người Giữ Lửa quỳ, tuyệt vọng ôm lấy mấy hòn than cuối.",[]],
+  ["MEDIUM SHOT","The hooded Ashen One stands up, looking at the coiled sword planted in the dying fire.","Kẻ Tro Tàn đứng dậy, nhìn thanh kiếm cắm trong lửa tàn.",["s","ashen","top-right, beside the hooded figure","An Ashen One is fuel. That's what we are for.","Kẻ Tro Tàn là củi. Chúng ta sinh ra để làm việc đó."]],
+  ["CLOSE-UP","The Keeper's horrified face.","Người Giữ Lửa kinh hoàng.",["s","keeper","top-left, beside the Keeper's head","No. No, please. Find another way.","Không. Xin chàng. Tìm cách khác đi."]]]},
+ {L:"F2 LR3 F2",c:"keeper ashen",p:[
+  ["MEDIUM SHOT","The Ashen One cups her face with his gloved hands; we see only the back of his hood.","Hắn ôm mặt nàng; chỉ thấy phía sau mũ trùm của hắn.",["s","ashen","top-right, beside the hooded figure","I'll light it. Then I'll come back. I promise.","Ta sẽ thắp nó. Rồi ta sẽ về. Ta hứa."]],
+  ["CLOSE-UP","Tears running down the Keeper's cheeks; her golden eyes shining.","Nước mắt lăn trên má nàng.",[]],
+  ["CLOSE-UP","The night-wing ring glinting on his finger as he lets go of her hand.","Chiếc nhẫn lấp lánh trên tay hắn khi buông tay nàng.",[]],
+  ["WIDE SHOT, from behind","The Ashen One walks toward the coiled sword in the fire, his back to us.","Kẻ Tro Tàn quay lưng bước về phía thanh kiếm trong lửa.",[]]]},
+ {L:"F4 F2",c:"keeper brun",p:[
+  ["SPLASH PANEL, blinding light","A colossal pillar of golden fire bursts up from the bonfire through the broken roof into the black sky; the hooded silhouette inside it dissolves into light; the Keeper and Brunhild are thrown back, shielding their eyes.","Cột lửa vàng khổng lồ bùng lên xuyên trời; bóng người tan vào ánh sáng.",["c","top-left corner","The Age of Fire began again.","Kỷ Nguyên Lửa lại bắt đầu."]],
+  ["WIDE SHOT","Outside, the sky turns grey instead of black: a dim sun, like a burn mark, appears behind the ash.","Bên ngoài, trời từ đen chuyển xám: mặt trời mờ như vết bỏng hiện sau lớp tro.",["c","bottom-right corner","The light returned. He did not.","Ánh sáng trở lại. Hắn thì không."]]]},
+ {L:"F3 LR2 F2",c:"keeper brun",p:[
+  ["WIDE SHOT","The Keeper sits at the shrine entrance, looking down the empty road, a cloak over her shoulders.","Người Giữ Lửa ngồi ở cửa đền nhìn con đường vắng.",["c","top-left corner","She waited.","Nàng chờ."]],
+  ["CLOSE-UP","Her face, thinner, eyes dull; she clutches the silver night-wing ring — the only thing left in the cold ashes.","Gương mặt nàng gầy đi; nàng nắm chặt chiếc nhẫn cánh đêm — thứ duy nhất còn lại trong tro.",["w","keeper","top-left, beside the Keeper's mouth","You promised…","Chàng đã hứa…"]],
+  ["MEDIUM SHOT","BRUNHILD offers her a bowl of food; the Keeper does not look at it.","Brunhild đưa bát ăn; nàng không nhìn.",["s","brun","top-right, beside Brunhild's head","Eat. Please.","Ăn đi. Ta xin ngươi."]],
+  ["CLOSE-UP","The Keeper glares at the bonfire with a cold, hateful look — for the first time.","Người Giữ Lửa nhìn đống lửa bằng ánh mắt lạnh lùng căm ghét — lần đầu tiên.",["s","keeper","top-left, beside the Keeper's head","It ate him. It eats everyone.","Nó đã ăn chàng. Nó ăn tất cả mọi người."]]]},
+ {L:"F2 LR3 F3",c:"keeper brun sera",p:[
+  ["MEDIUM SHOT, night","The Keeper kneels beside a young woman lying unconscious by the fire: long grey hair, white blindfold over her eyes, tattered grey cloak (SERAPHINE).","Người Giữ Lửa quỳ bên một cô gái bất tỉnh: tóc xám, mắt bịt băng trắng.",["c","top-left corner","One night, a blind girl was found in the ash.","Một đêm, người ta tìm thấy một cô gái mù trong tro."]],
+  ["CLOSE-UP","The Keeper's hand, wearing the silver night-wing ring again, places an old iron key into Seraphine's palm.","Bàn tay Người Giữ Lửa đặt chiếc chìa khoá sắt cũ vào lòng bàn tay Seraphine.",[]],
+  ["CLOSE-UP","The Keeper whispers to the sleeping girl.","Nàng thì thầm với cô gái đang ngủ.",["w","keeper","top-right, beside the Keeper's mouth","Keep it better than I did.","Hãy giữ nó tốt hơn ta."]],
+  ["WIDE SHOT","The Keeper walks away from the shrine toward a dark stairway leading down into violet mist. BRUNHILD runs after her.","Người Giữ Lửa bước về phía cầu thang tối dẫn xuống làn sương tím; Brunhild đuổi theo.",["s","brun","top-left, beside Brunhild's head","Where are you going?!","Ngươi đi đâu vậy?!"]]]},
+ {L:"F3 F2 F2",c:"keeper brun",p:[
+  ["MEDIUM SHOT","At the top of the stairs, the Keeper looks back over her shoulder; violet light rising from below, her hair stirring.","Trên đầu cầu thang, nàng ngoái lại; ánh tím dâng lên từ bên dưới.",["s","keeper","top-left, beside the Keeper's head","To find a world where no one has to burn.","Đi tìm một thế giới không ai phải cháy."]],
+  ["CLOSE-UP","BRUNHILD reaching out a hand, too late.","Brunhild vươn tay ra, quá muộn.",[]],
+  ["WIDE SHOT","Only violet mist remains on the empty stairs. Behind Brunhild, the blind girl at the fire begins to stir.","Chỉ còn sương tím trên cầu thang. Sau lưng Brunhild, cô gái mù bên đống lửa cựa mình.",["c","bottom-right corner","Brunhild never told Seraphine whose key she held.","Brunhild chưa từng kể với Seraphine chiếc chìa khoá ấy là của ai."]]]},
+ ]},
+{id:"c06",s:1,no:6,n:{vi:"Kiếm Phương Đông",en:"The Eastern Blade"},u:{met:"tsub"},
+ sum:{vi:"Từ xứ Hoa Tàn bên kia Biển Tro, Tsubaki đến Aldrenn để chém kẻ đã giết sư tỷ. Thứ nàng tìm thấy là một ngọn nến.",en:"From the Land of Fading Blossoms beyond the Ash Sea, Tsubaki comes to Aldrenn to kill her sword-sister's slayer. What she finds is a candle."},
+ pages:[
+ {L:"F3 LR2 F2",c:"tsub kaede",p:[
+  ["WIDE SHOT, soft dusk, flashback colors","A mountain dojo in the East under blooming trees whose petals are turning grey at the edges; red torii gates.","Hồi tưởng: võ đường phương Đông dưới tán hoa đang xám dần ở mép.",["c","top-left corner","The Land of Fading Blossoms, beyond the Ash Sea.","Xứ Hoa Tàn, bên kia Biển Tro."]],
+  ["MEDIUM SHOT","KAEDE and TSUBAKI spar with wooden swords; Tsubaki is aggressive, Kaede calm.","Kaede và Tsubaki đấu kiếm gỗ; Tsubaki hung hăng, Kaede điềm tĩnh.",[]],
+  ["CLOSE-UP","KAEDE taps Tsubaki's forehead with her wooden sword, smiling.","Kaede gõ kiếm gỗ lên trán Tsubaki, mỉm cười.",["s","kaede","top-left, beside Kaede's head","Again you swing to win. A sword is for protecting.","Lại chém để thắng rồi. Kiếm là để bảo vệ."]],
+  ["CLOSE-UP","TSUBAKI pouting, rubbing her forehead.","Tsubaki phụng phịu xoa trán.",["s","tsub","top-right, beside Tsubaki's head","Protecting is for people who can't win.","Bảo vệ là việc của người không thắng nổi."]]]},
+ {L:"F2 LR3 F2",c:"tsub kaede",p:[
+  ["WIDE SHOT","Grey ash falling on the blossom trees for the first time; villagers looking up in fear.","Tro lần đầu rơi trên rặng hoa; dân làng sợ hãi ngước nhìn.",["c","top-left corner","Then the ash reached the East.","Rồi tro lan tới phương Đông."]],
+  ["MEDIUM SHOT","KAEDE packs a travel bag at night, her katana with the red ribbon beside her.","Kaede chuẩn bị hành lý trong đêm.",[]],
+  ["CLOSE-UP","KAEDE ties a matching red ribbon around Tsubaki's wrist while she sleeps.","Kaede buộc dải ruy băng đỏ lên cổ tay Tsubaki đang ngủ.",["w","kaede","top-left, beside Kaede's mouth","I'll find the queen of the West and ask her how to stop it.","Ta sẽ tìm nữ hoàng phương Tây, hỏi cách ngăn nó lại."]],
+  ["WIDE SHOT","At dawn, TSUBAKI wakes to an empty room and the ribbon on her wrist.","Sáng ra, Tsubaki tỉnh dậy trong căn phòng trống, ruy băng trên cổ tay.",[]]]},
+ {L:"F3 LR2 F2",c:"tsub",p:[
+  ["WIDE SHOT","Years later: a ragged traveler stumbles into the dojo and hands Tsubaki a scrap of red maple-leaf cloth.","Nhiều năm sau, một lữ khách đưa cho Tsubaki mảnh vải lá phong đỏ.",["c","top-left corner","Years later.","Nhiều năm sau."]],
+  ["CLOSE-UP","The traveler, exhausted.","Lữ khách kiệt sức.",["s","none","top-left, beside the traveler's head","She fell at the north gate of Aldrenn. The gatekeeper killed her.","Nàng ấy gục ở cổng bắc Aldrenn. Kẻ gác cổng đã giết nàng."]],
+  ["CLOSE-UP","TSUBAKI's eyes, red and burning with rage.","Mắt Tsubaki đỏ rực căm hận.",[]],
+  ["MEDIUM SHOT","TSUBAKI draws her katana halfway; the red ribbon on her wrist trembles.","Tsubaki rút kiếm nửa chừng; ruy băng đỏ trên cổ tay run lên.",["s","tsub","top-right, beside Tsubaki's head","Then I will cut down the gatekeeper.","Vậy ta sẽ chém kẻ gác cổng."]]]},
+ {L:"F4 F2",c:"tsub",p:[
+  ["SPLASH PANEL","A tiny wooden boat on an endless grey sea of ash under a dead sky, ghostly shipwrecks half-sunk around it. TSUBAKI stands at the prow, red scarf flying.","Con thuyền nhỏ trên Biển Tro mênh mông, xác tàu ma xung quanh; Tsubaki đứng mũi thuyền.",["c","top-left corner","The Ash Sea. Forty days without sunrise.","Biển Tro. Bốn mươi ngày không có bình minh."]],
+  ["CLOSE-UP","TSUBAKI drinks from her gourd, eyes fixed on the horizon where a dark coastline appears.","Tsubaki uống rượu, mắt dán vào đường bờ biển tối phía chân trời.",[]]]},
+ {L:"F3 LR2 F2",c:"tsub gwyh",p:[
+  ["WIDE SHOT","TSUBAKI walks up the dead road to the north gate of Aldrenn; hollow GWYNDRA stands before it, burning greatsword in hand.","Tsubaki bước tới cổng bắc; Gwyndra Rỗng đứng chờ.",["c","top-left corner","Year three hundred and four.","Năm thứ ba trăm lẻ bốn."]],
+  ["CLOSE-UP","TSUBAKI's hand on her katana hilt, thumb pushing the guard.","Ngón cái Tsubaki đẩy chắn kiếm.",["s","tsub","top-left, beside Tsubaki's head","You are the gatekeeper.","Ngươi là kẻ gác cổng."]],
+  ["CLOSE-UP","GWYNDRA's glowing eyes.","Mắt sáng của Gwyndra.",["s","gwyh","top-right, beside Gwyndra's head","Stand back. The queen has not given leave.","Lùi lại. Nữ hoàng chưa cho phép."]],
+  ["MEDIUM SHOT","TSUBAKI drops into a deep drawing stance, ash swirling around her feet.","Tsubaki hạ thấp người vào thế rút kiếm, tro xoáy quanh chân.",[]]]},
+ {L:"F2 LR3 F3",c:"tsub gwyh",p:[
+  ["CLOSE-UP","At the edge of her vision: a small stone grave beside the gate, with a white-hilted katana planted in it.","Khoé mắt nàng thấy ngôi mộ đá nhỏ cạnh cổng, cắm thanh kiếm chuôi trắng.",[]],
+  ["CLOSE-UP","A RED ribbon on that katana flutters — identical to the one on Tsubaki's wrist.","Dải ruy băng đỏ trên thanh kiếm — giống hệt dải trên cổ tay Tsubaki.",[]],
+  ["CLOSE-UP","A freshly lit candle burning at the foot of the grave.","Ngọn nến mới thắp dưới chân mộ.",[]],
+  ["MEDIUM SHOT","TSUBAKI freezes, her stance breaking, eyes trembling.","Tsubaki đứng sững, thế kiếm vỡ, mắt run lên.",["s","tsub","top-left, beside Tsubaki's head","…Who lights that candle?","…Ai thắp ngọn nến đó?"]]]},
+ {L:"F2 F2 F3",c:"tsub gwyh",p:[
+  ["CLOSE-UP","GWYNDRA looks down at the grave; her empty eyes soften.","Gwyndra nhìn xuống ngôi mộ; ánh mắt rỗng dịu lại.",["s","gwyh","top-right, beside Gwyndra's head","She wanted in. I told her to stand back. She did not.","Nàng ấy muốn vào. Ta bảo lùi lại. Nàng ấy không lùi."]],
+  ["CLOSE-UP","GWYNDRA turns her glowing eyes to Tsubaki, as if remembering something.","Gwyndra nhìn Tsubaki như nhớ ra điều gì.",["s","gwyh","top-right, beside Gwyndra's head","Are you… Tsubaki?","Ngươi… là Tsubaki?"]],
+  ["MEDIUM SHOT","TSUBAKI's face, tears starting.","Gương mặt Tsubaki, nước mắt bắt đầu rơi.",["s","gwyh","top-right, beside Gwyndra's head","She asked me to tell you: a sword is for protecting.","Nàng ấy nhờ ta nói với ngươi: kiếm là để bảo vệ."]]]},
+ {L:"F3 LR2 F2",c:"tsub gwyh",p:[
+  ["MEDIUM SHOT","TSUBAKI kneels before the grave, forehead touching the stones, shoulders shaking.","Tsubaki quỳ trước mộ, trán chạm đá, vai run.",[]],
+  ["CLOSE-UP","Her hand slowly releasing the katana hilt.","Bàn tay nàng từ từ rời chuôi kiếm.",[]],
+  ["CLOSE-UP","TSUBAKI unties the red ribbon from her wrist and ties it beside Kaede's on the grave katana.","Tsubaki tháo ruy băng ở cổ tay, buộc cạnh dải của Kaede.",["w","tsub","top-right, beside Tsubaki's mouth","You never let me win, sister. Not even now.","Tỷ chưa bao giờ để muội thắng. Đến giờ cũng vậy."]],
+  ["WIDE SHOT","GWYNDRA stands guard behind her in silence, her burning sword casting warm light over them both.","Gwyndra đứng gác phía sau trong im lặng, ánh kiếm lửa sưởi ấm cả hai.",["c","bottom-right corner","Tsubaki did not draw her sword.","Tsubaki không rút kiếm."]]]},
+ {L:"F2 LR2 F3",c:"tsub brun",p:[
+  ["WIDE SHOT, dusk","TSUBAKI walks away from the gate. On the hill ahead, a tall white-haired woman in black wolf armor waits, arms crossed.","Tsubaki rời cổng. Trên đồi, Brunhild khoanh tay chờ.",[]],
+  ["MEDIUM SHOT","BRUNHILD nods toward the gate.","Brunhild hất đầu về phía cổng.",["s","brun","top-left, beside Brunhild's head","She lights that candle every night. Has for almost three hundred years.","Đêm nào cô ấy cũng thắp nến. Gần ba trăm năm rồi."]],
+  ["MEDIUM SHOT","TSUBAKI wipes her eyes, studying the stranger.","Tsubaki lau nước mắt, nhìn người lạ.",["s","tsub","top-right, beside Tsubaki's head","Who are you?","Ngươi là ai?"]],
+  ["WIDE SHOT","BRUNHILD turns and walks toward a faint warm glow on the horizon; after a moment, Tsubaki follows.","Brunhild quay đi về phía ánh sáng ấm nơi chân trời; Tsubaki đi theo.",["s","brun","top-left, beside Brunhild's head","Someone who also failed to protect. Come. There's a fire.","Một kẻ cũng đã không bảo vệ được ai. Đi thôi. Có lửa đấy."],["c","bottom-right corner","End of Season 1.","Hết Mùa 1."]]]},
+ ]},
 ];
-// tập sắp tới (đã có dàn ý trong Kinh Thư — hiện "sắp ra mắt")
 const SOON=[
- {no:7,n:{vi:"Bánh Mì Dưới Cống",en:"Bread Beneath the Sewers"}},{no:8,n:{vi:"Chiếc Khăn Của Kẻ Đi Đầu",en:"The First One's Scarf"}},
- {no:9,n:{vi:"Chuông Câm",en:"The Silent Bell"}},{no:10,n:{vi:"“Đừng tin cổng bắc”",en:"“Don't trust the north gate”"}},
- {no:11,n:{vi:"Ba Trăm Năm",en:"Three Hundred Years"}},{no:12,n:{vi:"Chiếc Nhẫn Cánh Đêm",en:"The Ring of Night Wings"}},
+ {no:7,n:{vi:"Mùa 2 · Thánh Ca Dưới Lòng Đất",en:"Season 2 · Hymns Beneath the Earth"}},{no:8,n:{vi:"Mùa 2 · Cuốn Sổ Hiến Tế",en:"Season 2 · The Ledger of Offerings"}},
 ];
+// mở rộng định dạng gọn → cấu trúc đầy đủ
+const EPS=CH.map(c=>({...c,kind:{vi:"Chương "+c.no,en:"Chapter "+c.no},pages:c.pages.map(pg=>{const toks=pg.L.split(/\s+/);const W=toks.map(t=>+(t.replace(/\D/g,"")||2));const sum=W.reduce((a,b)=>a+b,0);
+  const rows=W.map(w=>Math.round(w/sum*100));const panels=[];let pi=0;
+  toks.forEach((t,ri)=>{const cols=t.startsWith("LR")?["left","right"]:["full"];for(const col of cols){const P=pg.p[pi++];if(!P)continue;
+    panels.push({r:ri+1,c:col,shot:P[0],d:P[1],vd:P[2],tx:P.slice(3).filter(x=>x&&x.length).map(t2=>t2[0]==="c"?{k:"cap",at:t2[1],en:t2[2],vi:t2[3]}:{k:t2[0]==="w"?"wh":"say",who:t2[1],at:t2[2],en:t2[3],vi:t2[4]})});}});
+  const who=new Set([...(pg.c||"").split(/\s+/).filter(Boolean),...panels.flatMap(p=>p.tx.map(t=>t.who).filter(Boolean))]);who.delete("none");
+  return {rows,panels,cast:[...who].filter(k=>CAST[k])};})}));
+
 window.COMIC={CAST,EPS,SEASONS,SOON,STYLE};
 
 // ---------------- PROMPT ----------------
@@ -17848,7 +18045,7 @@ function comicPrompt(ep,pi){const pg=ep.pages[pi];const P=pg.panels;const lang="
   const rows=pg.rows.map((h,i)=>{const ps=P.map((p,j)=>[p,j]).filter(([p])=>p.r===i+1);
     return `Row ${i+1} (about ${h}% of the page height): `+ps.map(([p,j])=>`Panel ${j+1} = ${ROWW[p.c]}`).join(", ")+".";}).join("\n");
   const castIds=pg.cast||[...new Set(P.flatMap(p=>(p.tx||[]).map(t=>t.who).filter(Boolean)))];
-  const cast=castIds.map(k=>"- "+CAST[k].d).join("\n");
+  const cast=castIds.length?castIds.map(k=>"- "+CAST[k].d).join("\n"):"- No named characters on this page; only background people exactly as the panels describe.";
   const kindTxt={cap:"Narration caption",say:"Speech balloon",wh:"Whisper balloon (dashed outline)"};
   const whoN=k=>k&&CAST[k]?CAST[k].d.split(" — ")[0].split(",")[0]:"";
   const panels=P.map((p,j)=>{const tx=(p.tx||[]);
@@ -17857,7 +18054,7 @@ function comicPrompt(ep,pi){const pg=ep.pages[pi];const P=pg.panels;const lang="
 - Every character below has a FIXED design used on every page of this comic. Draw her exactly as written: same face shape, eye color, hair color, hair length and style, outfit, colors and scar side. Never redesign, age, or restyle her.
 - If earlier pages of this comic were made in this conversation, keep every character identical to how she looked there.`;
   return `Create ONE vertical comic page in manga layout. Size 1024x1536 (2:3 portrait). Read left-to-right, top-to-bottom.
-Episode: "${ep.n.en}"${ep.pages.length>1?` — page ${pi+1}/${ep.pages.length}`:""}.
+Comic: "Cinderveil", Chapter ${ep.no}: "${ep.n.en}" — page ${pi+1} of ${ep.pages.length}.
 
 EXACT LAYOUT — exactly ${P.length} panels separated by thin black gutters, no panel outside this grid:
 ${rows}
@@ -17881,11 +18078,12 @@ window.comicPrompt=comicPrompt;
 const G=T("Truyện tranh","Comics");
 function slotId(ep,pi){return "comic_"+ep.id+"_p"+(pi+1);}
 const CSLOTS=[];
-for(const ep of EPS)ep.pages.forEach((pg,pi)=>{const s={id:slotId(ep,pi),g:G,n:`${T("Tập","Ep.")} ${ep.no} · ${L(ep.n)}${ep.pages.length>1?` · ${T("trang","page")} ${pi+1}`:""}`,
+for(const ep of EPS)ep.pages.forEach((pg,pi)=>{const s={id:slotId(ep,pi),g:G,n:`${T("Chương","Ch.")} ${ep.no} · ${T("Trang","Page")} ${pi+1}/${ep.pages.length}`,
   get pos(){return comicPrompt(ep,pi);},neg:"",rec:1,opt:true,nsfw:false,big:false,gpt:1,comic:1,
   note:T("Tạo bằng ChatGPT: chỉ cần dán prompt. Nên tạo các trang trong CÙNG một cuộc trò chuyện ChatGPT để nhân vật giữ nguyên. Ảnh DỌC 1024×1536. Chữ trên tranh là tiếng Anh — soát chính tả trước khi lưu; game tự hiện phụ đề tiếng Việt.","Make it in ChatGPT: just paste the prompt. Make pages in the SAME ChatGPT conversation to keep characters consistent. PORTRAIT 1024×1536. Proofread the English lettering before saving."),
-  desc:L(ep.sum)};CSLOTS.push(s);});
-safe(()=>{SLOTS.push(...CSLOTS);for(const s of CSLOTS)SLOT_BY_ID[s.id]=s;});
+  desc:pg.panels.map(x=>x.vd).join(" → ")};CSLOTS.push(s);});
+// chỉ đăng ký mã ô (để dọn dẹp không xoá nhầm); danh sách hiển thị riêng ở Xưởng Ảnh → Truyện tranh
+safe(()=>{for(const s of CSLOTS)SLOT_BY_ID[s.id]=s;});
 if(typeof slotSize==="function"){const _sz=slotSize;slotSize=function(s){if(s&&s.comic)return "1024×1536";return _sz.apply(this,arguments);};}
 // ô truyện: chỉ dùng ảnh mới nhất (vẽ lại trang = thay trang)
 function pageImgId(ep,pi){const ids=safe(()=>DB.ids(slotId(ep,pi)))||[];return ids.length?ids[ids.length-1]:null;}
@@ -17999,6 +18197,10 @@ const css=document.createElement("style");css.textContent=`
 .cx-page{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-top:calc(env(safe-area-inset-top) + 58px);padding-bottom:calc(env(safe-area-inset-bottom) + 120px)}
 .cx-page img{display:block;width:100%;height:auto;transition:transform .25s;transform-origin:var(--zx,50%) var(--zy,50%)}
 .cx-page.zoom img{transform:scale(2)}
+.cx-all .cx-pg{position:relative;margin-bottom:6px;overflow:hidden}
+.cx-all .cx-pg img{aspect-ratio:2/3;object-fit:cover;background:#0d0a0c}
+.cx-all .cx-pg img.zm{transform:scale(2)}
+.cx-script.cx-inl{padding:14px;border-top:1px solid rgba(201,164,106,.15);border-bottom:1px solid rgba(201,164,106,.15);background:#0b080a}
 .cx-pan{position:absolute;inset:0}
 .cx-pan .fr{position:absolute;overflow:hidden;border-radius:4px;box-shadow:0 0 0 1px rgba(201,164,106,.28),0 18px 50px rgba(0,0,0,.9);transition:all .45s cubic-bezier(.2,.8,.25,1)}
 .cx-pan .fr img{position:absolute;max-width:none;transition:all .45s cubic-bezier(.2,.8,.25,1)}
@@ -18062,14 +18264,14 @@ function openAt(ep){const ps=epState(ep)==="part"&&cs().pos&&cs().pos[ep.id];ope
 async function showComics(){const o=root();const H=heroEp();const ep=H.ep;
   const sc=document.createElement("div");sc.className="cx-scroll";o.appendChild(sc);
   const nU=EPS.filter(isUnl).length;
-  let h=`<div class="cx-hero"><div class="cv ph" id="cxcv"></div><div class="in"><div class="eyb">${T("Biên Niên Màn Tro","Chronicles of the Ash Veil")} · ${T("Tập","Ep.")} ${ep.no}</div>
+  let h=`<div class="cx-hero"><div class="cv ph" id="cxcv"></div><div class="in"><div class="eyb">${T("Biên Niên Màn Tro","Chronicles of the Ash Veil")} · ${T("Chương","Chapter")} ${ep.no}</div>
     <h2>${escH(L(ep.n))}</h2><p>${escH(L(ep.sum))}</p>
     <button class="cx-cta" id="cxgo">${H.resume?`▶ ${T("Đọc tiếp","Continue")} <small>· ${T("trang","page")} ${(cs().pos&&cs().pos[ep.id]?cs().pos[ep.id].p:0)+1}/${ep.pages.length}</small>`:H.again?`↺ ${T("Đọc lại","Read again")}`:`▶ ${T("Đọc ngay","Start reading")}`}</button></div></div>
-    <div class="cx-tabs"><b>${T("Danh sách tập","Episodes")}</b><span>${nU}/${EPS.length+SOON.length} ${T("đã mở","unlocked")}</span></div>`;
+    <div class="cx-tabs"><b>${T("Danh sách chương","Chapters")}</b><span>${nU}/${EPS.length+SOON.length} ${T("đã mở","unlocked")}</span></div>`;
   for(const S of SEASONS){h+=`<div class="cx-sea">${escH(L(S.n))}</div>`;
     for(const e of EPS.filter(x=>x.s===S.id)){const ok=isUnl(e),st=ok?epState(e):"",art=!!pageImgId(e,0);
       h+=`<button class="cx-li ${ok?"":"lock"}" data-e="${e.id}"><div class="cx-th">${ok&&art?`<img data-cov="${e.id}" alt="">`:""}<div class="no">${e.no}</div></div>
-        <div class="tx"><div class="t1">${escH(ok?L(e.n):"? ? ? ?")}</div><div class="t2">${escH(L(e.kind))} · ${e.pages.length} ${T("trang","page(s)")}</div>
+        <div class="tx"><div class="t1">${escH(ok?L(e.n):"? ? ? ?")}</div><div class="t2">${T("Chương","Chapter")} ${e.no} · ${e.pages.length} ${T("trang","pages")}</div>
         ${ok?`<div class="t3">${st==="new"?`<span class="cx-tag new">${T("MỚI","NEW")}</span>`:st==="done"?`<span class="cx-tag ok">✓ ${T("ĐÃ ĐỌC","READ")}</span>`:`<span class="cx-tag rd">${T("ĐANG ĐỌC","READING")}</span>`}
           ${art?"":`<span class="cx-tag noart">${T("CHƯA CÓ TRANH","NO ART YET")}</span>`}${st==="part"?`<span class="bar"><i style="width:${Math.max(8,epProg(e)*100)}%"></i></span>`:""}</div>`
           :`<div class="lk">🔒 ${escH(condTxt(e.u))}</div>`}</div><span class="go">›</span></button>`;}
@@ -18091,31 +18293,54 @@ async function openEp(ep,pi,k0){const c=cs();
   const o=root();const stage=document.createElement("div");stage.className="cx-stage";o.appendChild(stage);
   const thin=document.createElement("div");thin.className="cx-thin";o.appendChild(thin);
   const top=document.createElement("div");top.className="cx-bar top";
-  top.innerHTML=`<button class="cx-i" data-k="back">‹</button><h3>${escH(L(ep.n))}<small>${T("Tập","Ep.")} ${ep.no} · ${escH(L(ep.kind))}</small></h3><button class="cx-i" data-k="x">✕</button>`;o.appendChild(top);
+  top.innerHTML=`<button class="cx-i" data-k="back">‹</button><h3>${escH(L(ep.n))}<small>${T("Chương","Chapter")} ${ep.no} · ${escH(L(SEASONS.find(x=>x.id===ep.s).n))}</small></h3><button class="cx-i" data-k="x">✕</button>`;o.appendChild(top);
   const bot=document.createElement("div");bot.className="cx-bar bot";o.appendChild(bot);
   top.querySelector('[data-k="back"]').onclick=()=>showComics();top.querySelector('[data-k="x"]').onclick=closeCmx;
   const id=pageImgId(ep,pi);V.url=await urlOf(id);
+  if(V.mode==="page")return renderAll(stage,bot);
   if(!V.url){markPage(ep,pi);renderScript(stage,bot);return;}
-  V.panels=V.mode==="panel"?await detectPanels(V.url,ep.pages[pi]):null;if(V.mode==="panel"&&!V.panels)V.mode="page";
-  if(V.panels&&k0)V.k=Math.min(k0,V.panels.length-1);if(V.mode==="page")markPage(ep,pi);
+  V.panels=await detectPanels(V.url,ep.pages[pi]);if(!V.panels)return renderAll(stage,bot);
+  if(k0)V.k=Math.min(k0,V.panels.length-1);
   renderPage(stage,bot);}
+// ---- đọc cuộn dọc cả chương (kiểu webtoon): trang có tranh hiện tranh, trang chưa có hiện kịch bản ----
+function renderAll(stage,bot){const ep=V.ep;V.mode="page";botBar(bot);stage.innerHTML="";
+  const p=document.createElement("div");p.className="cx-page cx-all";stage.appendChild(p);
+  ep.pages.forEach((pg,i)=>{const w=document.createElement("div");w.className="cx-pg";w.dataset.pi=i;const id=pageImgId(ep,i);
+    w.innerHTML=id?`<img alt="" data-id="${id}">${V.sub?`<div class="cx-script cx-inl">${scriptHTML(pg,"vi")}</div>`:""}`
+      :`<div class="cx-script cx-inl"><div class="note"><b>${T("Trang","Page")} ${i+1}</b> — ${T("chưa có tranh, đây là bản kịch bản.","no art yet, here is the script.")}</div>
+        <div class="cx-acts"><button class="btn" data-cp="${i}">📋 ${T("Sao chép prompt","Copy prompt")}</button><button class="btn" data-ad="${i}">＋ ${T("Thêm tranh","Add art")}</button></div>${scriptHTML(pg,VI?"vi":"en")}</div>`;
+    p.appendChild(w);});
+  p.insertAdjacentHTML("beforeend",`<div style="padding:26px 16px 30px"><button class="cx-cta" id="cxfin">${T("Hết chương","End of chapter")} ›</button></div>`);
+  p.querySelectorAll("img[data-id]").forEach(im=>{IMG.url(im.dataset.id).then(u=>{if(u)im.src=u;});});
+  p.querySelectorAll("[data-cp]").forEach(b=>b.onclick=e=>{e.stopPropagation();copyTxt(comicPrompt(ep,+b.dataset.cp));});
+  p.querySelectorAll("[data-ad]").forEach(b=>b.onclick=e=>{e.stopPropagation();addArt(ep,+b.dataset.ad);});
+  p.querySelector("#cxfin").onclick=e=>{e.stopPropagation();ep.pages.forEach((_,i)=>markPage(ep,i));endCard();};
+  let lt=0;p.onclick=ev=>{if(ev.target.closest("button"))return;const im=ev.target.closest("img");const now=Date.now();
+    if(im&&now-lt<280){const r=im.getBoundingClientRect();im.style.setProperty("--zx",((ev.clientX-r.left)/r.width*100)+"%");im.style.setProperty("--zy",((ev.clientY-r.top)/r.height*100)+"%");im.classList.toggle("zm");lt=0;return;}
+    lt=now;setTimeout(()=>{if(lt===now)toggleChrome();},290);};
+  const onS=()=>{const mid=p.scrollTop+p.clientHeight*.45;let cur=0;p.querySelectorAll(".cx-pg").forEach(w=>{if(w.offsetTop<=mid)cur=+w.dataset.pi;if(w.offsetTop+w.offsetHeight<=p.scrollTop+p.clientHeight+30)markPage(ep,+w.dataset.pi);});
+    if(cur!==V.pi){V.pi=cur;setLast(ep,cur,0);pgLabel();}};
+  p.addEventListener("scroll",onS,{passive:true});
+  requestAnimationFrame(()=>{const t=p.querySelector(`.cx-pg[data-pi="${V.pi}"]`);if(t&&V.pi>0)p.scrollTop=t.offsetTop-70;});
+  pgLabel();}
 function toggleChrome(force){const o=q("#cmx");if(!o)return;o.classList.toggle("hide",force!==undefined?force:!o.classList.contains("hide"));placeSub();}
 function botBar(bot){const ep=V.ep;const hasArt=!!V.url;
   const prog=V.mode==="panel"&&V.panels?`<div class="cx-dots">${V.panels.map((_,i)=>`<i class="${i<=V.k?"on":""}"></i>`).join("")}</div>`:`<div class="cx-prog"><i style="width:${(V.pi+1)/ep.pages.length*100}%"></i></div>`;
   bot.innerHTML=`<div class="cx-row">${prog}<span class="cx-pl"></span></div>
    <div class="cx-row"><button class="cx-i" data-k="prev">‹</button>
-    ${hasArt?`<button class="cx-chip ${V.mode==="panel"?"on":""}" data-k="mp">${T("Từng khung","Panels")}</button><button class="cx-chip ${V.mode==="page"?"on":""}" data-k="mg">${T("Cả trang","Page")}</button>${VI?`<button class="cx-chip ${V.sub?"on":""}" data-k="sub">${T("Phụ đề","Subs")}</button>`:""}`:`<span style="flex:1"></span>`}
+    <button class="cx-chip ${V.mode==="panel"||V.mode==="script"?"on":""}" data-k="mp">${T("Từng khung","Panels")}</button><button class="cx-chip ${V.mode==="page"?"on":""}" data-k="mg">${T("Cuộn dọc","Scroll")}</button>${VI?`<button class="cx-chip ${V.sub?"on":""}" data-k="sub">${T("Phụ đề","Subs")}</button>`:""}
     <span style="flex:1"></span><button class="cx-i" data-k="next">›</button></div>`;
   bot.querySelector('[data-k="prev"]').onclick=e=>{e.stopPropagation();step(-1);};bot.querySelector('[data-k="next"]').onclick=e=>{e.stopPropagation();step(1);};
   const stage=q("#cmx .cx-stage");
-  const setMode=async m=>{if(V.mode===m)return;V.mode=m;cs().mode=m;csSave();if(m==="panel"){V.panels=await detectPanels(V.url,V.ep.pages[V.pi]);if(!V.panels){V.mode="page";safe(()=>toast(T("Không tự chia được khung ở trang này","Couldn't split this page into panels"),2000));}}else markPage(V.ep,V.pi);V.k=0;renderPage(stage,bot);};
+  const setMode=async m=>{if(V.mode===m)return;cs().mode=m;csSave();return openEp(V.ep,V.pi,0);};
   const mp=bot.querySelector('[data-k="mp"]');if(mp)mp.onclick=()=>setMode("panel");const mg=bot.querySelector('[data-k="mg"]');if(mg)mg.onclick=()=>setMode("page");
-  const sb=bot.querySelector('[data-k="sub"]');if(sb)sb.onclick=()=>{V.sub=!V.sub;cs().sub=V.sub;csSave();renderPage(stage,bot);};
+  const sb=bot.querySelector('[data-k="sub"]');if(sb)sb.onclick=()=>{V.sub=!V.sub;cs().sub=V.sub;csSave();if(V.mode==="page")renderAll(stage,bot);else if(V.mode==="panel")renderPage(stage,bot);else botBar(bot);};
   pgLabel();}
 function pgLabel(){const el=q("#cmx .cx-pl");if(!el||!V)return;const ep=V.ep;
   el.textContent=V.mode==="panel"&&V.panels?`${V.k+1}/${V.panels.length} · ${T("tr.","p.")}${V.pi+1}/${ep.pages.length}`:`${T("Trang","Page")} ${V.pi+1}/${ep.pages.length}`;
   const th=q("#cmx .cx-thin");if(th){const per=1/ep.pages.length;const inP=V.mode==="panel"&&V.panels?(V.k+1)/V.panels.length:1;th.style.width=((V.pi*per+inP*per)*100)+"%";}
-  q("#cmx .cx-dots")&&q("#cmx .cx-dots").querySelectorAll("i").forEach((d,i)=>d.classList.toggle("on",i<=V.k));}
+  q("#cmx .cx-dots")&&q("#cmx .cx-dots").querySelectorAll("i").forEach((d,i)=>d.classList.toggle("on",i<=V.k));
+  const pb=q("#cmx .cx-prog i");if(pb)pb.style.width=((V.pi+1)/ep.pages.length*100)+"%";}
 function renderPage(stage,bot){botBar(bot);stage.innerHTML="";
   if(V.mode==="page"){const p=document.createElement("div");p.className="cx-page";p.innerHTML=`<img src="${V.url}" alt="">`;stage.appendChild(p);
     if(V.sub){const s=document.createElement("div");s.className="cx-script";s.style.padding="14px";s.innerHTML=scriptHTML(V.ep.pages[V.pi],"vi");p.appendChild(s);}
@@ -18142,14 +18367,15 @@ function placePanel(first){const p=q("#cmx .cx-pan");if(!p||!V||!V.panels)return
   if(!im.naturalWidth&&first)im.onload=()=>placePanel(false);
   setLast(V.ep,V.pi,V.k);if(V.k>=V.panels.length-1)markPage(V.ep,V.pi);pgLabel();}
 async function step(d){if(!V)return;const ep=V.ep;
+  if(V.mode==="page"&&!V.end){const p=q("#cmx .cx-all");const t=d>0?V.pi+1:V.pi-1;if(p&&t>=0&&t<ep.pages.length){const w=p.querySelector(`.cx-pg[data-pi="${t}"]`);if(w)p.scrollTo({top:w.offsetTop-70,behavior:"smooth"});return;}if(d>0&&p){ep.pages.forEach((_,i)=>markPage(ep,i));return endCard();}return;}
   if(V.end){if(d<0){V.end=false;return openEp(ep,ep.pages.length-1,99);}return;}
   if(V.mode==="panel"&&V.panels){const k=V.k+d;if(k>=0&&k<V.panels.length){V.k=k;placePanel(false);safe(()=>{SFX.play("ui");haptic(5);});return;}}
   const pi=V.pi+d;if(pi>=0&&pi<ep.pages.length){safe(()=>SFX.play("draw"));return openEp(ep,pi,d<0?99:0);}
   if(d>0){markPage(ep,V.pi);return endCard();}}
 function endCard(){const ep=V.ep;V.end=true;const stage=q("#cmx .cx-stage");const i=EPS.indexOf(ep);const nx=EPS[i+1]||null;const sn=!nx&&SOON[0];
   const ok=nx&&isUnl(nx);toggleChrome(false);
-  stage.innerHTML=`<div class="cx-end"><div class="e1">${T("HẾT TẬP","END OF EPISODE")} ${ep.no}</div><h2>${escH(L(ep.n))}</h2><div class="orn">✦ ✦ ✦</div>
-    ${nx?`<div class="nx"><div class="k">${T("TẬP TIẾP THEO","NEXT EPISODE")} · ${nx.no}</div><div class="t">${escH(ok?L(nx.n):"? ? ? ?")}</div><div class="s">${ok?escH(L(nx.sum)):"🔒 "+escH(condTxt(nx.u))}</div></div>`
+  stage.innerHTML=`<div class="cx-end"><div class="e1">${T("HẾT CHƯƠNG","END OF CHAPTER")} ${ep.no}</div><h2>${escH(L(ep.n))}</h2><div class="orn">✦ ✦ ✦</div>
+    ${nx?`<div class="nx"><div class="k">${T("CHƯƠNG TIẾP THEO","NEXT CHAPTER")} · ${nx.no}</div><div class="t">${escH(ok?L(nx.n):"? ? ? ?")}</div><div class="s">${ok?escH(L(nx.sum)):"🔒 "+escH(condTxt(nx.u))}</div></div>`
       :sn?`<div class="nx"><div class="k">${T("SẮP RA MẮT","COMING SOON")} · ${sn.no}</div><div class="t">${escH(L(sn.n))}</div></div>`:""}
     <div class="row2"><button class="btn" data-k="lib">${T("Danh sách","Episodes")}</button>${ok?`<button class="btn main" data-k="nx">${T("Đọc tiếp","Next")} ›</button>`:""}</div></div>`;
   stage.querySelector('[data-k="lib"]').onclick=()=>showComics();const b=stage.querySelector('[data-k="nx"]');if(b)b.onclick=()=>openEp(nx,0);
@@ -18166,7 +18392,7 @@ function renderScript(stage,bot){const ep=V.ep,pi=V.pi;V.mode="script";botBar(bo
   pgLabel();}
 async function copyTxt(t){try{await navigator.clipboard.writeText(t);toast(T("Đã sao chép prompt","Prompt copied"),1600);}catch(e){
   const a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();try{document.execCommand("copy");toast(T("Đã sao chép prompt","Prompt copied"),1600);}catch(x){}a.remove();}}
-function addArt(ep,pi){pickFiles(false,async fs=>{try{await importFiles(slotId(ep,pi),fs,(a,t)=>toast(T("Đang xử lý…","Processing…"),3000));toast(T("Đã thêm tranh","Art added"),1600);openEp(ep,pi);}catch(e){toast(""+e);}});}
+function addArt(ep,pi){pickFiles(false,async fs=>{try{await importFiles(slotId(ep,pi),fs,(a,t)=>toast(T("Đang xử lý…","Processing…"),3000));for(const old of DB.ids(slotId(ep,pi)).slice(0,-1))await DB.del(old);toast(T("Đã thêm tranh","Art added"),1600);openEp(ep,pi);}catch(e){toast(""+e);}});}
 addEventListener("resize",()=>{if(V&&V.mode==="panel")setTimeout(()=>placePanel(false),80);});
 
 // --- nút Truyện nổi bật ở sảnh (có ô ảnh ChatGPT tuỳ chọn: ui_comic_btn) ---
@@ -18178,7 +18404,7 @@ function hubBtn(){const hub=q("#hub");if(!hub||!hub.classList.contains("on"))ret
   if(!b){b=document.createElement("button");b.className="cxhub";lob.appendChild(b);b.onclick=()=>{safe(()=>{SFX.play("ui");haptic(8);});showComics();};}
   const n=safe(unreadCount)||0;const H=safe(heroEp);const img=typeof UIA!=="undefined"&&UIA.ui_comic_btn;
   b.classList.toggle("img",!!img);if(img)b.style.setProperty("--cxhi",`url(${img})`);
-  const sub=n?T(`${n} tập mới`,`${n} new`):H&&H.resume?T("Đọc tiếp · Tập ","Continue · Ep. ")+H.ep.no:T("Biên Niên Màn Tro","Ash Veil Chronicles");
+  const sub=n?T(`${n} chương mới`,`${n} new`):H&&H.resume?T("Đọc tiếp · Chương ","Continue · Ch. ")+H.ep.no:T("Biên Niên Màn Tro","Ash Veil Chronicles");
   b.innerHTML=`${img?'<i class="im"></i>':""}<span class="bk">${BOOK}</span><span class="tt"><b>${T("TRUYỆN","COMICS")}</b><small>${escH(sub)}</small></span>${n?`<span class="n">${n}</span>`:""}`
   // đặt ngay dưới tiêu đề và dải thông báo (vd. "Seraphine muốn kể chuyện"), không đè lên
   requestAnimationFrame(()=>{safe(()=>{const lr=lob.getBoundingClientRect();let y=0;
@@ -18186,6 +18412,53 @@ function hubBtn(){const hub=q("#hub");if(!hub||!hub.classList.contains("on"))ret
       if(!r.height||r.height>140||r.left>lr.left+innerWidth*.6||r.top-lr.top>innerHeight*.42)return;if(getComputedStyle(el).visibility==="hidden"||+getComputedStyle(el).opacity===0)return;y=Math.max(y,r.bottom-lr.top);});
     if(y)b.style.top=(y+10)+"px";});});}
 if(typeof showHub==="function"){const _sh=showHub;showHub=async function(){const r=await _sh.apply(this,arguments);safe(hubBtn);setTimeout(()=>safe(hubBtn),300);return r;};}
+
+
+// ---------------- XƯỞNG ẢNH → TRUYỆN TRANH → CHƯƠNG → TỪNG TRANG + PROMPT ----------------
+const cssS=document.createElement("style");cssS.textContent=`
+.cxs-big{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;margin:0 0 12px;border-radius:14px;border:1px solid rgba(255,190,120,.55);background:linear-gradient(100deg,rgba(70,26,8,.9),rgba(24,12,10,.9));color:#fff1d8;text-align:left;box-shadow:0 0 18px rgba(232,137,59,.25)}
+.cxs-big .ic2{font-size:26px}.cxs-big b{display:block;font:700 17px var(--fd,serif);color:#ffe2bd}.cxs-big small{color:#d9c8a8;font-size:12px}
+.cxs-ch{display:block;width:100%;text-align:left;padding:12px 14px;margin:0 0 10px;border-radius:12px;border:1px solid rgba(201,164,106,.35);background:rgba(20,14,12,.75);color:inherit}
+.cxs-ch .t{font:700 16px var(--fd,serif);color:#f3e3c4}.cxs-ch .m{font-size:12px;color:#b8ab98;margin:4px 0 7px}
+.cxs-ch.lock{opacity:.6}
+.cxs-pg{display:flex;gap:12px;padding:12px;margin:0 0 10px;border-radius:12px;border:1px solid rgba(201,164,106,.28);background:rgba(18,13,12,.8)}
+.cxs-pg .th{flex:none;width:70px;height:105px;border-radius:8px;overflow:hidden;background:radial-gradient(120% 80% at 50% 25%,#3a1c0c,#0b0809 70%);border:1px solid rgba(201,164,106,.3);display:grid;place-items:center;color:#a8957a;font:800 18px var(--fd,serif)}
+.cxs-pg .th img{width:100%;height:100%;object-fit:cover}
+.cxs-pg .bd{flex:1;min-width:0}.cxs-pg .h{font:700 15px var(--fd,serif);color:#f3e3c4}.cxs-pg .sm{font-size:11.5px;line-height:1.45;color:#a8957a;margin:4px 0 8px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.cxs-pg .bt{display:flex;flex-wrap:wrap;gap:6px}.cxs-pg textarea{width:100%;margin-top:8px;font-size:11px;min-height:160px}
+.cxs-st{font:800 9.5px/1 var(--fb,sans-serif);padding:4px 7px;border-radius:7px;margin-left:6px;vertical-align:middle}
+.cxs-st.ok{color:#9fd59a;border:1px solid rgba(159,213,154,.45)}.cxs-st.no{color:#e8c99a;border:1px dashed rgba(232,201,154,.5)}`;document.head.appendChild(cssS);
+const nArt=e=>e.pages.filter((_,i)=>pageImgId(e,i)).length;
+async function comicStudio(cid){
+  if(!cid){const tot=EPS.reduce((a,e)=>a+e.pages.length,0),done=EPS.reduce((a,e)=>a+nArt(e),0);
+    const b=modal(T("Truyện tranh","Comics"),`<div class="row" style="gap:6px;margin-bottom:10px"><button class="pill" id="cxsb">← ${T("Xưởng Ảnh","Studio")}</button><button class="pill" id="cxrd">📖 ${T("Mở trình đọc","Open reader")}</button></div>
+     <div class="prog"><div class="row" style="justify-content:space-between"><b>${T("Tiến độ vẽ truyện","Comic art progress")}</b><span>${done}/${tot} ${T("trang","pages")}</span></div><div class="pbar2"><i style="width:${done/tot*100}%"></i></div></div>
+     <div class="cx-tip">${T("Mỗi trang: bấm <b>Sao chép prompt</b> → dán vào ChatGPT → tải ảnh về → <b>Thêm tranh</b>. Nên làm cả chương trong <b>cùng một cuộc trò chuyện</b> ChatGPT để nhân vật giữ nguyên.","Each page: <b>Copy prompt</b> → paste into ChatGPT → save the image → <b>Add art</b>. Do a whole chapter in the <b>same ChatGPT conversation</b> to keep characters consistent.")}</div>
+     ${SEASONS.map(S=>`<div class="orn">${escH(L(S.n))}</div>`+EPS.filter(e=>e.s===S.id).map(e=>{const n=nArt(e);return `<button class="cxs-ch" data-c="${e.id}"><div class="t">${T("Chương","Chapter")} ${e.no} · ${escH(L(e.n))}</div><div class="m">${n}/${e.pages.length} ${T("trang đã có tranh","pages with art")}${isUnl(e)?"":" · 🔒 "+T("chưa mở trong game","not unlocked in game")}</div><div class="pbar2"><i style="width:${n/e.pages.length*100}%"></i></div></button>`;}).join("")).join("")}
+     ${SOON.length?`<div class="muted" style="text-align:center;margin-top:8px">${T("Sắp có","Coming")}: ${SOON.map(x=>escH(L(x.n))).join(" · ")}</div>`:""}`);
+    b.querySelector("#cxsb").onclick=()=>showStudio();b.querySelector("#cxrd").onclick=()=>{closeModal();showComics();};
+    b.querySelectorAll("[data-c]").forEach(x=>x.onclick=()=>comicStudio(x.dataset.c));return;}
+  const ep=EPS.find(e=>e.id===cid);const sc=q("#mbody")?q("#mbody").scrollTop:0;
+  const b=modal(`${T("Chương","Ch.")} ${ep.no} · ${L(ep.n)}`,`<div class="row" style="gap:6px;margin-bottom:10px"><button class="pill" id="cxsb">← ${T("Các chương","Chapters")}</button><button class="pill" id="cxrd">📖 ${T("Đọc chương này","Read chapter")}</button></div>
+    <div class="muted" style="margin-bottom:10px">${escH(L(ep.sum))}</div>
+    ${ep.pages.map((pg,i)=>{const id=pageImgId(ep,i);return `<div class="cxs-pg"><div class="th">${id?`<img data-t="${id}" alt="">`:i+1}</div><div class="bd">
+      <div class="h">${T("Trang","Page")} ${i+1}<span class="cxs-st ${id?"ok":"no"}">${id?"✓ "+T("CÓ TRANH","ART"):T("CHƯA CÓ","NO ART")}</span></div>
+      <div class="sm">${escH(pg.panels.map(x=>x.vd).join(" · "))}</div>
+      <div class="bt"><button class="sbtn add" data-cp="${i}">📋 ${T("Sao chép prompt","Copy prompt")}</button><button class="sbtn" data-ad="${i}">${id?"↻ "+T("Thay tranh","Replace"):"＋ "+T("Thêm tranh","Add art")}</button><button class="sbtn" data-vw="${i}">👁 Prompt</button>${id?`<button class="sbtn" data-rd="${i}">📖 ${T("Đọc","Read")}</button>`:""}</div>
+      <div class="pv" data-pv="${i}"></div></div></div>`;}).join("")}`);
+  b.querySelectorAll("img[data-t]").forEach(im=>IMG.url(im.dataset.t,true).then(u=>{if(u)im.src=u;}));
+  b.querySelector("#cxsb").onclick=()=>comicStudio();b.querySelector("#cxrd").onclick=()=>{closeModal();openEp(ep,0);};
+  b.querySelectorAll("[data-cp]").forEach(x=>x.onclick=()=>copyTxt(comicPrompt(ep,+x.dataset.cp)));
+  b.querySelectorAll("[data-vw]").forEach(x=>x.onclick=()=>{const v=b.querySelector(`[data-pv="${x.dataset.vw}"]`);v.innerHTML=v.innerHTML?"":`<textarea readonly>${escH(comicPrompt(ep,+x.dataset.vw))}</textarea>`;});
+  b.querySelectorAll("[data-rd]").forEach(x=>x.onclick=()=>{closeModal();openEp(ep,+x.dataset.rd,0);});
+  b.querySelectorAll("[data-ad]").forEach(x=>x.onclick=()=>{const i=+x.dataset.ad;pickFiles(false,async fs=>{try{toast(T("Đang xử lý…","Processing…"),3000);await importFiles(slotId(ep,i),fs,()=>{});
+      const ids=DB.ids(slotId(ep,i));for(const old of ids.slice(0,-1))await DB.del(old);toast(T("Đã lưu tranh trang ","Saved page ")+(i+1),1600);comicStudio(ep.id);setTimeout(()=>{const m=q("#mbody");if(m)m.scrollTop=sc;},50);}catch(e){toast(""+e);}});});
+  setTimeout(()=>{const m=q("#mbody");if(m&&sc)m.scrollTop=sc;},30);}
+window.comicStudio=comicStudio;
+if(typeof showStudio==="function"){const _ss=showStudio;showStudio=async function(){const r=await _ss.apply(this,arguments);safe(()=>{const b=q("#mbody");if(!b||b.querySelector(".cxs-big"))return;
+  const tot=EPS.reduce((a,e)=>a+e.pages.length,0),done=EPS.reduce((a,e)=>a+nArt(e),0);
+  b.insertAdjacentHTML("afterbegin",`<button class="cxs-big" id="cxsgo"><span class="ic2">📖</span><span><b>${T("Truyện tranh","Comics")}</b><small>${EPS.length} ${T("chương","chapters")} · ${done}/${tot} ${T("trang đã có tranh — bấm để xem prompt từng trang","pages with art — tap for page prompts")}</small></span></button>`);
+  b.querySelector("#cxsgo").onclick=()=>comicStudio();});return r;};}
 
 // ---------------- SẢNH ----------------
 // (không thêm vào menu dọc nữa — đã có nút Truyện nổi bật ở sảnh)
