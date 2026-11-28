@@ -9335,6 +9335,11 @@ advFix();{const _ld=load;load=function(){const r=_ld.apply(this,arguments);advFi
 addEventListener("load",()=>setTimeout(advFix,0));
 document.addEventListener("click",ev=>{const x=ev.target&&ev.target.closest&&ev.target.closest(".advx");if(!x)return;ev.stopPropagation();ev.preventDefault();
   const p=x.closest(".advp");if(p)p.remove();document.querySelectorAll(".advnode").forEach(n=>n.classList.remove("advnode"));},true);
+// Cố vấn lửa trại nằm trong khung hội thoại → chọn xong (Nghỉ/Rèn) hoặc hội thoại chuyển nội dung khác thì gỡ ngay, không để dính sang màn sau
+(function(){const clean=()=>{try{const v=$("#vn");document.querySelectorAll(".advcamp").forEach(p=>{if(!v||!v.classList.contains("camp")||!v.contains(p))p.remove();});}catch(e){}};
+  const ob=new MutationObserver(clean);const go=()=>{const v=$("#vn");if(v)ob.observe(v,{attributes:true,attributeFilter:["class"],childList:true,subtree:true});};if(document.readyState==="loading")addEventListener("DOMContentLoaded",go);else go();
+  document.addEventListener("click",ev=>{if(ev.target&&ev.target.closest&&ev.target.closest("#vn .vch button"))document.querySelectorAll(".advcamp").forEach(p=>p.remove());},true);
+  {const _sh=show;show=function(){document.querySelectorAll(".advcamp").forEach(p=>p.remove());return _sh.apply(this,arguments);};}})();
 
 // ===================== 5.21 — XƯỞNG ẢNH: NHÃN CÔNG CỤ (WAI / ChatGPT) + KÍCH THƯỚC =====================
 function slotTool(s){return (s.gpt||s.ui)?"gpt":"wai";}
@@ -17326,6 +17331,11 @@ advFix();{const _ld=load;load=function(){const r=_ld.apply(this,arguments);advFi
 addEventListener("load",()=>setTimeout(advFix,0));
 document.addEventListener("click",ev=>{const x=ev.target&&ev.target.closest&&ev.target.closest(".advx");if(!x)return;ev.stopPropagation();ev.preventDefault();
   const p=x.closest(".advp");if(p)p.remove();document.querySelectorAll(".advnode").forEach(n=>n.classList.remove("advnode"));},true);
+// Cố vấn lửa trại nằm trong khung hội thoại → chọn xong (Nghỉ/Rèn) hoặc hội thoại chuyển nội dung khác thì gỡ ngay, không để dính sang màn sau
+(function(){const clean=()=>{try{const v=$("#vn");document.querySelectorAll(".advcamp").forEach(p=>{if(!v||!v.classList.contains("camp")||!v.contains(p))p.remove();});}catch(e){}};
+  const ob=new MutationObserver(clean);const go=()=>{const v=$("#vn");if(v)ob.observe(v,{attributes:true,attributeFilter:["class"],childList:true,subtree:true});};if(document.readyState==="loading")addEventListener("DOMContentLoaded",go);else go();
+  document.addEventListener("click",ev=>{if(ev.target&&ev.target.closest&&ev.target.closest("#vn .vch button"))document.querySelectorAll(".advcamp").forEach(p=>p.remove());},true);
+  {const _sh=show;show=function(){document.querySelectorAll(".advcamp").forEach(p=>p.remove());return _sh.apply(this,arguments);};}})();
 
 // ===================== 5.21 — XƯỞNG ẢNH: NHÃN CÔNG CỤ (WAI / ChatGPT) + KÍCH THƯỚC =====================
 function slotTool(s){return (s.gpt||s.ui)?"gpt":"wai";}
