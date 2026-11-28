@@ -8920,7 +8920,7 @@ async function enPhase2(e,fx){e._p2=1;const im=enImgEl(e);if(!im)return;if(!im.d
 {const _hE2=hitEnemy;hitEnemy=function(e,n){const r=_hE2.apply(this,arguments);try{if(e&&e.hp>0&&!e._p2&&p2Due(e))enPhase2(e,true);}catch(x){}return r;};}
 {const _rc2=renderCombat;renderCombat=function(){const r=_rc2.apply(this,arguments);try{if(C&&C.en)setTimeout(()=>{try{C&&C.en&&C.en.forEach(e=>{if(e.hp<=0)return;if(e._p2||p2Due(e))enPhase2(e,false);});}catch(x){}},420);}catch(x){}return r;};}
 
-const DFKEEP=1900;
+const DFKEEP=2500;
 (function(){const st=document.createElement("style");st.textContent=`.en.dead.dfx{opacity:1!important;filter:none!important;transform:none!important}.en.dead.dfx img,.en.dead.dfx .ef{opacity:1!important;filter:none!important}`;document.head.appendChild(st);})();
 {const _hE3=hitEnemy;hitEnemy=function(e,n){const h0=e?e.hp:0;const r=_hE3.apply(this,arguments);try{if(e&&h0>0&&e.hp<=0&&DB.ids("en_"+e.id+"_hurt").length){e._dead=1;
     e._dT=performance.now()+DFKEEP;const im=enImgEl(e);const el=im&&im.closest(".en");
@@ -9172,6 +9172,140 @@ async function bossPhaseFx(e){try{const id=e.id,col=BPH_COL[id]||"255,70,60";hfx
 // bỏ dòng thông báo "nổi giận" cũ (đã nằm trong màn GIAI ĐOẠN II)
 (function(){for(const k of Object.keys(BPH_LINE)){const d=ENEMIES[k];if(d&&d.enrage&&d.enrage.t)d.enrage.t="";}
   const _t=toast;toast=function(m){if(m===""||m==null)return;return _t.apply(this,arguments);};})();
+
+// ===================== 5.29g — CHUYỂN PHASE RÕ RÀNG + CHÂN DUNG VỪA KHUNG =====================
+// 1) Có khung ảnh kẻ địch: ảnh bị thu nhỏ 92% (luật cũ) → hở viền tối quanh ảnh. Bỏ thu nhỏ, ảnh phủ kín lòng khung.
+// 2) Chuyển phase: ảnh đổi đúng lúc lóe sáng (không lén đổi sau lớp tối), boss được rọi sáng giữa màn tối,
+//    chữ nằm dưới chân dung để vẫn thấy nàng biến đổi; sau đó khung phát sáng màu phase + huy hiệu "II" giữ suốt trận.
+//    Chỉ dùng opacity/transform + lớp WebGL sẵn có; viền sáng là box-shadow tĩnh (không chạy animation liên tục).
+const PH2C={wraith:"150,200,255",necro:"140,255,170",dryad:"120,255,120",arachne:"230,40,70",succubus:"255,90,200",vampire:"230,30,60",voidspawn:"170,90,255",
+ nightmare:"170,90,255",gargoyle:"200,205,220",lamia:"120,255,140",dullahan:"120,200,255",abyssknight:"150,80,255",watcher:"255,140,60",swordgirl:"150,210,255",
+ cultist:"255,60,60",crow:"200,60,80",ghoul:"170,255,90",boneknight:"230,230,200",hollow:"255,120,50",ratgirl:"255,170,60"};
+function ph2Col(e){return (typeof BPH_COL!=="undefined"&&BPH_COL[e.id])||PH2C[e.id]||"255,70,50";}
+(function(){const st=document.createElement("style");
+ const IN="var(--eft,9%) var(--efr,10%) var(--efb,8%) var(--efl,10%)",INB="var(--eftB,var(--eft,9%)) var(--efrB,var(--efr,10%)) var(--efbB,var(--efb,8%)) var(--eflB,var(--efl,10%))";
+ st.textContent=`html.ui-enframe .en .ef>img:not(.uia){transform:none!important;--es:1}
+.en .ef .ph2g{position:absolute;inset:-3px;border-radius:16px;pointer-events:none;z-index:4;box-shadow:0 0 0 2px rgba(var(--pc),.9),0 0 18px 3px rgba(var(--pc),.6),inset 0 0 26px rgba(var(--pc),.4)}
+html.ui-enframe .en .ef .ph2g{inset:${IN};border-radius:4px;box-shadow:0 0 18px 4px rgba(var(--pc),.75),inset 0 0 26px rgba(var(--pc),.5)}
+html.ui-enframe .en .ef.bossf .ph2g{inset:${INB}}
+.en .ef .ph2b{position:absolute;left:50%;bottom:5%;transform:translateX(-50%);z-index:6;font:900 11px/1 var(--serif,serif);letter-spacing:.2em;padding:3px 7px 3px 9px;border-radius:9px;background:rgba(0,0,0,.78);color:#fff;border:1px solid rgba(var(--pc),1);text-shadow:0 0 6px rgba(var(--pc),1);white-space:nowrap;pointer-events:none}
+html.ui-enframe .en .ef .ph2b{bottom:calc(var(--efb,8%) + 5px)}
+.en .ef .phfl{position:absolute;inset:0;z-index:7;pointer-events:none;border-radius:inherit;background:radial-gradient(circle at 50% 38%,#fff 0,rgba(var(--pc),.95) 45%,rgba(var(--pc),0) 80%);opacity:0}
+.phrib{position:fixed;z-index:46;pointer-events:none;left:50%;transform:translate(-50%,-50%);text-align:center;white-space:nowrap}
+.phrib b{display:block;font:900 30px/1 var(--serif,serif);letter-spacing:.14em;color:#fff;text-shadow:0 0 12px rgba(var(--pc),1),0 0 30px rgba(var(--pc),.85),0 3px 3px #000}
+.phrib i{display:block;height:2px;margin:6px auto 0;width:70vw;background:linear-gradient(90deg,transparent,rgba(var(--pc),1),transparent)}`;document.head.appendChild(st);})();
+function ph2Mark(e){try{const f=enEl(e)?.querySelector(".ef");if(!f)return;const c=ph2Col(e);f.style.setProperty("--pc",c);
+  if(!f.querySelector(".ph2g"))f.insertAdjacentHTML("beforeend",'<i class="ph2g"></i><b class="ph2b">II</b>');}catch(x){}}
+function ph2Flash(e,dur){const f=enEl(e)?.querySelector(".ef");if(!f)return null;f.style.setProperty("--pc",ph2Col(e));let fl=f.querySelector(".phfl");if(!fl){fl=document.createElement("i");fl.className="phfl";f.appendChild(fl);}
+  const a=fl.animate([{opacity:0},{opacity:1,offset:.3},{opacity:0}],{duration:dur||650,easing:"ease-out"});a.onfinish=()=>fl.remove();return f;}
+// ảnh phase 2 nạp sẵn để đổi đúng khoảnh khắc lóe sáng
+async function ph2Pre(e){try{const u=await p2Url(e);if(u){const im=new Image();im.src=u;try{await im.decode();}catch(x){}}return u;}catch(x){return null;}}
+{const _p2o=enPhase2;
+ enPhase2=async function(e,fx){if(!e)return;
+  if(e._phHold&&performance.now()<e._phHold)return;      // boss: đợi màn GIAI ĐOẠN II tự đổi
+  const isB=typeof EM!=="undefined"&&EM[e.id]&&EM[e.id].ph;
+  if(!fx||e._p2||!SLEEP_MUL){const r=await _p2o.call(this,e,false);if(e.hp>0&&(isB||DB.ids("en_"+e.id+"_alt").length))ph2Mark(e);return r;}
+  // kẻ địch thường còn nửa máu: chỉ diễn khi có ảnh phase 2
+  e._p2=1;const u=await ph2Pre(e);if(!u||e.hp<=0)return;const ef=enEl(e)?.querySelector(".ef");if(!ef)return;const col=ph2Col(e);
+  try{hfxPoke();SFX.play("windup",1);haptic(16);}catch(x){}
+  ef.animate([{transform:"translate(0,0)"},{transform:"translate(-3px,1px)"},{transform:"translate(3px,-1px)"},{transform:"translate(-2px,0)"},{transform:"translate(0,0)"}],{duration:260});
+  ph2Flash(e,700);
+  setTimeout(async()=>{try{await _p2o.call(this,e,false);ph2Mark(e);const p=vxAt(ef);
+    ef.animate([{transform:"scale(1.1)"},{transform:"scale(1)"}],{duration:420,easing:"cubic-bezier(.2,.9,.3,1)"});
+    if(p&&vxOn()){vxRing(p.x,p.y,p.w*.9,col,.55);vxRing(p.x,p.y,p.w*1.5,"255,240,220",.65,.08);vxPillar(p.x,p.y+p.h*.5,p.w*.7,col,.8);vxSparks(p.x,p.y,26,col,{speed:760,grav:300});}
+    hfxEdge(col,600,.6);SFX.play("strUp",.8);
+    const r=document.createElement("div");r.className="phrib";r.style.setProperty("--pc",col);r.style.top=(p?p.y:innerHeight*.3)+"px";r.innerHTML="<b>PHASE 2</b><i></i>";document.body.appendChild(r);
+    r.animate([{opacity:0,transform:"translate(-50%,-50%) scale(1.6)"},{opacity:1,transform:"translate(-50%,-50%) scale(1)",offset:.18,easing:"cubic-bezier(.2,.9,.3,1)"},{opacity:1,offset:.7},{opacity:0,transform:"translate(-50%,-60%) scale(1)"}],{duration:1300,fill:"forwards"}).onfinish=()=>r.remove();}catch(x){}},200);};}
+// giữ viền sáng phase sau mỗi lần vẽ lại trận
+{const _rcp=renderCombat;renderCombat=function(){const r=_rcp.apply(this,arguments);try{if(C&&C.en)for(const e of C.en)if(e._p2&&e.hp>0){const isB=typeof EM!=="undefined"&&EM[e.id]&&EM[e.id].ph;if(isB||DB.ids("en_"+e.id+"_alt").length)ph2Mark(e);}}catch(x){}return r;};}
+// ---- màn GIAI ĐOẠN II của boss: rọi đèn vào boss → rung, nạp sáng → LÓE + ĐỔI ẢNH → chữ dưới chân dung ----
+bossPhaseFx=async function(e){try{const id=e.id,col=ph2Col(e);hfxPoke();const ef=enEl(e)?.querySelector(".ef");const p=ef&&vxAt(ef);
+  e._phHold=performance.now()+5000;const pre=ph2Pre(e);
+  const cx=p?p.x:innerWidth/2,cy=p?p.y:innerHeight*.3,R=p?Math.max(p.w,p.h)*.62:200;
+  const dim=document.createElement("div");dim.className="bph-dim";dim.style.background=`radial-gradient(circle at ${cx}px ${cy}px,rgba(0,0,0,0) ${R*.75}px,rgba(0,0,0,.6) ${R*1.05}px,rgba(0,0,0,.9) ${R*1.8}px)`;document.body.appendChild(dim);
+  dim.animate([{opacity:0},{opacity:1,offset:.12},{opacity:1,offset:.78},{opacity:0}],{duration:3000,fill:"forwards"}).onfinish=()=>dim.remove();
+  SFX.play("phaseRoar",1);try{haptic(30);}catch(x){}
+  if(ef){ef.style.setProperty("--pc",col);
+    ef.animate([{transform:"translate(0,0)"},{transform:"translate(-4px,2px)"},{transform:"translate(4px,-2px)"},{transform:"translate(-5px,-1px)"},{transform:"translate(5px,1px)"},{transform:"translate(-3px,2px)"},{transform:"translate(0,0)"}],{duration:620,easing:"linear"});
+    let fl=document.createElement("i");fl.className="phfl";ef.appendChild(fl);fl.animate([{opacity:0},{opacity:.35,offset:.4},{opacity:.15,offset:.6},{opacity:.6}],{duration:620,fill:"forwards"});setTimeout(()=>fl.remove(),640);}
+  if(p&&vxOn()){vxRing(p.x,p.y,p.w*.9,col,.6);vxEmbers(p.x,p.y+p.h*.4,22,col,p.w*.5,-260,.7);}
+  setTimeout(async()=>{try{await pre;e._phHold=0;ph2Flash(e,900);await enPhase2(e,false);ph2Mark(e);try{haptic(40);}catch(x){}
+    if(ef)ef.animate([{transform:"scale(1)"},{transform:"scale(1.14)",offset:.25},{transform:"scale(1)"}],{duration:700,easing:"cubic-bezier(.2,.9,.3,1)"});
+    if(p&&vxOn()){vxFlash(p.x,p.y,innerWidth,"255,255,255",.35);vxShock(p.x,p.y,innerWidth*.9,.6);vxPillar(p.x,p.y+p.h*.5,p.w*.95,col,1.3);vxRing(p.x,p.y,innerWidth*.6,col,.7);
+      vxRing(p.x,p.y,innerWidth*1.1,"255,240,220",.9,.12);vxSparks(p.x,p.y,40,col,{speed:950,grav:280});vxEmbers(p.x,p.y+p.h*.3,40,col,p.w*.6,360,2);}
+    hfxEdge(col,1500,1);
+    const b=document.createElement("div");b.className="bph";b.style.setProperty("--bc",col);const top=p?Math.min(p.r.bottom-34,innerHeight*.6):innerHeight*.5;b.style.top=top+"px";
+    const nm=(ENEMIES[id]||{}).n||"";const em=(typeof EM!=="undefined"&&EM[id])||{};
+    b.innerHTML=`<div class="bph-bar"></div><h2>PHASE II</h2><div class="bph-n" style="margin:8px 0 0">${esc(nm.split(" — ")[0].toUpperCase())} · ${esc((em.n||"").toUpperCase())}</div>${BPH_LINE[id]?`<div class="bph-l">${esc(BPH_LINE[id])}</div>`:""}${em.d?`<div class="bph-d">${esc(em.d)}</div>`:""}`;
+    document.body.appendChild(b);b.animate([{opacity:0,transform:"scale(1.5)"},{opacity:1,transform:"scale(1)",offset:.12,easing:"cubic-bezier(.2,.9,.3,1)"},{opacity:1,offset:.84},{opacity:0}],{duration:2500,fill:"forwards"}).onfinish=()=>b.remove();
+    b.querySelector(".bph-bar").style.top="15px";b.querySelector(".bph-bar").animate([{transform:"translateY(-50%) scaleX(0)"},{transform:"translateY(-50%) scaleX(1)",offset:.2}],{duration:2500,fill:"forwards"});}catch(x){e._phHold=0;}},620);
+  await new Promise(r=>setTimeout(r,2300*Math.max(.7,SLEEP_MUL||1)));}catch(x){e._phHold=0;}};
+
+// ===================== 5.29h — KẺ ĐỊCH RA CHIÊU / CẢNH BÁO ĐÒN NẶNG / ELITE XUẤT HIỆN / ĐÒN KẾT LIỄU BOSS / KHOẢNH KHẮC BỊ HẠ =====================
+// Tất cả là hiệu ứng một lần (opacity/transform + lớp WebGL sẵn có), không có animation chạy liên tục → không nóng máy.
+(function(){const st=document.createElement("style");st.textContent=`
+.eskill{position:fixed;z-index:43;left:0;pointer-events:none;transform:translate(-50%,-50%);white-space:nowrap;text-align:center}
+.eskill b{display:inline-block;padding:6px 14px 6px 16px;border-radius:10px;font:900 15px/1.1 var(--serif,serif);letter-spacing:.08em;color:#fff;background:linear-gradient(180deg,rgba(20,12,14,.92),rgba(8,5,6,.92));border:1px solid rgba(var(--kc),1);box-shadow:0 0 14px rgba(var(--kc),.6),0 4px 10px rgba(0,0,0,.6);text-shadow:0 0 8px rgba(var(--kc),1)}
+.eskill small{display:block;margin-top:3px;font:800 9px/1 sans-serif;letter-spacing:.25em;color:rgba(var(--kc),1);text-shadow:0 1px 2px #000}
+#combat .intent.dng{box-shadow:0 0 0 2px #ff3b3b,0 0 14px rgba(255,40,40,.8)!important}
+.dngtx{position:fixed;z-index:43;pointer-events:none;transform:translate(-50%,-50%);white-space:nowrap;font:900 13px/1 sans-serif;letter-spacing:.2em;color:#ffe0da;text-shadow:0 0 8px #f00,0 1px 2px #000}
+.elin{position:fixed;left:50%;z-index:46;pointer-events:none;transform:translate(-50%,-50%);text-align:center;white-space:nowrap}
+.elin h3{margin:0;font:900 13px/1 sans-serif;letter-spacing:.45em;color:#ffcf8a;text-shadow:0 0 10px rgba(255,140,40,1),0 1px 2px #000}
+.elin h2{margin:6px 0 0;font:900 clamp(22px,7vw,34px)/1 var(--serif,serif);color:#fff;text-shadow:0 0 14px rgba(255,120,40,.95),0 3px 3px #000}
+.elin i{display:block;height:2px;width:80vw;margin:8px auto 0;background:linear-gradient(90deg,transparent,#ff9a40,transparent)}
+.kspot{position:fixed;inset:0;z-index:44;pointer-events:none;opacity:0}
+.dflab{position:fixed;z-index:43;pointer-events:none;transform:translate(-50%,-50%);white-space:nowrap;font:900 15px/1 var(--serif,serif);letter-spacing:.3em;color:#f4e2d0;text-shadow:0 0 10px rgba(200,0,0,1),0 2px 2px #000}
+.en .ef .dfdk{position:absolute;inset:0;z-index:7;pointer-events:none;border-radius:inherit;background:radial-gradient(ellipse at 50% 45%,rgba(30,20,20,.55),rgba(0,0,0,.95));opacity:0}
+.en .ef .dffl{position:absolute;inset:0;z-index:8;pointer-events:none;border-radius:inherit;background:radial-gradient(circle at 50% 40%,#fff,rgba(255,40,30,.9) 50%,rgba(120,0,0,0) 85%);opacity:0}`;document.head.appendChild(st);})();
+const vi_=()=>window.CV_LANG==="vi";
+// ---------- 1) Kẻ địch ra chiêu: bảng tên chiêu trên chân dung + màu theo loại ----------
+function mvKind(e,m){if(!m)return null;if(m.d){if(typeof enemyDanger==="function"&&enemyDanger(e,m))return["255,60,50",vi_()?"ĐÒN NẶNG":"HEAVY"];if((m.h||1)>1)return["255,150,60",vi_()?"LIÊN KÍCH":"FLURRY"];if(m.w||m.v||m.bl)return["200,90,255",vi_()?"KÈM HIỆU ỨNG":"AFFLICT"];return null;}
+  if(m.summon)return["200,90,255",vi_()?"TRIỆU HỒI":"SUMMON"];if(m.charge)return["255,200,80",vi_()?"TỤ LỰC":"CHARGE"];if(m.heal)return["140,255,170",vi_()?"HỒI MÁU":"HEAL"];
+  if(m.b&&!m.w&&!m.v)return["130,200,255",vi_()?"PHÒNG THỦ":"GUARD"];if(m.s&&!m.w&&!m.v)return["255,200,90",vi_()?"CƯỜNG HÓA":"EMPOWER"];return["200,90,255",vi_()?"NGUYỀN RỦA":"HEX"];}
+function eSkill(e,m){try{const k=mvKind(e,m);if(!k||!SLEEP_MUL)return;const ef=enEl(e)?.querySelector(".ef");const p=ef&&vxAt(ef);if(!p)return;const nm=m.n||"";if(!nm)return;
+  const d=document.createElement("div");d.className="eskill";d.style.setProperty("--kc",k[0]);d.style.left=p.x+"px";d.style.top=Math.max(40,p.r.top+18)+"px";d.innerHTML=`<b>${esc(nm)}</b><small>${k[1]}</small>`;document.body.appendChild(d);
+  d.animate([{opacity:0,transform:"translate(-50%,-30%) scale(1.35)"},{opacity:1,transform:"translate(-50%,-50%) scale(1)",offset:.15,easing:"cubic-bezier(.2,.9,.3,1)"},{opacity:1,offset:.8},{opacity:0,transform:"translate(-50%,-80%)"}],{duration:1250,fill:"forwards"}).onfinish=()=>d.remove();
+  hfxPoke();if(vxOn()){vxRing(p.x,p.y,p.w*.75,k[0],.45);if(!m.d){vxPillar(p.x,p.y+p.h*.5,p.w*.5,k[0],.7);vxEmbers(p.x,p.y+p.h*.35,14,k[0],p.w*.4,220,1);}}}catch(x){}}
+{const _es=enemyStrike;enemyStrike=async function(e,m){eSkill(e,m);return _es.apply(this,arguments);};}
+{const _ec=enemyCast;enemyCast=function(e,m){eSkill(e,m);return _ec.apply(this,arguments);};}
+// ---------- 2) Cảnh báo đòn nặng đầu lượt người chơi ----------
+{const _st=startTurn;startTurn=async function(){const r=await _st.apply(this,arguments);try{if(C&&SLEEP_MUL){let any=0;for(const e of C.en){if(e.hp<=0||!e.intent||!e.intent.d)continue;
+    if(!(typeof enemyDanger==="function"&&enemyDanger(e,e.intent)))continue;const it=enEl(e)?.querySelector(".intent");if(!it)continue;it.classList.add("dng");any=1;
+    it.animate([{transform:"scale(1)"},{transform:"scale(1.35)",offset:.3},{transform:"scale(1)",offset:.6},{transform:"scale(1.2)",offset:.8},{transform:"scale(1)"}],{duration:900});
+    const q=it.getBoundingClientRect();const t=document.createElement("div");t.className="dngtx";t.textContent=vi_()?"⚠ ĐÒN NẶNG SẮP TỚI":"⚠ HEAVY ATTACK";t.style.left=(q.left+q.width/2)+"px";t.style.top=(q.bottom+14)+"px";
+    document.body.appendChild(t);t.animate([{opacity:0},{opacity:1,offset:.15},{opacity:1,offset:.75},{opacity:0}],{duration:1600,fill:"forwards"}).onfinish=()=>t.remove();}
+   if(any){hfxPoke();hfxEdge("255,40,40",700,.55);}}}catch(x){}return r;};}
+{const _rcd=renderCombat;renderCombat=function(){const r=_rcd.apply(this,arguments);try{if(C)for(const e of C.en){if(e.hp<=0||!e.intent||!e.intent.d)continue;if(typeof enemyDanger==="function"&&enemyDanger(e,e.intent))enEl(e)?.querySelector(".intent")?.classList.add("dng");}}catch(x){}return r;};}
+// ---------- 3) Elite xuất hiện ----------
+{const _cbe=combat;combat=async function(group,kind){const r=await _cbe.apply(this,arguments);try{if(kind==="e"&&SLEEP_MUL&&C){const e=C.en.find(x=>x.d.elite)||C.en[0];
+    setTimeout(()=>{try{if(!C)return;const ef=enEl(e)?.querySelector(".ef");const p=ef&&vxAt(ef);hfxPoke();SFX.play("heavy",1);try{haptic(24);}catch(x){}
+      if(ef)ef.animate([{transform:"scale(1.15)",filter:"brightness(2)"},{transform:"scale(1)",filter:"brightness(1)"}],{duration:520,easing:"cubic-bezier(.2,.9,.3,1)"});
+      if(p&&vxOn()){vxShock(p.x,p.y,innerWidth*.8,.5);vxRing(p.x,p.y,p.w*1.1,"255,140,40",.6);vxRing(p.x,p.y,innerWidth,"255,220,180",.8,.1);vxEmbers(p.x,p.y+p.h*.4,30,"255,140,40",p.w*.6,300,1.6);}
+      hfxEdge("255,130,40",900,.8);
+      const b=document.createElement("div");b.className="elin";b.style.top=(p?Math.min(p.r.bottom-20,innerHeight*.58):innerHeight*.45)+"px";b.innerHTML=`<h3>${vi_()?"TINH NHUỆ":"ELITE"}</h3><h2>${esc(e.d.n.split(" — ")[0])}</h2><i></i>`;document.body.appendChild(b);
+      b.animate([{opacity:0,transform:"translate(-50%,-50%) scale(1.4)"},{opacity:1,transform:"translate(-50%,-50%) scale(1)",offset:.15,easing:"cubic-bezier(.2,.9,.3,1)"},{opacity:1,offset:.8},{opacity:0}],{duration:1900,fill:"forwards"}).onfinish=()=>b.remove();}catch(x){}},900);}}catch(x){}return r;};}
+// ---------- 4) Preload ảnh Bị hạ để đổi ngay lúc chết ----------
+{const _rcp=renderCombat;renderCombat=function(full){const r=_rcp.apply(this,arguments);try{if(full&&C)for(const e of C.en){if(e._hpre||e.hp<=0)continue;e._hpre=1;if(DB.ids("en_"+e.id+"_hurt").length)hurtUrl(e).then(u=>{if(u){const im=new Image();im.src=u;im.decode&&im.decode().catch(()=>{});}});}}catch(x){}return r;};}
+// ---------- 5) Khoảnh khắc bị hạ: lóe đỏ che lúc đổi ảnh → chữ BỊ HẠ → tối dần, chìm xuống → linh hồn bay lên ----------
+function dfMoment(e,boss){try{const E=enEl(e);const ef=E&&E.querySelector(".ef");if(!ef)return;const p=vxAt(ef);
+  const fl=document.createElement("i");fl.className="dffl";ef.appendChild(fl);fl.animate([{opacity:0},{opacity:1,offset:.2},{opacity:0}],{duration:boss?800:560,easing:"ease-out"}).onfinish=()=>fl.remove();
+  if(p){const t=document.createElement("div");t.className="dflab";t.textContent=boss?(vi_()?"ĐÃ BỊ HẠ GỤC":"VANQUISHED"):(vi_()?"BỊ HẠ":"DEFEATED");t.style.left=p.x+"px";t.style.top=Math.min(p.r.bottom-22,innerHeight-60)+"px";document.body.appendChild(t);
+    t.animate([{opacity:0,letterSpacing:".8em"},{opacity:1,letterSpacing:".3em",offset:.2},{opacity:1,offset:.75},{opacity:0}],{duration:(DFKEEP||1900)-150,fill:"forwards"}).onfinish=()=>t.remove();}
+  const fadeAt=Math.max(300,(e._dfxEnd||performance.now()+1300)-performance.now()-480);
+  setTimeout(()=>{try{const E2=enEl(e);const f2=E2&&E2.querySelector(".ef");if(!f2)return;const dk=document.createElement("i");dk.className="dfdk";f2.appendChild(dk);
+    dk.animate([{opacity:0},{opacity:1}],{duration:480,fill:"forwards"});f2.animate([{transform:"translateY(0) scale(1)"},{transform:"translateY(12px) scale(.96)"}],{duration:480,fill:"forwards",easing:"ease-in"});}catch(x){}},fadeAt);}catch(x){}}
+// ---------- 6) Đòn kết liễu boss: dừng hình, rọi đèn, lóe trắng, sóng chấn ----------
+function bossKillFx(e){try{const ef=enEl(e)?.querySelector(".ef");const p=ef&&vxAt(ef);hfxPoke();const cx=p?p.x:innerWidth/2,cy=p?p.y:innerHeight*.3,R0=p?Math.max(p.w,p.h)*.6:200;
+  const d=document.createElement("div");d.className="kspot";d.style.background=`radial-gradient(circle at ${cx}px ${cy}px,rgba(0,0,0,0) ${R0*.8}px,rgba(0,0,0,.92) ${R0*1.7}px)`;document.body.appendChild(d);
+  d.animate([{opacity:0},{opacity:1,offset:.1},{opacity:1,offset:.75},{opacity:0}],{duration:2200,fill:"forwards"}).onfinish=()=>d.remove();
+  SFX.play("phaseRoar",.8);try{haptic(50);setTimeout(()=>haptic(30),300);}catch(x){}
+  if(p&&vxOn()){vxFlash(cx,cy,innerWidth*1.2,"255,255,255",.4);vxStreak(cx,cy,innerWidth*1.6,"255,240,220",.5);setTimeout(()=>{try{vxStreak(cx,cy,innerWidth*1.6,"255,200,150",.5);vxShock(cx,cy,innerWidth,.7);
+    vxRing(cx,cy,innerWidth*.7,"255,200,150",.8);vxRing(cx,cy,innerWidth*1.2,"255,255,255",1,.12);vxSparks(cx,cy,50,"255,210,160",{speed:1100,grav:260});}catch(x){}},140);}
+  hfxEdge("255,230,200",900,.9);}catch(x){}}
+{const _hK=hitEnemy;hitEnemy=function(e,n){const h0=e?e.hp:0;const r=_hK.apply(this,arguments);try{if(e&&h0>0&&e.hp<=0&&SLEEP_MUL){const boss=!!(e.d&&e.d.boss);
+    if(boss)bossKillFx(e);if(DB.ids("en_"+e.id+"_hurt").length)setTimeout(()=>dfMoment(e,boss),boss?120:0);}}catch(x){}return r;};}
+// bỏ dải tên chiêu nhỏ cũ khi đã có bảng tên chiêu mới (tránh hiện 2 lần)
+{const _emv=enemyMoveVfx;enemyMoveVfx=function(e,m){if(!(SLEEP_MUL&&mvKind(e,m)&&m&&m.n))return _emv.apply(this,arguments);const fa=floatAt;floatAt=function(el,txt,cls){if(typeof cls==="string"&&cls.includes("mname")&&txt===m.n)return;return fa.apply(this,arguments);};try{return _emv.apply(this,arguments);}finally{floatAt=fa;}};}
 
 // ===================== 5.21 — XƯỞNG ẢNH: NHÃN CÔNG CỤ (WAI / ChatGPT) + KÍCH THƯỚC =====================
 function slotTool(s){return (s.gpt||s.ui)?"gpt":"wai";}
@@ -16748,7 +16882,7 @@ async function enPhase2(e,fx){e._p2=1;const im=enImgEl(e);if(!im)return;if(!im.d
 {const _hE2=hitEnemy;hitEnemy=function(e,n){const r=_hE2.apply(this,arguments);try{if(e&&e.hp>0&&!e._p2&&p2Due(e))enPhase2(e,true);}catch(x){}return r;};}
 {const _rc2=renderCombat;renderCombat=function(){const r=_rc2.apply(this,arguments);try{if(C&&C.en)setTimeout(()=>{try{C&&C.en&&C.en.forEach(e=>{if(e.hp<=0)return;if(e._p2||p2Due(e))enPhase2(e,false);});}catch(x){}},420);}catch(x){}return r;};}
 
-const DFKEEP=1900;
+const DFKEEP=2500;
 (function(){const st=document.createElement("style");st.textContent=`.en.dead.dfx{opacity:1!important;filter:none!important;transform:none!important}.en.dead.dfx img,.en.dead.dfx .ef{opacity:1!important;filter:none!important}`;document.head.appendChild(st);})();
 {const _hE3=hitEnemy;hitEnemy=function(e,n){const h0=e?e.hp:0;const r=_hE3.apply(this,arguments);try{if(e&&h0>0&&e.hp<=0&&DB.ids("en_"+e.id+"_hurt").length){e._dead=1;
     e._dT=performance.now()+DFKEEP;const im=enImgEl(e);const el=im&&im.closest(".en");
@@ -17000,6 +17134,140 @@ async function bossPhaseFx(e){try{const id=e.id,col=BPH_COL[id]||"255,70,60";hfx
 // bỏ dòng thông báo "nổi giận" cũ (đã nằm trong màn GIAI ĐOẠN II)
 (function(){for(const k of Object.keys(BPH_LINE)){const d=ENEMIES[k];if(d&&d.enrage&&d.enrage.t)d.enrage.t="";}
   const _t=toast;toast=function(m){if(m===""||m==null)return;return _t.apply(this,arguments);};})();
+
+// ===================== 5.29g — CHUYỂN PHASE RÕ RÀNG + CHÂN DUNG VỪA KHUNG =====================
+// 1) Có khung ảnh kẻ địch: ảnh bị thu nhỏ 92% (luật cũ) → hở viền tối quanh ảnh. Bỏ thu nhỏ, ảnh phủ kín lòng khung.
+// 2) Chuyển phase: ảnh đổi đúng lúc lóe sáng (không lén đổi sau lớp tối), boss được rọi sáng giữa màn tối,
+//    chữ nằm dưới chân dung để vẫn thấy nàng biến đổi; sau đó khung phát sáng màu phase + huy hiệu "II" giữ suốt trận.
+//    Chỉ dùng opacity/transform + lớp WebGL sẵn có; viền sáng là box-shadow tĩnh (không chạy animation liên tục).
+const PH2C={wraith:"150,200,255",necro:"140,255,170",dryad:"120,255,120",arachne:"230,40,70",succubus:"255,90,200",vampire:"230,30,60",voidspawn:"170,90,255",
+ nightmare:"170,90,255",gargoyle:"200,205,220",lamia:"120,255,140",dullahan:"120,200,255",abyssknight:"150,80,255",watcher:"255,140,60",swordgirl:"150,210,255",
+ cultist:"255,60,60",crow:"200,60,80",ghoul:"170,255,90",boneknight:"230,230,200",hollow:"255,120,50",ratgirl:"255,170,60"};
+function ph2Col(e){return (typeof BPH_COL!=="undefined"&&BPH_COL[e.id])||PH2C[e.id]||"255,70,50";}
+(function(){const st=document.createElement("style");
+ const IN="var(--eft,9%) var(--efr,10%) var(--efb,8%) var(--efl,10%)",INB="var(--eftB,var(--eft,9%)) var(--efrB,var(--efr,10%)) var(--efbB,var(--efb,8%)) var(--eflB,var(--efl,10%))";
+ st.textContent=`html.ui-enframe .en .ef>img:not(.uia){transform:none!important;--es:1}
+.en .ef .ph2g{position:absolute;inset:-3px;border-radius:16px;pointer-events:none;z-index:4;box-shadow:0 0 0 2px rgba(var(--pc),.9),0 0 18px 3px rgba(var(--pc),.6),inset 0 0 26px rgba(var(--pc),.4)}
+html.ui-enframe .en .ef .ph2g{inset:${IN};border-radius:4px;box-shadow:0 0 18px 4px rgba(var(--pc),.75),inset 0 0 26px rgba(var(--pc),.5)}
+html.ui-enframe .en .ef.bossf .ph2g{inset:${INB}}
+.en .ef .ph2b{position:absolute;left:50%;bottom:5%;transform:translateX(-50%);z-index:6;font:900 11px/1 var(--serif,serif);letter-spacing:.2em;padding:3px 7px 3px 9px;border-radius:9px;background:rgba(0,0,0,.78);color:#fff;border:1px solid rgba(var(--pc),1);text-shadow:0 0 6px rgba(var(--pc),1);white-space:nowrap;pointer-events:none}
+html.ui-enframe .en .ef .ph2b{bottom:calc(var(--efb,8%) + 5px)}
+.en .ef .phfl{position:absolute;inset:0;z-index:7;pointer-events:none;border-radius:inherit;background:radial-gradient(circle at 50% 38%,#fff 0,rgba(var(--pc),.95) 45%,rgba(var(--pc),0) 80%);opacity:0}
+.phrib{position:fixed;z-index:46;pointer-events:none;left:50%;transform:translate(-50%,-50%);text-align:center;white-space:nowrap}
+.phrib b{display:block;font:900 30px/1 var(--serif,serif);letter-spacing:.14em;color:#fff;text-shadow:0 0 12px rgba(var(--pc),1),0 0 30px rgba(var(--pc),.85),0 3px 3px #000}
+.phrib i{display:block;height:2px;margin:6px auto 0;width:70vw;background:linear-gradient(90deg,transparent,rgba(var(--pc),1),transparent)}`;document.head.appendChild(st);})();
+function ph2Mark(e){try{const f=enEl(e)?.querySelector(".ef");if(!f)return;const c=ph2Col(e);f.style.setProperty("--pc",c);
+  if(!f.querySelector(".ph2g"))f.insertAdjacentHTML("beforeend",'<i class="ph2g"></i><b class="ph2b">II</b>');}catch(x){}}
+function ph2Flash(e,dur){const f=enEl(e)?.querySelector(".ef");if(!f)return null;f.style.setProperty("--pc",ph2Col(e));let fl=f.querySelector(".phfl");if(!fl){fl=document.createElement("i");fl.className="phfl";f.appendChild(fl);}
+  const a=fl.animate([{opacity:0},{opacity:1,offset:.3},{opacity:0}],{duration:dur||650,easing:"ease-out"});a.onfinish=()=>fl.remove();return f;}
+// ảnh phase 2 nạp sẵn để đổi đúng khoảnh khắc lóe sáng
+async function ph2Pre(e){try{const u=await p2Url(e);if(u){const im=new Image();im.src=u;try{await im.decode();}catch(x){}}return u;}catch(x){return null;}}
+{const _p2o=enPhase2;
+ enPhase2=async function(e,fx){if(!e)return;
+  if(e._phHold&&performance.now()<e._phHold)return;      // boss: đợi màn GIAI ĐOẠN II tự đổi
+  const isB=typeof EM!=="undefined"&&EM[e.id]&&EM[e.id].ph;
+  if(!fx||e._p2||!SLEEP_MUL){const r=await _p2o.call(this,e,false);if(e.hp>0&&(isB||DB.ids("en_"+e.id+"_alt").length))ph2Mark(e);return r;}
+  // kẻ địch thường còn nửa máu: chỉ diễn khi có ảnh phase 2
+  e._p2=1;const u=await ph2Pre(e);if(!u||e.hp<=0)return;const ef=enEl(e)?.querySelector(".ef");if(!ef)return;const col=ph2Col(e);
+  try{hfxPoke();SFX.play("windup",1);haptic(16);}catch(x){}
+  ef.animate([{transform:"translate(0,0)"},{transform:"translate(-3px,1px)"},{transform:"translate(3px,-1px)"},{transform:"translate(-2px,0)"},{transform:"translate(0,0)"}],{duration:260});
+  ph2Flash(e,700);
+  setTimeout(async()=>{try{await _p2o.call(this,e,false);ph2Mark(e);const p=vxAt(ef);
+    ef.animate([{transform:"scale(1.1)"},{transform:"scale(1)"}],{duration:420,easing:"cubic-bezier(.2,.9,.3,1)"});
+    if(p&&vxOn()){vxRing(p.x,p.y,p.w*.9,col,.55);vxRing(p.x,p.y,p.w*1.5,"255,240,220",.65,.08);vxPillar(p.x,p.y+p.h*.5,p.w*.7,col,.8);vxSparks(p.x,p.y,26,col,{speed:760,grav:300});}
+    hfxEdge(col,600,.6);SFX.play("strUp",.8);
+    const r=document.createElement("div");r.className="phrib";r.style.setProperty("--pc",col);r.style.top=(p?p.y:innerHeight*.3)+"px";r.innerHTML="<b>GIAI ĐOẠN 2</b><i></i>";document.body.appendChild(r);
+    r.animate([{opacity:0,transform:"translate(-50%,-50%) scale(1.6)"},{opacity:1,transform:"translate(-50%,-50%) scale(1)",offset:.18,easing:"cubic-bezier(.2,.9,.3,1)"},{opacity:1,offset:.7},{opacity:0,transform:"translate(-50%,-60%) scale(1)"}],{duration:1300,fill:"forwards"}).onfinish=()=>r.remove();}catch(x){}},200);};}
+// giữ viền sáng phase sau mỗi lần vẽ lại trận
+{const _rcp=renderCombat;renderCombat=function(){const r=_rcp.apply(this,arguments);try{if(C&&C.en)for(const e of C.en)if(e._p2&&e.hp>0){const isB=typeof EM!=="undefined"&&EM[e.id]&&EM[e.id].ph;if(isB||DB.ids("en_"+e.id+"_alt").length)ph2Mark(e);}}catch(x){}return r;};}
+// ---- màn GIAI ĐOẠN II của boss: rọi đèn vào boss → rung, nạp sáng → LÓE + ĐỔI ẢNH → chữ dưới chân dung ----
+bossPhaseFx=async function(e){try{const id=e.id,col=ph2Col(e);hfxPoke();const ef=enEl(e)?.querySelector(".ef");const p=ef&&vxAt(ef);
+  e._phHold=performance.now()+5000;const pre=ph2Pre(e);
+  const cx=p?p.x:innerWidth/2,cy=p?p.y:innerHeight*.3,R=p?Math.max(p.w,p.h)*.62:200;
+  const dim=document.createElement("div");dim.className="bph-dim";dim.style.background=`radial-gradient(circle at ${cx}px ${cy}px,rgba(0,0,0,0) ${R*.75}px,rgba(0,0,0,.6) ${R*1.05}px,rgba(0,0,0,.9) ${R*1.8}px)`;document.body.appendChild(dim);
+  dim.animate([{opacity:0},{opacity:1,offset:.12},{opacity:1,offset:.78},{opacity:0}],{duration:3000,fill:"forwards"}).onfinish=()=>dim.remove();
+  SFX.play("phaseRoar",1);try{haptic(30);}catch(x){}
+  if(ef){ef.style.setProperty("--pc",col);
+    ef.animate([{transform:"translate(0,0)"},{transform:"translate(-4px,2px)"},{transform:"translate(4px,-2px)"},{transform:"translate(-5px,-1px)"},{transform:"translate(5px,1px)"},{transform:"translate(-3px,2px)"},{transform:"translate(0,0)"}],{duration:620,easing:"linear"});
+    let fl=document.createElement("i");fl.className="phfl";ef.appendChild(fl);fl.animate([{opacity:0},{opacity:.35,offset:.4},{opacity:.15,offset:.6},{opacity:.6}],{duration:620,fill:"forwards"});setTimeout(()=>fl.remove(),640);}
+  if(p&&vxOn()){vxRing(p.x,p.y,p.w*.9,col,.6);vxEmbers(p.x,p.y+p.h*.4,22,col,p.w*.5,-260,.7);}
+  setTimeout(async()=>{try{await pre;e._phHold=0;ph2Flash(e,900);await enPhase2(e,false);ph2Mark(e);try{haptic(40);}catch(x){}
+    if(ef)ef.animate([{transform:"scale(1)"},{transform:"scale(1.14)",offset:.25},{transform:"scale(1)"}],{duration:700,easing:"cubic-bezier(.2,.9,.3,1)"});
+    if(p&&vxOn()){vxFlash(p.x,p.y,innerWidth,"255,255,255",.35);vxShock(p.x,p.y,innerWidth*.9,.6);vxPillar(p.x,p.y+p.h*.5,p.w*.95,col,1.3);vxRing(p.x,p.y,innerWidth*.6,col,.7);
+      vxRing(p.x,p.y,innerWidth*1.1,"255,240,220",.9,.12);vxSparks(p.x,p.y,40,col,{speed:950,grav:280});vxEmbers(p.x,p.y+p.h*.3,40,col,p.w*.6,360,2);}
+    hfxEdge(col,1500,1);
+    const b=document.createElement("div");b.className="bph";b.style.setProperty("--bc",col);const top=p?Math.min(p.r.bottom-34,innerHeight*.6):innerHeight*.5;b.style.top=top+"px";
+    const nm=(ENEMIES[id]||{}).n||"";const em=(typeof EM!=="undefined"&&EM[id])||{};
+    b.innerHTML=`<div class="bph-bar"></div><h2>GIAI ĐOẠN II</h2><div class="bph-n" style="margin:8px 0 0">${esc(nm.split(" — ")[0].toUpperCase())} · ${esc((em.n||"").toUpperCase())}</div>${BPH_LINE[id]?`<div class="bph-l">${esc(BPH_LINE[id])}</div>`:""}${em.d?`<div class="bph-d">${esc(em.d)}</div>`:""}`;
+    document.body.appendChild(b);b.animate([{opacity:0,transform:"scale(1.5)"},{opacity:1,transform:"scale(1)",offset:.12,easing:"cubic-bezier(.2,.9,.3,1)"},{opacity:1,offset:.84},{opacity:0}],{duration:2500,fill:"forwards"}).onfinish=()=>b.remove();
+    b.querySelector(".bph-bar").style.top="15px";b.querySelector(".bph-bar").animate([{transform:"translateY(-50%) scaleX(0)"},{transform:"translateY(-50%) scaleX(1)",offset:.2}],{duration:2500,fill:"forwards"});}catch(x){e._phHold=0;}},620);
+  await new Promise(r=>setTimeout(r,2300*Math.max(.7,SLEEP_MUL||1)));}catch(x){e._phHold=0;}};
+
+// ===================== 5.29h — KẺ ĐỊCH RA CHIÊU / CẢNH BÁO ĐÒN NẶNG / ELITE XUẤT HIỆN / ĐÒN KẾT LIỄU BOSS / KHOẢNH KHẮC BỊ HẠ =====================
+// Tất cả là hiệu ứng một lần (opacity/transform + lớp WebGL sẵn có), không có animation chạy liên tục → không nóng máy.
+(function(){const st=document.createElement("style");st.textContent=`
+.eskill{position:fixed;z-index:43;left:0;pointer-events:none;transform:translate(-50%,-50%);white-space:nowrap;text-align:center}
+.eskill b{display:inline-block;padding:6px 14px 6px 16px;border-radius:10px;font:900 15px/1.1 var(--serif,serif);letter-spacing:.08em;color:#fff;background:linear-gradient(180deg,rgba(20,12,14,.92),rgba(8,5,6,.92));border:1px solid rgba(var(--kc),1);box-shadow:0 0 14px rgba(var(--kc),.6),0 4px 10px rgba(0,0,0,.6);text-shadow:0 0 8px rgba(var(--kc),1)}
+.eskill small{display:block;margin-top:3px;font:800 9px/1 sans-serif;letter-spacing:.25em;color:rgba(var(--kc),1);text-shadow:0 1px 2px #000}
+#combat .intent.dng{box-shadow:0 0 0 2px #ff3b3b,0 0 14px rgba(255,40,40,.8)!important}
+.dngtx{position:fixed;z-index:43;pointer-events:none;transform:translate(-50%,-50%);white-space:nowrap;font:900 13px/1 sans-serif;letter-spacing:.2em;color:#ffe0da;text-shadow:0 0 8px #f00,0 1px 2px #000}
+.elin{position:fixed;left:50%;z-index:46;pointer-events:none;transform:translate(-50%,-50%);text-align:center;white-space:nowrap}
+.elin h3{margin:0;font:900 13px/1 sans-serif;letter-spacing:.45em;color:#ffcf8a;text-shadow:0 0 10px rgba(255,140,40,1),0 1px 2px #000}
+.elin h2{margin:6px 0 0;font:900 clamp(22px,7vw,34px)/1 var(--serif,serif);color:#fff;text-shadow:0 0 14px rgba(255,120,40,.95),0 3px 3px #000}
+.elin i{display:block;height:2px;width:80vw;margin:8px auto 0;background:linear-gradient(90deg,transparent,#ff9a40,transparent)}
+.kspot{position:fixed;inset:0;z-index:44;pointer-events:none;opacity:0}
+.dflab{position:fixed;z-index:43;pointer-events:none;transform:translate(-50%,-50%);white-space:nowrap;font:900 15px/1 var(--serif,serif);letter-spacing:.3em;color:#f4e2d0;text-shadow:0 0 10px rgba(200,0,0,1),0 2px 2px #000}
+.en .ef .dfdk{position:absolute;inset:0;z-index:7;pointer-events:none;border-radius:inherit;background:radial-gradient(ellipse at 50% 45%,rgba(30,20,20,.55),rgba(0,0,0,.95));opacity:0}
+.en .ef .dffl{position:absolute;inset:0;z-index:8;pointer-events:none;border-radius:inherit;background:radial-gradient(circle at 50% 40%,#fff,rgba(255,40,30,.9) 50%,rgba(120,0,0,0) 85%);opacity:0}`;document.head.appendChild(st);})();
+const vi_=()=>window.CV_LANG==="vi";
+// ---------- 1) Kẻ địch ra chiêu: bảng tên chiêu trên chân dung + màu theo loại ----------
+function mvKind(e,m){if(!m)return null;if(m.d){if(typeof enemyDanger==="function"&&enemyDanger(e,m))return["255,60,50",vi_()?"ĐÒN NẶNG":"HEAVY"];if((m.h||1)>1)return["255,150,60",vi_()?"LIÊN KÍCH":"FLURRY"];if(m.w||m.v||m.bl)return["200,90,255",vi_()?"KÈM HIỆU ỨNG":"AFFLICT"];return null;}
+  if(m.summon)return["200,90,255",vi_()?"TRIỆU HỒI":"SUMMON"];if(m.charge)return["255,200,80",vi_()?"TỤ LỰC":"CHARGE"];if(m.heal)return["140,255,170",vi_()?"HỒI MÁU":"HEAL"];
+  if(m.b&&!m.w&&!m.v)return["130,200,255",vi_()?"PHÒNG THỦ":"GUARD"];if(m.s&&!m.w&&!m.v)return["255,200,90",vi_()?"CƯỜNG HÓA":"EMPOWER"];return["200,90,255",vi_()?"NGUYỀN RỦA":"HEX"];}
+function eSkill(e,m){try{const k=mvKind(e,m);if(!k||!SLEEP_MUL)return;const ef=enEl(e)?.querySelector(".ef");const p=ef&&vxAt(ef);if(!p)return;const nm=m.n||"";if(!nm)return;
+  const d=document.createElement("div");d.className="eskill";d.style.setProperty("--kc",k[0]);d.style.left=p.x+"px";d.style.top=Math.max(40,p.r.top+18)+"px";d.innerHTML=`<b>${esc(nm)}</b><small>${k[1]}</small>`;document.body.appendChild(d);
+  d.animate([{opacity:0,transform:"translate(-50%,-30%) scale(1.35)"},{opacity:1,transform:"translate(-50%,-50%) scale(1)",offset:.15,easing:"cubic-bezier(.2,.9,.3,1)"},{opacity:1,offset:.8},{opacity:0,transform:"translate(-50%,-80%)"}],{duration:1250,fill:"forwards"}).onfinish=()=>d.remove();
+  hfxPoke();if(vxOn()){vxRing(p.x,p.y,p.w*.75,k[0],.45);if(!m.d){vxPillar(p.x,p.y+p.h*.5,p.w*.5,k[0],.7);vxEmbers(p.x,p.y+p.h*.35,14,k[0],p.w*.4,220,1);}}}catch(x){}}
+{const _es=enemyStrike;enemyStrike=async function(e,m){eSkill(e,m);return _es.apply(this,arguments);};}
+{const _ec=enemyCast;enemyCast=function(e,m){eSkill(e,m);return _ec.apply(this,arguments);};}
+// ---------- 2) Cảnh báo đòn nặng đầu lượt người chơi ----------
+{const _st=startTurn;startTurn=async function(){const r=await _st.apply(this,arguments);try{if(C&&SLEEP_MUL){let any=0;for(const e of C.en){if(e.hp<=0||!e.intent||!e.intent.d)continue;
+    if(!(typeof enemyDanger==="function"&&enemyDanger(e,e.intent)))continue;const it=enEl(e)?.querySelector(".intent");if(!it)continue;it.classList.add("dng");any=1;
+    it.animate([{transform:"scale(1)"},{transform:"scale(1.35)",offset:.3},{transform:"scale(1)",offset:.6},{transform:"scale(1.2)",offset:.8},{transform:"scale(1)"}],{duration:900});
+    const q=it.getBoundingClientRect();const t=document.createElement("div");t.className="dngtx";t.textContent=vi_()?"⚠ ĐÒN NẶNG SẮP TỚI":"⚠ HEAVY ATTACK";t.style.left=(q.left+q.width/2)+"px";t.style.top=(q.bottom+14)+"px";
+    document.body.appendChild(t);t.animate([{opacity:0},{opacity:1,offset:.15},{opacity:1,offset:.75},{opacity:0}],{duration:1600,fill:"forwards"}).onfinish=()=>t.remove();}
+   if(any){hfxPoke();hfxEdge("255,40,40",700,.55);}}}catch(x){}return r;};}
+{const _rcd=renderCombat;renderCombat=function(){const r=_rcd.apply(this,arguments);try{if(C)for(const e of C.en){if(e.hp<=0||!e.intent||!e.intent.d)continue;if(typeof enemyDanger==="function"&&enemyDanger(e,e.intent))enEl(e)?.querySelector(".intent")?.classList.add("dng");}}catch(x){}return r;};}
+// ---------- 3) Elite xuất hiện ----------
+{const _cbe=combat;combat=async function(group,kind){const r=await _cbe.apply(this,arguments);try{if(kind==="e"&&SLEEP_MUL&&C){const e=C.en.find(x=>x.d.elite)||C.en[0];
+    setTimeout(()=>{try{if(!C)return;const ef=enEl(e)?.querySelector(".ef");const p=ef&&vxAt(ef);hfxPoke();SFX.play("heavy",1);try{haptic(24);}catch(x){}
+      if(ef)ef.animate([{transform:"scale(1.15)",filter:"brightness(2)"},{transform:"scale(1)",filter:"brightness(1)"}],{duration:520,easing:"cubic-bezier(.2,.9,.3,1)"});
+      if(p&&vxOn()){vxShock(p.x,p.y,innerWidth*.8,.5);vxRing(p.x,p.y,p.w*1.1,"255,140,40",.6);vxRing(p.x,p.y,innerWidth,"255,220,180",.8,.1);vxEmbers(p.x,p.y+p.h*.4,30,"255,140,40",p.w*.6,300,1.6);}
+      hfxEdge("255,130,40",900,.8);
+      const b=document.createElement("div");b.className="elin";b.style.top=(p?Math.min(p.r.bottom-20,innerHeight*.58):innerHeight*.45)+"px";b.innerHTML=`<h3>${vi_()?"TINH NHUỆ":"ELITE"}</h3><h2>${esc(e.d.n.split(" — ")[0])}</h2><i></i>`;document.body.appendChild(b);
+      b.animate([{opacity:0,transform:"translate(-50%,-50%) scale(1.4)"},{opacity:1,transform:"translate(-50%,-50%) scale(1)",offset:.15,easing:"cubic-bezier(.2,.9,.3,1)"},{opacity:1,offset:.8},{opacity:0}],{duration:1900,fill:"forwards"}).onfinish=()=>b.remove();}catch(x){}},900);}}catch(x){}return r;};}
+// ---------- 4) Preload ảnh Bị hạ để đổi ngay lúc chết ----------
+{const _rcp=renderCombat;renderCombat=function(full){const r=_rcp.apply(this,arguments);try{if(full&&C)for(const e of C.en){if(e._hpre||e.hp<=0)continue;e._hpre=1;if(DB.ids("en_"+e.id+"_hurt").length)hurtUrl(e).then(u=>{if(u){const im=new Image();im.src=u;im.decode&&im.decode().catch(()=>{});}});}}catch(x){}return r;};}
+// ---------- 5) Khoảnh khắc bị hạ: lóe đỏ che lúc đổi ảnh → chữ BỊ HẠ → tối dần, chìm xuống → linh hồn bay lên ----------
+function dfMoment(e,boss){try{const E=enEl(e);const ef=E&&E.querySelector(".ef");if(!ef)return;const p=vxAt(ef);
+  const fl=document.createElement("i");fl.className="dffl";ef.appendChild(fl);fl.animate([{opacity:0},{opacity:1,offset:.2},{opacity:0}],{duration:boss?800:560,easing:"ease-out"}).onfinish=()=>fl.remove();
+  if(p){const t=document.createElement("div");t.className="dflab";t.textContent=boss?(vi_()?"ĐÃ BỊ HẠ GỤC":"ĐÃ BỊ HẠ"):(vi_()?"BỊ HẠ":"DEFEATED");t.style.left=p.x+"px";t.style.top=Math.min(p.r.bottom-22,innerHeight-60)+"px";document.body.appendChild(t);
+    t.animate([{opacity:0,letterSpacing:".8em"},{opacity:1,letterSpacing:".3em",offset:.2},{opacity:1,offset:.75},{opacity:0}],{duration:(DFKEEP||1900)-150,fill:"forwards"}).onfinish=()=>t.remove();}
+  const fadeAt=Math.max(300,(e._dfxEnd||performance.now()+1300)-performance.now()-480);
+  setTimeout(()=>{try{const E2=enEl(e);const f2=E2&&E2.querySelector(".ef");if(!f2)return;const dk=document.createElement("i");dk.className="dfdk";f2.appendChild(dk);
+    dk.animate([{opacity:0},{opacity:1}],{duration:480,fill:"forwards"});f2.animate([{transform:"translateY(0) scale(1)"},{transform:"translateY(12px) scale(.96)"}],{duration:480,fill:"forwards",easing:"ease-in"});}catch(x){}},fadeAt);}catch(x){}}
+// ---------- 6) Đòn kết liễu boss: dừng hình, rọi đèn, lóe trắng, sóng chấn ----------
+function bossKillFx(e){try{const ef=enEl(e)?.querySelector(".ef");const p=ef&&vxAt(ef);hfxPoke();const cx=p?p.x:innerWidth/2,cy=p?p.y:innerHeight*.3,R0=p?Math.max(p.w,p.h)*.6:200;
+  const d=document.createElement("div");d.className="kspot";d.style.background=`radial-gradient(circle at ${cx}px ${cy}px,rgba(0,0,0,0) ${R0*.8}px,rgba(0,0,0,.92) ${R0*1.7}px)`;document.body.appendChild(d);
+  d.animate([{opacity:0},{opacity:1,offset:.1},{opacity:1,offset:.75},{opacity:0}],{duration:2200,fill:"forwards"}).onfinish=()=>d.remove();
+  SFX.play("phaseRoar",.8);try{haptic(50);setTimeout(()=>haptic(30),300);}catch(x){}
+  if(p&&vxOn()){vxFlash(cx,cy,innerWidth*1.2,"255,255,255",.4);vxStreak(cx,cy,innerWidth*1.6,"255,240,220",.5);setTimeout(()=>{try{vxStreak(cx,cy,innerWidth*1.6,"255,200,150",.5);vxShock(cx,cy,innerWidth,.7);
+    vxRing(cx,cy,innerWidth*.7,"255,200,150",.8);vxRing(cx,cy,innerWidth*1.2,"255,255,255",1,.12);vxSparks(cx,cy,50,"255,210,160",{speed:1100,grav:260});}catch(x){}},140);}
+  hfxEdge("255,230,200",900,.9);}catch(x){}}
+{const _hK=hitEnemy;hitEnemy=function(e,n){const h0=e?e.hp:0;const r=_hK.apply(this,arguments);try{if(e&&h0>0&&e.hp<=0&&SLEEP_MUL){const boss=!!(e.d&&e.d.boss);
+    if(boss)bossKillFx(e);if(DB.ids("en_"+e.id+"_hurt").length)setTimeout(()=>dfMoment(e,boss),boss?120:0);}}catch(x){}return r;};}
+// bỏ dải tên chiêu nhỏ cũ khi đã có bảng tên chiêu mới (tránh hiện 2 lần)
+{const _emv=enemyMoveVfx;enemyMoveVfx=function(e,m){if(!(SLEEP_MUL&&mvKind(e,m)&&m&&m.n))return _emv.apply(this,arguments);const fa=floatAt;floatAt=function(el,txt,cls){if(typeof cls==="string"&&cls.includes("mname")&&txt===m.n)return;return fa.apply(this,arguments);};try{return _emv.apply(this,arguments);}finally{floatAt=fa;}};}
 
 // ===================== 5.21 — XƯỞNG ẢNH: NHÃN CÔNG CỤ (WAI / ChatGPT) + KÍCH THƯỚC =====================
 function slotTool(s){return (s.gpt||s.ui)?"gpt":"wai";}
