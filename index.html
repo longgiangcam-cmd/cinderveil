@@ -18038,10 +18038,14 @@ const css=document.createElement("style");css.textContent=`
 .cxhub .tt small{font:700 9.5px var(--fb,sans-serif);letter-spacing:.14em;color:#ffb267;text-transform:uppercase;margin-top:3px;max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cxhub .n{position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:#e8893b;color:#2a0c02;font:800 11px/20px var(--fb,sans-serif);text-align:center;box-shadow:0 0 10px rgba(255,140,60,.9)}
 .cxhub:active{transform:scale(.96)}
-.cxhub.img{padding:0;border:none;background:none;box-shadow:none;width:168px;height:70px}
-.cxhub.img .im{position:absolute;inset:0;background:var(--cxhi) center/contain no-repeat;filter:drop-shadow(0 0 12px rgba(232,137,59,.5))}
-.cxhub.img .tt{position:absolute;left:34%;top:50%;transform:translateY(-50%)}
+.cxhub.img{padding:0;border:none;background:none;box-shadow:none;width:178px;height:74px;border-radius:0}
+.cxhub.img .im{position:absolute;inset:0;background:var(--cxhi) center/100% 100% no-repeat;filter:drop-shadow(0 0 10px rgba(232,137,59,.45))}
 .cxhub.img .bk{display:none}
+/* chữ nằm giữa ô da trống: từ ~29% đến ~93% bề ngang ảnh, giữa theo chiều dọc */
+.cxhub.img .tt{position:absolute;left:29%;right:7%;top:14%;bottom:20%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.cxhub.img .tt b{font-size:16px;letter-spacing:.12em;text-shadow:0 1px 2px #000,0 0 8px rgba(232,137,59,.6)}
+.cxhub.img .tt small{max-width:100%;font-size:8.5px;margin-top:3px;text-shadow:0 1px 2px #000}
+.cxhub.img .n{top:2px;right:2px}
 `;document.head.appendChild(css);
 
 const BOOK='<svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 016.5 3H20v15H6.5A2.5 2.5 0 004 20.5z"/><path d="M4 20.5A2.5 2.5 0 016.5 18H20v3H6.5"/><path d="M9 7.5h7M9 10.5h5"/></svg>';
@@ -18167,7 +18171,7 @@ addEventListener("resize",()=>{if(V&&V.mode==="panel")setTimeout(()=>placePanel(
 
 // --- nút Truyện nổi bật ở sảnh (có ô ảnh ChatGPT tuỳ chọn: ui_comic_btn) ---
 safe(()=>{if(typeof UI_SLOTS==="undefined"||SLOT_BY_ID.ui_comic_btn)return;const b0=UI_SLOTS[0];
-  const s={id:"ui_comic_btn",g:b0.g,n:T("Nút Truyện ở sảnh","Lobby Comics button"),pos:(typeof uiPrompt==="function"?uiPrompt("[F] a horizontal ornate plaque button, about 2.4:1, shaped like an old leather-bound book lying sideways with gold corner guards, a glowing ember-orange bookmark ribbon and a small ember-orange flame emblem on the LEFT third; the RIGHT two-thirds is a smooth dark-brown leather area left EMPTY so the game can print text on it; soft warm rim light; transparent background"):""),
+  const s={id:"ui_comic_btn",g:b0.g,n:T("Nút Truyện ở sảnh","Lobby Comics button"),pos:"Create a single UI button image for a dark-fantasy mobile game. FORMAT: wide horizontal button, aspect ratio about 2.4:1 (e.g. 1536x640). TRANSPARENT background (PNG with alpha) — no white, no black, no backdrop. Only the button itself. SHAPE: an old leather-bound book lying on its side, seen straight from the front, filling the whole width. Left third: the book spine with two thin dark-gold bands, small worn dark-gold corner guards, a narrow ember-orange bookmark ribbon hanging past the bottom edge, and on the spine a small dark iron medallion with a glowing ember-orange flame emblem. Right two-thirds: a flat smooth dark-brown leather panel with one thin dark-gold inner border, COMPLETELY EMPTY (no text, no symbols) because the game prints text on it. STYLE: matte painted dark-fantasy look; deep dark-brown leather, aged dark gold (#c9a46a, not bright yellow), one hot accent only: ember orange (#e8893b). NOT glossy, NOT shiny plastic, NOT cartoon, NOT 3D render, no thick black outlines. DO NOT add any text, letters, numbers or extra decorations.",
    neg:b0.neg,rec:1,opt:true,nsfw:false,big:false,ui:1,note:b0.note,desc:T("Nút «Truyện» ở sảnh (góc trên bên trái). Ảnh ngang ~2.4:1, nền trong suốt, 2/3 bên phải để trống vì game in chữ lên.","The «Comics» button in the lobby. Landscape ~2.4:1, transparent background, keep the right two-thirds empty for text.")};
   UI_SLOTS.push(s);SLOTS.push(s);SLOT_BY_ID[s.id]=s;});
 function hubBtn(){const hub=q("#hub");if(!hub||!hub.classList.contains("on"))return;let b=hub.querySelector(".cxhub");const lob=hub.querySelector(".lobby")||hub;
@@ -18175,11 +18179,16 @@ function hubBtn(){const hub=q("#hub");if(!hub||!hub.classList.contains("on"))ret
   const n=safe(unreadCount)||0;const H=safe(heroEp);const img=typeof UIA!=="undefined"&&UIA.ui_comic_btn;
   b.classList.toggle("img",!!img);if(img)b.style.setProperty("--cxhi",`url(${img})`);
   const sub=n?T(`${n} tập mới`,`${n} new`):H&&H.resume?T("Đọc tiếp · Tập ","Continue · Ep. ")+H.ep.no:T("Biên Niên Màn Tro","Ash Veil Chronicles");
-  b.innerHTML=`${img?'<i class="im"></i>':""}<span class="bk">${BOOK}</span><span class="tt"><b>${T("TRUYỆN","COMICS")}</b><small>${escH(sub)}</small></span>${n?`<span class="n">${n}</span>`:""}`;}
+  b.innerHTML=`${img?'<i class="im"></i>':""}<span class="bk">${BOOK}</span><span class="tt"><b>${T("TRUYỆN","COMICS")}</b><small>${escH(sub)}</small></span>${n?`<span class="n">${n}</span>`:""}`
+  // đặt ngay dưới tiêu đề và dải thông báo (vd. "Seraphine muốn kể chuyện"), không đè lên
+  requestAnimationFrame(()=>{safe(()=>{const lr=lob.getBoundingClientRect();let y=0;
+    lob.querySelectorAll(".ltop,.lbubble,.ltale,.lstory,button,div").forEach(el=>{if(el===b||b.contains(el)||el.closest(".lmenu,.lchar,.lbottom,.lname"))return;const r=el.getBoundingClientRect();
+      if(!r.height||r.height>140||r.left>lr.left+innerWidth*.6||r.top-lr.top>innerHeight*.42)return;if(getComputedStyle(el).visibility==="hidden"||+getComputedStyle(el).opacity===0)return;y=Math.max(y,r.bottom-lr.top);});
+    if(y)b.style.top=(y+10)+"px";});});}
 if(typeof showHub==="function"){const _sh=showHub;showHub=async function(){const r=await _sh.apply(this,arguments);safe(hubBtn);setTimeout(()=>safe(hubBtn),300);return r;};}
 
 // ---------------- SẢNH ----------------
-safe(()=>{if(typeof LOBBY_MENU!=="undefined"&&!LOBBY_MENU.some(m=>m[0]==="comic")){const i=LOBBY_MENU.findIndex(m=>m[0]==="codex");LOBBY_MENU.splice(i>=0?i+1:2,0,["comic","book",T("Truyện","Comics"),()=>showComics()]);}});
+// (không thêm vào menu dọc nữa — đã có nút Truyện nổi bật ở sảnh)
 if(typeof lobbyBadge==="function"){const _lb=lobbyBadge;lobbyBadge=function(k){if(k==="comic"){const n=safe(unreadCount)||0;return n?`<b class="lbg hot">${n}</b>`:"";}return _lb.apply(this,arguments);};}
 // ô truyện trong Xưởng: nút "Đọc" để xem ngay
 if(typeof promptView==="function"){const _pv=promptView;promptView=function(id){const r=_pv.apply(this,arguments);safe(()=>{const s=SLOT_BY_ID[id];if(!s||!s.comic)return;const b=q("#mbody");if(!b||b.querySelector(".cx-tip"))return;
