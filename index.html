@@ -9307,6 +9307,26 @@ function bossKillFx(e){try{const ef=enEl(e)?.querySelector(".ef");const p=ef&&vx
 // bỏ dải tên chiêu nhỏ cũ khi đã có bảng tên chiêu mới (tránh hiện 2 lần)
 {const _emv=enemyMoveVfx;enemyMoveVfx=function(e,m){if(!(SLEEP_MUL&&mvKind(e,m)&&m&&m.n))return _emv.apply(this,arguments);const fa=floatAt;floatAt=function(el,txt,cls){if(typeof cls==="string"&&cls.includes("mname")&&txt===m.n)return;return fa.apply(this,arguments);};try{return _emv.apply(this,arguments);}finally{floatAt=fa;}};}
 
+// ===================== 5.29i — ÂM THANH KHÔNG BỊ MẤT GIỮA CHỪNG =====================
+// Trước: sau 2 lần tạo lại bộ âm thanh hoặc 3 lần iPhone từ chối mở, game KHOÁ hẳn việc khôi phục cho tới khi thoát ra vào lại app
+// → chơi lâu dễ bị câm luôn. Giờ: khoá chỉ tạm thời (8–15 giây), lần chạm sau tự thử lại.
+// iPhone 16.4+/17+: báo phiên âm thanh là "phát lại" để nút gạt im lặng không tắt tiếng game và ít bị ngắt hơn.
+try{if(navigator.audioSession)navigator.audioSession.type="playback";}catch(e){}
+(function(){let blkAt=0;
+  const tick=()=>{try{const now=performance.now();if(typeof AUG==="undefined")return;
+    if(AUG.block){if(!blkAt)blkAt=now;else if(now-blkAt>8000){AUG.block=false;AUG.fails=0;blkAt=0;}}else blkAt=0;
+    if(AUG.rebuilds>=2&&now-AUG.lastRb>15000)AUG.rebuilds=0;
+    const c=AU.ctx;if(c&&c.state!=="running"&&typeof auRevive==="function")auRevive();}catch(e){}};
+  for(const ev of ["pointerdown","touchstart"])addEventListener(ev,tick,{passive:true,capture:true});})();
+// tiếng cho các hiệu ứng mới (bảng tên chiêu, cảnh báo đòn nặng, khoảnh khắc bị hạ)
+(function(){const S=AU.S;
+  S.skillCall=m=>{AU.nz(.22,{fr:600,to:2600,q:1.4,g:.14,a:.03,rev:.3});AU.tone(220*m,.25,{to:330*m,type:"triangle",g:.08,rev:.4});};
+  S.warn=m=>{AU.tone(392,.16,{type:"square",lp:1200,g:.06});AU.tone(392,.16,{type:"square",lp:1200,g:.06,at:.22});AU.tone(60,.3,{g:.4,to:40});};
+  S.fallAway=m=>{AU.nz(.9,{f:"lowpass",fr:900,to:120,g:.18,a:.05,rev:.6});AU.tone(98,.9,{to:49,type:"triangle",g:.14,a:.05,rev:.6});};})();
+{const _es=eSkill;eSkill=function(e,m){const k=mvKind(e,m);if(k&&SLEEP_MUL&&m&&m.n){try{SFX.play("skillCall",1);}catch(x){}}return _es.apply(this,arguments);};}
+{const _he=hfxEdge;let lastW=0;hfxEdge=function(col,dur,str){try{if(col==="255,40,40"&&performance.now()-lastW>800){lastW=performance.now();SFX.play("warn",1);}}catch(x){}return _he.apply(this,arguments);};}
+{const _dm=dfMoment;dfMoment=function(e,boss){const r=_dm.apply(this,arguments);try{const t=Math.max(300,(e._dfxEnd||performance.now()+1300)-performance.now()-480);setTimeout(()=>{try{SFX.play("fallAway",1);}catch(x){}},t);}catch(x){}return r;};}
+
 // ===================== 5.21 — XƯỞNG ẢNH: NHÃN CÔNG CỤ (WAI / ChatGPT) + KÍCH THƯỚC =====================
 function slotTool(s){return (s.gpt||s.ui)?"gpt":"wai";}
 function slotSize(s){if(slotTool(s)==="gpt")return s.gpt||s.land?"1536×1024":(/_anvil|banner|top_bar|hand_tray|hp_|textbox|nameplate|btn/.test(s.id)?"1536×1024":"1024×1024");return s.land?"1216×832":"832×1216";}
@@ -17268,6 +17288,26 @@ function bossKillFx(e){try{const ef=enEl(e)?.querySelector(".ef");const p=ef&&vx
     if(boss)bossKillFx(e);if(DB.ids("en_"+e.id+"_hurt").length)setTimeout(()=>dfMoment(e,boss),boss?120:0);}}catch(x){}return r;};}
 // bỏ dải tên chiêu nhỏ cũ khi đã có bảng tên chiêu mới (tránh hiện 2 lần)
 {const _emv=enemyMoveVfx;enemyMoveVfx=function(e,m){if(!(SLEEP_MUL&&mvKind(e,m)&&m&&m.n))return _emv.apply(this,arguments);const fa=floatAt;floatAt=function(el,txt,cls){if(typeof cls==="string"&&cls.includes("mname")&&txt===m.n)return;return fa.apply(this,arguments);};try{return _emv.apply(this,arguments);}finally{floatAt=fa;}};}
+
+// ===================== 5.29i — ÂM THANH KHÔNG BỊ MẤT GIỮA CHỪNG =====================
+// Trước: sau 2 lần tạo lại bộ âm thanh hoặc 3 lần iPhone từ chối mở, game KHOÁ hẳn việc khôi phục cho tới khi thoát ra vào lại app
+// → chơi lâu dễ bị câm luôn. Giờ: khoá chỉ tạm thời (8–15 giây), lần chạm sau tự thử lại.
+// iPhone 16.4+/17+: báo phiên âm thanh là "phát lại" để nút gạt im lặng không tắt tiếng game và ít bị ngắt hơn.
+try{if(navigator.audioSession)navigator.audioSession.type="playback";}catch(e){}
+(function(){let blkAt=0;
+  const tick=()=>{try{const now=performance.now();if(typeof AUG==="undefined")return;
+    if(AUG.block){if(!blkAt)blkAt=now;else if(now-blkAt>8000){AUG.block=false;AUG.fails=0;blkAt=0;}}else blkAt=0;
+    if(AUG.rebuilds>=2&&now-AUG.lastRb>15000)AUG.rebuilds=0;
+    const c=AU.ctx;if(c&&c.state!=="running"&&typeof auRevive==="function")auRevive();}catch(e){}};
+  for(const ev of ["pointerdown","touchstart"])addEventListener(ev,tick,{passive:true,capture:true});})();
+// tiếng cho các hiệu ứng mới (bảng tên chiêu, cảnh báo đòn nặng, khoảnh khắc bị hạ)
+(function(){const S=AU.S;
+  S.skillCall=m=>{AU.nz(.22,{fr:600,to:2600,q:1.4,g:.14,a:.03,rev:.3});AU.tone(220*m,.25,{to:330*m,type:"triangle",g:.08,rev:.4});};
+  S.warn=m=>{AU.tone(392,.16,{type:"vuông",lp:1200,g:.06});AU.tone(392,.16,{type:"vuông",lp:1200,g:.06,at:.22});AU.tone(60,.3,{g:.4,to:40});};
+  S.fallAway=m=>{AU.nz(.9,{f:"lowpass",fr:900,to:120,g:.18,a:.05,rev:.6});AU.tone(98,.9,{to:49,type:"triangle",g:.14,a:.05,rev:.6});};})();
+{const _es=eSkill;eSkill=function(e,m){const k=mvKind(e,m);if(k&&SLEEP_MUL&&m&&m.n){try{SFX.play("skillCall",1);}catch(x){}}return _es.apply(this,arguments);};}
+{const _he=hfxEdge;let lastW=0;hfxEdge=function(col,dur,str){try{if(col==="255,40,40"&&performance.now()-lastW>800){lastW=performance.now();SFX.play("warn",1);}}catch(x){}return _he.apply(this,arguments);};}
+{const _dm=dfMoment;dfMoment=function(e,boss){const r=_dm.apply(this,arguments);try{const t=Math.max(300,(e._dfxEnd||performance.now()+1300)-performance.now()-480);setTimeout(()=>{try{SFX.play("fallAway",1);}catch(x){}},t);}catch(x){}return r;};}
 
 // ===================== 5.21 — XƯỞNG ẢNH: NHÃN CÔNG CỤ (WAI / ChatGPT) + KÍCH THƯỚC =====================
 function slotTool(s){return (s.gpt||s.ui)?"gpt":"wai";}
